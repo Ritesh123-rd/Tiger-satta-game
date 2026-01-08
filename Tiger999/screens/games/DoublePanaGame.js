@@ -1,0 +1,973 @@
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  Alert,
+  StatusBar,
+  Animated,
+  Easing,
+  Dimensions,
+  ScrollView,
+  Modal,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+
+// Double Pana numbers organized by their sum (add-ank)
+const DOUBLE_PANA_NUMBERS = {
+  0: ['550', '668', '244', '299', '226', '488', '677', '118', '334'],
+  1: ['100', '119', '155', '227', '335', '344', '399', '588', '669'],
+  2: ['200', '110', '228', '255', '336', '499', '660', '688', '778'],
+  3: ['300', '166', '229', '337', '355', '445', '599', '779', '788'],
+  4: ['400', '112', '220', '266', '338', '446', '455', '699', '770'],
+  5: ['500', '113', '122', '177', '339', '366', '447', '556', '889'],
+  6: ['600', '114', '277', '330', '448', '466', '556', '880', '899'],
+  7: ['700', '115', '133', '188', '223', '377', '449', '557', '566'],
+  8: ['800', '116', '224', '233', '288', '440', '477', '558', '990'],
+  9: ['900', '117', '144', '199', '225', '667', '388', '559', '577'],
+};
+
+// Custom Marquee Component
+const MarqueeText = ({ text, style }) => {
+  const animatedValue = useRef(new Animated.Value(0)).current;
+  const [textWidth, setTextWidth] = useState(0);
+  const containerWidth = SCREEN_WIDTH - 140;
+
+  useEffect(() => {
+    if (textWidth > 0) {
+      const startAnimation = () => {
+        animatedValue.setValue(containerWidth);
+        Animated.loop(
+          Animated.timing(animatedValue, {
+            toValue: -textWidth,
+            duration: 8000,
+            easing: Easing.linear,
+            useNativeDriver: true,
+          })
+        ).start();
+      };
+      startAnimation();
+    }
+  }, [textWidth, containerWidth]);
+
+  return (
+    <View style={{ width: containerWidth, overflow: 'hidden', alignItems: 'center' }}>
+      <Animated.Text
+        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
+        style={[style, { transform: [{ translateX: animatedValue }] }]}
+        numberOfLines={1}
+      >
+        {text}   {text}   {text}
+      </Animated.Text>
+    </View>
+  );
+};
+
+export default function DoublePanaGame({ navigation, route }) {
+  const { gameName, gameType } = route.params || { gameName: 'DOUBLE PANA', gameType: 'open' };
+  const [mode, setMode] = useState('easy'); // 'easy' or 'special'
+  const [selectedGameType, setSelectedGameType] = useState('OPEN');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [panaInput, setPanaInput] = useState('');
+  const [points, setPoints] = useState('');
+  const [bids, setBids] = useState([]);
+  const [totalBids, setTotalBids] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
+  const [specialModeInputs, setSpecialModeInputs] = useState({});
+  const [panaSuggestions, setPanaSuggestions] = useState([]);
+
+  // Get all double pana numbers as flat array
+  const getAllDoublePanas = () => {
+    let allPanas = [];
+    Object.values(DOUBLE_PANA_NUMBERS).forEach(panas => {
+      allPanas = [...allPanas, ...panas];
+    });
+    return allPanas;
+  };
+
+  // Filter pana suggestions based on input
+  const handlePanaInputChange = (value) => {
+    setPanaInput(value);
+    if (value.length > 0) {
+      const allPanas = getAllDoublePanas();
+      const filtered = allPanas.filter(pana => pana.startsWith(value));
+      setPanaSuggestions(filtered);
+    } else {
+      setPanaSuggestions([]);
+    }
+  };
+
+  // Select pana from suggestions
+  const selectPanaSuggestion = (pana) => {
+    setPanaInput(pana);
+    setPanaSuggestions([]);
+  };
+
+  // Get current date in DD-MM-YYYY format
+  const getCurrentDate = () => {
+    const date = new Date();
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  // Calculate totals when bids change
+  useEffect(() => {
+    let bidCount = bids.length;
+    let pointSum = bids.reduce((sum, bid) => sum + parseInt(bid.points || 0), 0);
+    setTotalBids(bidCount);
+    setTotalPoints(pointSum);
+  }, [bids]);
+
+  // Check if a number is a palindrome
+  const isPalindrome = (num) => {
+    const str = num.toString();
+    return str === str.split('').reverse().join('');
+  };
+
+  // Handle Add Bid in Easy Mode
+  const handleAddBid = () => {
+    if (!panaInput || panaInput.length !== 3) {
+      Alert.alert('Error', 'Please enter a valid 3-digit pana');
+      return;
+    }
+    // Check for palindrome numbers
+    if (isPalindrome(panaInput)) {
+      Alert.alert('Error', 'Palindrome numbers are not allowed');
+      return;
+    }
+    if (!points || parseInt(points) <= 0) {
+      Alert.alert('Error', 'Please enter valid points');
+      return;
+    }
+
+    const newBid = {
+      id: `${panaInput}-${Date.now()}-${Math.random()}`,
+      pana: panaInput,
+      points: points,
+      type: selectedGameType.toLowerCase(),
+    };
+
+    setBids(prev => [...prev, newBid]);
+    setPanaInput('');
+    setPoints('');
+  };
+
+  // Handle input change in Special Mode
+  const handleSpecialModeInput = (pana, value) => {
+    setSpecialModeInputs(prev => ({
+      ...prev,
+      [pana]: value,
+    }));
+  };
+
+  // Handle Submit in Special Mode
+  const handleSpecialModeSubmit = () => {
+    const newBids = [];
+    Object.keys(specialModeInputs).forEach(pana => {
+      const pointValue = specialModeInputs[pana];
+      if (pointValue && parseInt(pointValue) > 0) {
+        newBids.push({
+          id: `${pana}-${Date.now()}-${Math.random()}`,
+          pana: pana,
+          points: pointValue,
+          type: selectedGameType.toLowerCase(),
+        });
+      }
+    });
+
+    if (newBids.length === 0) {
+      Alert.alert('Error', 'Please enter points for at least one pana');
+      return;
+    }
+
+    Alert.alert(
+      'Success',
+      `${newBids.length} bids submitted!`,
+      [{
+        text: 'OK', onPress: () => {
+          setSpecialModeInputs({});
+        }
+      }]
+    );
+  };
+
+  const handleDeleteBid = (bidId) => {
+    setBids(prev => prev.filter(bid => bid.id !== bidId));
+  };
+
+  const handleSubmit = () => {
+    if (bids.length === 0) {
+      Alert.alert('Error', 'Please add at least one bid');
+      return;
+    }
+    Alert.alert(
+      'Success',
+      `${totalBids} bids submitted for ${totalPoints} points!`,
+      [{
+        text: 'OK', onPress: () => {
+          setBids([]);
+          setPoints('');
+          setPanaInput('');
+        }
+      }]
+    );
+  };
+
+  const renderBidItem = ({ item }) => (
+    <View style={styles.bidRow}>
+      <Text style={styles.bidCell}>{item.pana}</Text>
+      <Text style={styles.bidCell}>{item.points}</Text>
+      <Text style={styles.bidCell}>{item.type}</Text>
+      <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
+        <View style={styles.deleteIconContainer}>
+          <Ionicons name="close" size={12} color="#ca1835" />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
+  // Render Special Mode Number Grid
+  const renderSpecialModeGrid = () => {
+    return (
+      <ScrollView style={styles.specialModeScroll} showsVerticalScrollIndicator={false}>
+        {Object.keys(DOUBLE_PANA_NUMBERS).map(digit => (
+          <View key={digit} style={styles.digitSection}>
+            <View style={styles.digitHeader}>
+              <Text style={styles.digitHeaderText}>{digit}</Text>
+            </View>
+            <View style={styles.panaGrid}>
+              {DOUBLE_PANA_NUMBERS[digit].map(pana => (
+                <View key={pana} style={styles.panaItem}>
+                  <View style={styles.panaNumberBox}>
+                    <Text style={styles.panaNumberText}>{pana}</Text>
+                  </View>
+                  <TextInput
+                    style={styles.panaInput}
+                    placeholder=""
+                    placeholderTextColor="#999"
+                    keyboardType="numeric"
+                    value={specialModeInputs[pana] || ''}
+                    onChangeText={(value) => handleSpecialModeInput(pana, value)}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
+
+      {/* Header with Marquee */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Ionicons name="arrow-back" size={22} color="#000" />
+        </TouchableOpacity>
+
+        <MarqueeText
+          text={`${gameName} - DOUBLE PANA`}
+          style={styles.headerTitle}
+        />
+
+        <View style={styles.balanceChip}>
+          <Ionicons name="wallet-outline" size={14} color="#fff" />
+          <Text style={styles.balanceText}>0.0</Text>
+        </View>
+      </View>
+
+      <View style={styles.content}>
+        {/* Mode Toggle */}
+        <View style={styles.modeToggle}>
+          <TouchableOpacity
+            style={[styles.modeButton, mode === 'easy' && styles.modeButtonActive]}
+            onPress={() => setMode('easy')}
+          >
+            <Text style={[styles.modeButtonText, mode === 'easy' && styles.modeButtonTextActive]}>
+              EASY MODE
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.modeButton, mode === 'special' && styles.modeButtonActiveSpecial]}
+            onPress={() => setMode('special')}
+          >
+            <Text style={[styles.modeButtonText, mode === 'special' && styles.modeButtonTextActive]}>
+              SPECIAL MODE
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {mode === 'easy' ? (
+          <>
+            {/* Easy Mode Content */}
+            {/* Game Type Dropdown */}
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Select Game Type:</Text>
+              <View style={styles.dropdownContainer}>
+                <TouchableOpacity
+                  style={styles.dropdown}
+                  onPress={() => setShowDropdown(!showDropdown)}
+                >
+                  <Text style={styles.dropdownText}>{selectedGameType}</Text>
+                  <Ionicons name="chevron-down" size={20} color="#B8860B" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+
+
+            {/* Pana Input */}
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Enter Double Pana:</Text>
+              <View style={styles.panaInputContainer}>
+                <TextInput
+                  style={styles.panaTextInput}
+                  placeholder="Pana"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  maxLength={3}
+                  value={panaInput}
+                  onChangeText={handlePanaInputChange}
+                />
+                {panaSuggestions.length > 0 && (
+                  <View style={styles.suggestionsDropdown}>
+                    <ScrollView
+                      style={styles.suggestionsScroll}
+                      nestedScrollEnabled={true}
+                      showsVerticalScrollIndicator={true}
+                    >
+                      {panaSuggestions.map((pana, index) => (
+                        <TouchableOpacity
+                          key={`${pana}-${index}`}
+                          style={styles.suggestionItem}
+                          onPress={() => selectPanaSuggestion(pana)}
+                        >
+                          <Text style={styles.suggestionText}>{pana}</Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Points Input */}
+            <View style={styles.inputRow}>
+              <Text style={styles.inputLabel}>Enter Points:</Text>
+              <View style={styles.textInputContainer}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Point"
+                  placeholderTextColor="#999"
+                  keyboardType="numeric"
+                  value={points}
+                  onChangeText={setPoints}
+                />
+              </View>
+            </View>
+
+            {/* Add Button */}
+            <TouchableOpacity style={styles.addButton} onPress={handleAddBid}>
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+
+            {/* Table Header */}
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Pana</Text>
+              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Point</Text>
+              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Type</Text>
+              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Delete</Text>
+            </View>
+
+            {/* Bids List */}
+            <FlatList
+              data={bids}
+              renderItem={renderBidItem}
+              keyExtractor={item => item.id}
+              style={styles.bidsList}
+              showsVerticalScrollIndicator={false}
+              ListEmptyComponent={
+                <View style={styles.emptyList}>
+                  <Text style={styles.emptyText}>No bids added yet</Text>
+                </View>
+              }
+            />
+          </>
+        ) : (
+          <>
+            {/* Special Mode Content */}
+            <View style={styles.specialModeHeader}>
+              <View style={styles.datePickerBtn}>
+                <Ionicons name="calendar-outline" size={16} color="#ca1835" />
+                <Text style={styles.dateText}>{getCurrentDate()}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.dropdownSmall}
+                onPress={() => setShowDropdown(!showDropdown)}
+              >
+                <Text style={styles.dropdownText}>{selectedGameType}</Text>
+                <Ionicons name="chevron-down" size={18} color="#B8860B" />
+              </TouchableOpacity>
+            </View>
+
+
+
+            {renderSpecialModeGrid()}
+          </>
+        )}
+      </View>
+
+      {/* Bottom Bar */}
+      {mode === 'easy' ? (
+        <View style={styles.bottomBar}>
+          <View style={styles.statsContainer}>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Bids</Text>
+              <Text style={styles.statValue}>{totalBids}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statLabel}>Points</Text>
+              <Text style={styles.statValue}>{totalPoints}</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Submit</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <TouchableOpacity style={styles.fullSubmitButton} onPress={handleSpecialModeSubmit}>
+          <Text style={styles.submitButtonText}>Submit</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Game Type Selection Modal */}
+      <Modal
+        visible={showDropdown}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowDropdown(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDropdown(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Game Type</Text>
+            <TouchableOpacity
+              style={[
+                styles.modalOption,
+                selectedGameType === 'OPEN' && styles.modalOptionSelected
+              ]}
+              onPress={() => {
+                setSelectedGameType('OPEN');
+                setShowDropdown(false);
+              }}
+            >
+              <Text style={[
+                styles.modalOptionText,
+                selectedGameType === 'OPEN' && styles.modalOptionTextSelected
+              ]}>OPEN</Text>
+              {selectedGameType === 'OPEN' && (
+                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modalOption,
+                selectedGameType === 'CLOSE' && styles.modalOptionSelected
+              ]}
+              onPress={() => {
+                setSelectedGameType('CLOSE');
+                setShowDropdown(false);
+              }}
+            >
+              <Text style={[
+                styles.modalOptionText,
+                selectedGameType === 'CLOSE' && styles.modalOptionTextSelected
+              ]}>CLOSE</Text>
+              {selectedGameType === 'CLOSE' && (
+                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
+              )}
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F5EDE0',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingTop: 45,
+    backgroundColor: '#F5EDE0',
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#D0D0D0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F0E8Da',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  balanceChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#ca1835',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 18,
+    gap: 4,
+  },
+  balanceText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
+  modeToggle: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    gap: 10,
+  },
+  modeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  modeButtonActive: {
+    backgroundColor: '#2E4A3E',
+    borderColor: '#2E4A3E',
+  },
+  modeButtonActiveSpecial: {
+    backgroundColor: '#ca1835',
+    borderColor: '#ca1835',
+  },
+  modeButtonText: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  modeButtonTextActive: {
+    color: '#fff',
+  },
+  inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    flex: 1,
+  },
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+  },
+  dropdownContainer: {
+    flex: 1.2,
+  },
+  dropdownSmall: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+  },
+  dropdownText: {
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    fontWeight: '500',
+  },
+  dropdownMenu: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    marginBottom: 8,
+    marginLeft: '40%',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E8E8E8',
+  },
+  dropdownItemText: {
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+  },
+  textInput: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 25,
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    textAlign: 'center',
+  },
+  textInputContainer: {
+    flex: 1.2,
+  },
+  panaInputContainer: {
+    flex: 1.2,
+    position: 'relative',
+    zIndex: 1000,
+    width: '100%',
+  },
+  // CHANGED: Styled to match 'textInput' and 'dropdown' exactly
+  panaTextInput: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 25,
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    textAlign: 'center',
+  },
+  suggestionsDropdown: {
+    position: 'absolute',
+    top: 50, // Adjusted position to fit new smaller input size
+    left: 0,
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    maxHeight: 250,
+    zIndex: 1001,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  suggestionsScroll: {
+    maxHeight: 250,
+  },
+  suggestionItem: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  suggestionText: {
+    fontSize: 18,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    textAlign: 'center',
+  },
+  addButton: {
+    backgroundColor: '#ca1835',
+    paddingVertical: 14,
+    borderRadius: 25,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  tableHeader: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 5,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  tableHeaderText: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '600',
+    fontFamily: 'RaleighStdDemi',
+  },
+  bidsList: {
+    flex: 1,
+  },
+  bidRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    marginBottom: 6,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#F0F0F0',
+  },
+  bidCell: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  deleteBtn: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteIconContainer: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: '#ca1835',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  emptyList: {
+    paddingVertical: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: '#999',
+    fontFamily: 'RaleighStdDemi',
+  },
+  bottomBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    paddingBottom: 25,
+    backgroundColor: '#F5EDE0',
+    borderTopWidth: 2,
+    borderTopColor: '#ca1835',
+  },
+  statsContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  statItem: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#666',
+    fontFamily: 'RaleighStdDemi',
+  },
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+  },
+  submitButton: {
+    backgroundColor: '#ca1835',
+    paddingHorizontal: 45,
+    paddingVertical: 14,
+    borderRadius: 8,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  fullSubmitButton: {
+    backgroundColor: '#ca1835',
+    paddingVertical: 18,
+    alignItems: 'center',
+  },
+  // Special Mode Styles
+  specialModeHeader: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 15,
+  },
+  datePickerBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+    gap: 8,
+  },
+  dateText: {
+    fontSize: 13,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+  },
+  specialModeScroll: {
+    flex: 1,
+  },
+  digitSection: {
+    marginBottom: 15,
+  },
+  digitHeader: {
+    backgroundColor: '#2E4A3E',
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+  digitHeaderText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  panaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  panaItem: {
+    flexDirection: 'row',
+    width: '48%',
+    marginBottom: 8,
+  },
+  panaNumberBox: {
+    backgroundColor: '#ca1835',
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  panaNumberText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  panaInput: {
+    flex: 1,
+    backgroundColor: '#E8E4DD',
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8,
+    fontSize: 14,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    textAlign: 'center',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    width: SCREEN_WIDTH * 0.8,
+    maxWidth: 320,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 10,
+    backgroundColor: '#F5EDE0',
+    borderWidth: 2,
+    borderColor: '#E8E8E8',
+  },
+  modalOptionSelected: {
+    backgroundColor: '#E8F5E9',
+    borderColor: '#2E4A3E',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  modalOptionTextSelected: {
+    color: '#2E4A3E',
+  },
+});
