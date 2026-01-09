@@ -117,7 +117,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.balanceText}>₹ {balance.toFixed(1)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
-            <Ionicons name="notifications" size={24} color="#ca1835" style={styles.notificationIcon} />
+            <Ionicons name="notifications" size={24} color="#C36578" style={styles.notificationIcon} />
           </TouchableOpacity>
         </View>
       </View>
@@ -129,7 +129,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('PSStarline')}
         >
           <View style={styles.iconCircle}>
-            <Ionicons name="play" size={22} color="#000" />
+            <MaterialIcons name="play-arrow" size={26} color="#000" />
           </View>
           <Text style={styles.gameButtonText}>PS Starline</Text>
         </TouchableOpacity>
@@ -139,7 +139,7 @@ export default function HomeScreen({ navigation }) {
           onPress={() => navigation.navigate('PSJackpot')}
         >
           <View style={styles.iconCircle}>
-            <Ionicons name="play" size={22} color="#000" />
+            <MaterialIcons name="play-arrow" size={26} color="#000" />
           </View>
           <Text style={styles.gameButtonText}>PS Jackpot</Text>
         </TouchableOpacity>
@@ -241,7 +241,7 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('MyBids')}
         >
-          <Ionicons name="newspaper" size={24} color="#700f2b" />
+          <MaterialCommunityIcons name="gavel" size={26} color="#555" />
           <Text style={styles.navText}>My Bids</Text>
         </TouchableOpacity>
 
@@ -249,13 +249,13 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('Passbook')}
         >
-          <Ionicons name="book" size={24} color="#700f2b" />
+          <MaterialCommunityIcons name="checkbook" size={26} color="#555" />
           <Text style={styles.navText}>Passbook</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
           <View style={styles.homeCircle}>
-            <Ionicons name="home" size={28} color="#fff" />
+            <Ionicons name="home-outline" size={30} color="#fff" />
           </View>
         </TouchableOpacity>
 
@@ -263,12 +263,12 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('Funds')}
         >
-          <Ionicons name="wallet" size={24} color="#700f2b" />
+          <FontAwesome5 name="landmark" size={22} color="#555" />
           <Text style={styles.navText}>Funds</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="chatbubbles" size={24} color="#700f2b" />
+          <Ionicons name="chatbubble-ellipses-outline" size={26} color="#555" />
           <Text style={styles.navText}>Support</Text>
         </TouchableOpacity>
       </View>
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // backgroundColor: '#ca1835', // Transparent/matching background
+    // backgroundColor: '#C36578', // Transparent/matching background
     paddingHorizontal: 15,
     paddingVertical: 12,
     paddingTop: 45, // Adjusted for status bar
@@ -444,22 +444,21 @@ const styles = StyleSheet.create({
   menuButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835', // Pill background color
+    backgroundColor: '#C36578',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 25,
-    // Shadow for depth
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 12,
   },
   headerTitle: {
     color: '#fff',
     fontSize: 18,
     marginLeft: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   headerRight: {
     flexDirection: 'row',
@@ -468,22 +467,22 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835', // Matching pill color
+    backgroundColor: '#C36578',
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 25,
     marginRight: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.45,
+    shadowRadius: 8,
+    elevation: 12,
   },
   balanceText: {
     color: '#fff',
     fontSize: 14,
     marginLeft: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   notificationIcon: {
     marginLeft: 5,
@@ -492,6 +491,7 @@ const styles = StyleSheet.create({
   gameButtonsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    marginTop: -3,
     paddingHorizontal: 15,
     paddingVertical: 15,
   },
@@ -499,39 +499,39 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#700f2b', // Dark Brown
-    paddingVertical: 8, // Less vertical padding as circle is bigger
-    borderRadius: 30, // Full pill
+    backgroundColor: '#6B3A3A',
+    paddingVertical: 8,
+    borderRadius: 30,
     marginHorizontal: 5,
     borderWidth: 2,
-    borderColor: '#000', // Thick black border
+    borderColor: '#000',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.35,
-    shadowRadius: 6,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 18,
     height: 45,
-    paddingHorizontal: 15, // Add horizontal padding for justify
-    justifyContent: 'flex-start', // Align start to control spacing
+    paddingHorizontal: 15,
+    justifyContent: 'flex-start',
     paddingLeft: 2,
   },
   gameButtonText: {
     color: '#fff',
-    fontSize: 18, // Bigger
-    marginLeft: 12, // More spacing
-    fontFamily: 'RaleighStdDemi',
+    fontSize: 18,
+    marginLeft: 12,
+    fontFamily: 'Raleway_600SemiBold',
   },
   actionWrapper: {
-    backgroundColor: '#FFEBC8', // Beige container
+    backgroundColor: '#FFEBC8',
     marginHorizontal: 15,
     borderRadius: 20,
-    paddingVertical: 15,
-    marginBottom: 15,
+    paddingVertical: 8,
+    marginBottom: 8,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 15,
   },
   contactContainer: {
     flexDirection: 'row',
@@ -548,13 +548,13 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginRight: 7,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#ddd',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-    height: 37,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 15,
+    height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
     paddingHorizontal: 15,
@@ -568,22 +568,22 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginLeft: 7,
     borderWidth: 1,
-    borderColor: '#333',
+    borderColor: '#ddd',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 3,
-    elevation: 5,
-    height: 37,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 15,
+    height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
     paddingHorizontal: 15,
   },
   contactText: {
-    fontSize: 18, // Bigger
+    fontSize: 16,
     marginLeft: 12,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_400Regular',
   },
   actionButtonsContainer: {
     flexDirection: 'row',
@@ -600,11 +600,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginRight: 7,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-    height: 37,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 18,
+    height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
     paddingHorizontal: 15,
@@ -618,11 +618,11 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     marginLeft: 7,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4.65,
-    elevation: 8,
-    height: 37,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.55,
+    shadowRadius: 10,
+    elevation: 18,
+    height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
     paddingHorizontal: 15,
@@ -631,7 +631,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16, // Keep 16 or 17
     marginLeft: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   iconCircle: {
     width: 34,
@@ -641,10 +641,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6, // Increased from 0.3
-    shadowRadius: 5,
-    elevation: 8, // Increased elevation
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.6,
+    shadowRadius: 8,
+    elevation: 12,
   },
   gamesList: {
     flex: 1,
@@ -654,53 +654,55 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 15,
-    marginBottom: 12,
+    padding: 10,
+    marginBottom: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 10,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 12,
+    elevation: 18,
+    borderWidth: 0.5,
+    borderColor: 'rgba(0,0,0,0.08)',
   },
   gameIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 10,
-    backgroundColor: '#ca1835',
+    width: 55,
+    height: 55,
+    borderRadius: 12,
+    backgroundColor: '#C36578',
     justifyContent: 'center',
     alignItems: 'center',
   },
   gameIconText: {
     color: '#fff',
-    fontSize: 18,
-    fontFamily: 'RaleighStdDemi',
+    fontSize: 28,
+    fontFamily: 'Poppins_500Medium',
   },
   gameInfo: {
     flex: 1,
     marginLeft: 12,
   },
   gameName: {
-    fontSize: 23,
+    fontSize: 22,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   gameCode: {
-    fontSize: 23,
+    fontSize: 20,
     color: '#4CAF50',
-    marginTop: 2,
-    fontFamily: 'RaleighStdDemi',
+    marginTop: -3,
+    fontFamily: 'Poppins_500Medium',
   },
   gameStatus: {
-    fontSize: 16, // Fixed missing value
+    fontSize: 14,
     color: '#D32F2F',
     marginTop: 4,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_400Regular',
   },
   gameTime: {
     fontSize: 12,
     color: '#666',
     marginTop: 2,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_400Regular',
   },
   gameActions: {
     justifyContent: 'space-between',
@@ -718,7 +720,7 @@ const styles = StyleSheet.create({
   closedBadgeText: {
     color: '#fff',
     fontSize: 12,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   playNowBadge: {
     backgroundColor: '#4CAF50',
@@ -729,14 +731,16 @@ const styles = StyleSheet.create({
   playNowText: {
     color: '#fff',
     fontSize: 12,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   bottomNav: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    paddingVertical: 8,
+    paddingVertical: 10,
+    paddingBottom: 12,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
+    alignItems: 'center',
   },
   navItem: {
     flex: 1,
@@ -744,26 +748,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   navItemActive: {
-    marginTop: -20,
+    // Home stays inside footer now
   },
   homeCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ca1835',
+    width: 55,
+    height: 55,
+    borderRadius: 27.5,
+    backgroundColor: '#C36578',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 15,
   },
   navText: {
     fontSize: 11,
-    color: '#8B6F7E',
+    color: '#555',
     marginTop: 4,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   // DRAWER STYLES
   drawerContainer: {
@@ -809,7 +813,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: '#ca1835', // Matching reddish tone
+    backgroundColor: '#C36578', // Matching reddish tone
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -820,19 +824,19 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   userPhone: {
     fontSize: 14,
     color: '#666',
     marginTop: 2,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   userSince: {
     fontSize: 12,
     color: '#719CB0', // Blue-ish tone from screenshot
     marginTop: 2,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   closeButton: {
     padding: 5,
@@ -852,7 +856,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#ca1835', // Reddish/Pink circle
+    backgroundColor: '#C36578', // Reddish/Pink circle
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 15,
@@ -869,7 +873,7 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
   versionText: {
     textAlign: 'center',
@@ -877,6 +881,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     padding: 20,
     marginBottom: 20,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Roboto_700Bold',
   },
 });

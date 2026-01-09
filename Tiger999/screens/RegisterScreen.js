@@ -50,7 +50,7 @@ export default function RegisterScreen({ navigation }) {
         {/* Phone Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIcon}>
-            <Ionicons name="phone-portrait" size={24} color="#ca1835" />
+            <Ionicons name="phone-portrait" size={24} color="#C36578" />
           </View>
           <TextInput
             style={styles.input}
@@ -66,7 +66,7 @@ export default function RegisterScreen({ navigation }) {
         {/* Username Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIcon}>
-            <Ionicons name="person" size={24} color="#ca1835" />
+            <Ionicons name="person" size={24} color="#C36578" />
           </View>
           <TextInput
             style={styles.input}
@@ -80,7 +80,7 @@ export default function RegisterScreen({ navigation }) {
         {/* Password Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIcon}>
-            <Ionicons name="lock-closed" size={24} color="#ca1835" />
+            <Ionicons name="lock-closed" size={24} color="#C36578" />
           </View>
           <TextInput
             style={styles.input}
@@ -95,7 +95,7 @@ export default function RegisterScreen({ navigation }) {
         {/* Confirm Password Input */}
         <View style={styles.inputContainer}>
           <View style={styles.inputIcon}>
-            <Ionicons name="lock-closed" size={24} color="#ca1835" />
+            <Ionicons name="lock-closed" size={24} color="#C36578" />
           </View>
           <TextInput
             style={styles.input}
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   registerButton: {
     width: '90%',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: 'center',

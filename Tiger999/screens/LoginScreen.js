@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
   phoneIcon: {
     width: 60,
     height: 60,
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   loginButton: {
     width: '80%',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 15,
     borderRadius: 30,
     alignItems: 'center',

@@ -55,6 +55,24 @@ import ChangePasswordScreen from './screens/ChangePasswordScreen';
 const Stack = createStackNavigator();
 
 import { useFonts } from 'expo-font';
+import {
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+  Poppins_700Bold,
+} from '@expo-google-fonts/poppins';
+import {
+  Roboto_400Regular,
+  Roboto_500Medium,
+  Roboto_700Bold,
+  Roboto_900Black,
+} from '@expo-google-fonts/roboto';
+import {
+  Raleway_400Regular,
+  Raleway_500Medium,
+  Raleway_600SemiBold,
+  Raleway_700Bold,
+} from '@expo-google-fonts/raleway';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 
@@ -81,7 +99,21 @@ const loadingStyles = StyleSheet.create({
 
 export default function App() {
   const [loaded, error] = useFonts({
-    'RaleighStdDemi': require('./assets/fonts/RaleighStd-Demi.otf'),
+    // Custom Fonts
+    'ModernSans': require('./assets/fonts/ModernSans-Regular.ttf'),
+    // Google Fonts
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+    Poppins_700Bold,
+    Roboto_400Regular,
+    Roboto_500Medium,
+    Roboto_700Bold,
+    Roboto_900Black,
+    Raleway_400Regular,
+    Raleway_500Medium,
+    Raleway_600SemiBold,
+    Raleway_700Bold,
   });
 
   useEffect(() => {

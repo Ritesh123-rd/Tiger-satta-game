@@ -227,7 +227,7 @@ export default function DoublePanaGame({ navigation, route }) {
       <Text style={styles.bidCell}>{item.type}</Text>
       <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
         <View style={styles.deleteIconContainer}>
-          <Ionicons name="close" size={12} color="#ca1835" />
+          <Ionicons name="close" size={12} color="#C36578" />
         </View>
       </TouchableOpacity>
     </View>
@@ -383,10 +383,10 @@ export default function DoublePanaGame({ navigation, route }) {
 
             {/* Table Header */}
             <View style={styles.tableHeader}>
-              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Pana</Text>
-              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Point</Text>
-              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Type</Text>
-              <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Delete</Text>
+              <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Pana</Text>
+              <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Point</Text>
+              <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Type</Text>
+              <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Delete</Text>
             </View>
 
             {/* Bids List */}
@@ -408,7 +408,7 @@ export default function DoublePanaGame({ navigation, route }) {
             {/* Special Mode Content */}
             <View style={styles.specialModeHeader}>
               <View style={styles.datePickerBtn}>
-                <Ionicons name="calendar-outline" size={16} color="#ca1835" />
+                <Ionicons name="calendar-outline" size={16} color="#C36578" />
                 <Text style={styles.dateText}>{getCurrentDate()}</Text>
               </View>
               <TouchableOpacity
@@ -542,7 +542,7 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 18,
@@ -578,8 +578,8 @@ const styles = StyleSheet.create({
     borderColor: '#2E4A3E',
   },
   modeButtonActiveSpecial: {
-    backgroundColor: '#ca1835',
-    borderColor: '#ca1835',
+    backgroundColor: '#C36578',
+    borderColor: '#C36578',
   },
   modeButtonText: {
     fontSize: 13,
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   addButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     height: 22,
     borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#ca1835',
+    borderColor: '#C36578',
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -799,7 +799,7 @@ const styles = StyleSheet.create({
     paddingBottom: 25,
     backgroundColor: '#F5EDE0',
     borderTopWidth: 2,
-    borderTopColor: '#ca1835',
+    borderTopColor: '#C36578',
   },
   statsContainer: {
     flex: 1,
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
   },
   submitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 45,
     paddingVertical: 14,
     borderRadius: 8,
@@ -833,7 +833,7 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
   },
   fullSubmitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 18,
     alignItems: 'center',
   },
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   panaNumberBox: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 12,
     paddingHorizontal: 15,
     borderTopLeftRadius: 8,

@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -335,8 +335,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   modeButtonActive: {
-    backgroundColor: '#ca1835',
-    borderColor: '#ca1835',
+    backgroundColor: '#C36578',
+    borderColor: '#C36578',
   },
   modeText: {
     fontSize: 14,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
   },
   addButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: 'center',
@@ -405,12 +405,12 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
     borderBottomWidth: 2,
-    borderBottomColor: '#ca1835',
+    borderBottomColor: '#C36578',
   },
   tableHeaderText: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#ca1835',
+    color: '#C36578',
     textAlign: 'center',
     fontFamily: 'RaleighStdDemi',
   },
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
   },
   submitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 30,
     paddingVertical: 12,
     borderRadius: 25,

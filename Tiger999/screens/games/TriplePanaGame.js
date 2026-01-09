@@ -136,7 +136,7 @@ export default function TriplePanaGame({ navigation, route }) {
         {/* Date and Game Type Row */}
         <View style={styles.topRow}>
           <View style={styles.datePickerBtn}>
-            <Ionicons name="calendar-outline" size={16} color="#ca1835" />
+            <Ionicons name="calendar-outline" size={16} color="#C36578" />
             <Text style={styles.dateText}>{getCurrentDate()}</Text>
           </View>
           <TouchableOpacity
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 18,
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   panaNumberBox: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 14,
     paddingHorizontal: 18,
     borderTopLeftRadius: 10,
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   submitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',

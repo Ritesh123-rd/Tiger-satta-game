@@ -71,7 +71,7 @@ export default function JodiBulkGame({ navigation, route }) {
             <Text style={styles.bidCell}>{item.points}</Text>
             <Text style={styles.bidCell}>{item.type}</Text>
             <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
-                <View style={styles.deleteIconContainer}><Ionicons name="close" size={12} color="#ca1835" /></View>
+                <View style={styles.deleteIconContainer}><Ionicons name="close" size={12} color="#C36578" /></View>
             </TouchableOpacity>
         </View>
     );
@@ -117,10 +117,10 @@ export default function JodiBulkGame({ navigation, route }) {
                 </View>
 
                 <View style={styles.tableHeader}>
-                    <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Jodi</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Point</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Type</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#ca1835' }]}>Delete</Text>
+                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Jodi</Text>
+                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Point</Text>
+                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Type</Text>
+                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Delete</Text>
                 </View>
 
                 <FlatList data={bids} renderItem={renderBidItem} keyExtractor={item => item.id} style={styles.bidsList} showsVerticalScrollIndicator={false}
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: 45, backgroundColor: '#F5EDE0' },
     backButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0E8Da' },
     headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi', textTransform: 'uppercase' },
-    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ca1835', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 18, gap: 4 },
+    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 18, gap: 4 },
     balanceText: { color: '#fff', fontSize: 12, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
     content: { flex: 1, paddingHorizontal: 15, paddingTop: 5 },
     inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
     pointsInput: { flex: 1.5, backgroundColor: '#fff', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 25, fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi', borderWidth: 1, borderColor: '#E8E8E8', textAlign: 'center' },
     numberPad: { marginVertical: 12 },
     numberRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
-    numberButton: { width: (SCREEN_WIDTH - 70) / 5, height: 48, backgroundColor: '#ca1835', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+    numberButton: { width: (SCREEN_WIDTH - 70) / 5, height: 48, backgroundColor: '#C36578', borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
     numberText: { color: '#fff', fontSize: 22, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
     tableHeader: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 5 },
     tableHeaderText: { flex: 1, textAlign: 'center', fontSize: 13, fontWeight: '600', fontFamily: 'RaleighStdDemi' },
@@ -177,15 +177,15 @@ const styles = StyleSheet.create({
     bidRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, marginBottom: 6, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F0F0F0' },
     bidCell: { flex: 1, textAlign: 'center', fontSize: 14, color: '#333', fontFamily: 'RaleighStdDemi' },
     deleteBtn: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    deleteIconContainer: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#ca1835', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
+    deleteIconContainer: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#C36578', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
     emptyList: { paddingVertical: 40, alignItems: 'center' },
     emptyText: { fontSize: 14, color: '#999', fontFamily: 'RaleighStdDemi' },
-    bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, paddingBottom: 25, backgroundColor: '#F5EDE0', borderTopWidth: 2, borderTopColor: '#ca1835' },
+    bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, paddingBottom: 25, backgroundColor: '#F5EDE0', borderTopWidth: 2, borderTopColor: '#C36578' },
     statsContainer: { flex: 1, flexDirection: 'row' },
     statItem: { flex: 1, alignItems: 'center' },
     statLabel: { fontSize: 13, color: '#666', fontFamily: 'RaleighStdDemi' },
     statValue: { fontSize: 18, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi' },
-    submitButton: { backgroundColor: '#ca1835', paddingHorizontal: 45, paddingVertical: 14, borderRadius: 8 },
+    submitButton: { backgroundColor: '#C36578', paddingHorizontal: 45, paddingVertical: 14, borderRadius: 8 },
     submitButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
     modalContent: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 20, paddingHorizontal: 25, width: SCREEN_WIDTH * 0.8, maxWidth: 320, elevation: 10 },

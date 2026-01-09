@@ -52,7 +52,7 @@ export default function RedJodiGame({ navigation, route }) {
 
             <ScrollView style={styles.content}>
                 <View style={styles.topRow}>
-                    <View style={styles.datePickerBtn}><Ionicons name="calendar-outline" size={16} color="#ca1835" /><Text style={styles.dateText}>{getCurrentDate()}</Text></View>
+                    <View style={styles.datePickerBtn}><Ionicons name="calendar-outline" size={16} color="#C36578" /><Text style={styles.dateText}>{getCurrentDate()}</Text></View>
                     <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
                         <Text style={styles.dropdownText}>{selectedGameType}</Text>
                         <Ionicons name="chevron-down" size={18} color="#B8860B" />
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: 45, backgroundColor: '#F5EDE0' },
     backButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0E8Da' },
     headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi', textTransform: 'uppercase' },
-    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#ca1835', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 18, gap: 4 },
+    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 18, gap: 4 },
     balanceText: { color: '#fff', fontSize: 12, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
     content: { flex: 1, paddingHorizontal: 15, paddingTop: 10 },
     topRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
     inputGroup: { marginBottom: 15 },
     inputLabel: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi', marginBottom: 8 },
     textInput: { backgroundColor: '#fff', paddingHorizontal: 15, paddingVertical: 14, borderRadius: 12, fontSize: 16, color: '#000', fontFamily: 'RaleighStdDemi', borderWidth: 1, borderColor: '#E8E8E8', textAlign: 'center' },
-    submitButton: { backgroundColor: '#ca1835', paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginTop: 20, marginBottom: 30 },
+    submitButton: { backgroundColor: '#C36578', paddingVertical: 16, borderRadius: 12, alignItems: 'center', marginTop: 20, marginBottom: 30 },
     submitButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
     modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
     modalContent: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 20, paddingHorizontal: 25, width: SCREEN_WIDTH * 0.8, maxWidth: 320, elevation: 10 },

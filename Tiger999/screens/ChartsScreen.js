@@ -14,7 +14,7 @@ export default function ChartsScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#ca1835" />
+            <StatusBar barStyle="light-content" backgroundColor="#C36578" />
 
             {/* Header */}
             <View style={styles.header}>
@@ -30,7 +30,7 @@ export default function ChartsScreen({ navigation }) {
                 {chartItems.map((item) => (
                     <TouchableOpacity key={item.id} style={styles.chartCard}>
                         <View style={styles.chartIcon}>
-                            <Ionicons name="bar-chart" size={28} color="#ca1835" />
+                            <Ionicons name="bar-chart" size={28} color="#C36578" />
                         </View>
                         <View style={styles.chartInfo}>
                             <Text style={styles.chartName}>{item.name}</Text>
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#ca1835',
+        backgroundColor: '#C36578',
         paddingHorizontal: 15,
         paddingVertical: 15,
         paddingTop: 45,

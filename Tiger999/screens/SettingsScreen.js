@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   sectionHeader: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 15,
     paddingHorizontal: 20,
     borderTopLeftRadius: 15,

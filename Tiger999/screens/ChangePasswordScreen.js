@@ -41,7 +41,7 @@ export default function ChangePasswordScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor="#ca1835" />
+            <StatusBar barStyle="light-content" backgroundColor="#C36578" />
 
             {/* Header */}
             <View style={styles.header}>
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#ca1835',
+        backgroundColor: '#C36578',
         paddingHorizontal: 15,
         paddingVertical: 15,
         paddingTop: 45,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         fontFamily: 'RaleighStdDemi',
     },
     submitButton: {
-        backgroundColor: '#ca1835',
+        backgroundColor: '#C36578',
         borderRadius: 12,
         height: 55,
         justifyContent: 'center',

@@ -134,7 +134,7 @@ export default function SingleDigitBulkGame({ navigation, route }) {
 
         <View style={styles.dateRow}>
           <View style={styles.dateBox}>
-            <Ionicons name="calendar" size={20} color="#ca1835" />
+            <Ionicons name="calendar" size={20} color="#C36578" />
             <Text style={styles.dateText}>{date}</Text>
           </View>
           <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 15,
@@ -301,8 +301,8 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   modeButtonActive: {
-    backgroundColor: '#ca1835',
-    borderColor: '#ca1835',
+    backgroundColor: '#C36578',
+    borderColor: '#C36578',
   },
   modeText: {
     fontSize: 14,
@@ -360,7 +360,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   digitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
   },
   submitButton: {
-    backgroundColor: '#ca1835',
+    backgroundColor: '#C36578',
     paddingVertical: 15,
     borderRadius: 10,
     alignItems: 'center',
