@@ -12,7 +12,8 @@ import {
   Dimensions,
   Easing,
   SafeAreaView,
-  Share
+  Share,
+  Image
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
@@ -22,6 +23,8 @@ const DRAWER_WIDTH = SCREEN_WIDTH * 0.8; // 80% screen width
 export default function HomeScreen({ navigation }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [balance, setBalance] = useState(0.0);
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [selectedGame, setSelectedGame] = useState(null);
 
 
   // Animation value for the drawer slide (starts off-screen to the left)
@@ -113,8 +116,8 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.headerRight}>
           <TouchableOpacity onPress={() => navigation.navigate('AddFund')} style={styles.balanceChip}>
-            <Ionicons name="wallet" size={18} color="#fff" />
-            <Text style={styles.balanceText}>₹ {balance.toFixed(1)}</Text>
+            <Text style={styles.rupeeSymbol}>₹</Text>
+            <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('Notification')}>
             <Ionicons name="notifications" size={24} color="#C36578" style={styles.notificationIcon} />
@@ -150,16 +153,12 @@ export default function HomeScreen({ navigation }) {
         {/* Contact Buttons */}
         <View style={styles.contactContainer}>
           <TouchableOpacity style={styles.contactButton} onPress={makeCall}>
-            <View style={[styles.iconCircle, { backgroundColor: '#007AFF' }]}>
-              <Ionicons name="call" size={20} color="#fff" />
-            </View>
+            <Image source={require('../assets/Home-Banner/call.png')} style={styles.contactIcon} />
             <Text style={styles.contactText}>1234567890</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.contactButtonWhatsapp} onPress={openWhatsApp}>
-            <View style={[styles.iconCircle, { backgroundColor: '#25D366' }]}>
-              <Ionicons name="logo-whatsapp" size={20} color="#fff" />
-            </View>
+            <Image source={require('../assets/Home-Banner/iwp.png')} style={styles.contactIcon} />
             <Text style={styles.contactText}>1234567890</Text>
           </TouchableOpacity>
         </View>
@@ -170,7 +169,7 @@ export default function HomeScreen({ navigation }) {
             style={styles.addMoneyButton}
             onPress={() => navigation.navigate('AddFund')}
           >
-            <View style={styles.iconCircle}>
+            <View style={styles.actionIconCircle}>
               <FontAwesome5 name="rupee-sign" size={20} color="#4CAF50" />
             </View>
             <Text style={styles.actionButtonText}>ADD MONEY</Text>
@@ -180,7 +179,7 @@ export default function HomeScreen({ navigation }) {
             style={styles.withdrawButton}
             onPress={() => navigation.navigate('WithdrawFund')}
           >
-            <View style={styles.iconCircle}>
+            <View style={styles.actionIconCircle}>
               <Ionicons name="cash-outline" size={22} color="#D32F2F" />
             </View>
             <Text style={styles.actionButtonText}>WITHDRAW</Text>
@@ -209,7 +208,7 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <View style={styles.gameInfo}>
-              <Text style={styles.gameName}>{game.name}</Text>
+              <Text style={styles.gameName} numberOfLines={1} adjustsFontSizeToFit>{game.name}</Text>
               <Text style={styles.gameCode}>{game.code}</Text>
               <Text style={[styles.gameStatus, { color: game.isOpen ? '#4CAF50' : '#D32F2F' }]}>
                 {game.status}
@@ -218,7 +217,13 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <View style={styles.gameActions}>
-              <TouchableOpacity style={styles.infoButton}>
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={() => {
+                  setSelectedGame(game);
+                  setInfoModalVisible(true);
+                }}
+              >
                 <Ionicons name="information-circle" size={24} color="#FFC107" />
               </TouchableOpacity>
               {game.isOpen ? (
@@ -241,7 +246,7 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('MyBids')}
         >
-          <MaterialCommunityIcons name="gavel" size={26} color="#555" />
+          <Image source={require('../assets/footer-icons/bids_new.png')} style={[styles.navIcon, { tintColor: '#000' }]} />
           <Text style={styles.navText}>My Bids</Text>
         </TouchableOpacity>
 
@@ -249,13 +254,13 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('Passbook')}
         >
-          <MaterialCommunityIcons name="checkbook" size={26} color="#555" />
+          <Image source={require('../assets/footer-icons/passbook.png')} style={[styles.navIcon, { tintColor: '#000' }]} />
           <Text style={styles.navText}>Passbook</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.navItem, styles.navItemActive]}>
           <View style={styles.homeCircle}>
-            <Ionicons name="home-outline" size={30} color="#fff" />
+            <Image source={require('../assets/footer-icons/home.png')} style={styles.homeIcon} />
           </View>
         </TouchableOpacity>
 
@@ -263,12 +268,12 @@ export default function HomeScreen({ navigation }) {
           style={styles.navItem}
           onPress={() => navigation.navigate('Funds')}
         >
-          <FontAwesome5 name="landmark" size={22} color="#555" />
+          <Image source={require('../assets/footer-icons/bank2.png')} style={[styles.navIcon, { tintColor: '#000' }]} />
           <Text style={styles.navText}>Funds</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="chatbubble-ellipses-outline" size={26} color="#555" />
+          <Image source={require('../assets/footer-icons/chat_new.png')} style={[styles.navIcon, { tintColor: '#000' }]} />
           <Text style={styles.navText}>Support</Text>
         </TouchableOpacity>
       </View>
@@ -423,6 +428,66 @@ export default function HomeScreen({ navigation }) {
           </Animated.View>
         </View>
       </Modal>
+
+      {/* Game Info Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={infoModalVisible}
+        onRequestClose={() => setInfoModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.infoModalOverlay}
+          activeOpacity={1}
+          onPress={() => setInfoModalVisible(false)}
+        >
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.infoModalContent}
+            onPress={() => { }}
+          >
+            {selectedGame && (
+              <>
+                <View style={styles.infoModalHeader}>
+                  <Text style={styles.infoModalTitle}>{selectedGame.name}</Text>
+                  <TouchableOpacity onPress={() => setInfoModalVisible(false)} style={styles.infoModalClose}>
+                    <Ionicons name="close-circle" size={28} color="#ddd" />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Open Bid Time */}
+                <View style={styles.timeRow}>
+                  <View style={styles.timeLabelContainer}>
+                    <Ionicons name="time-outline" size={22} color="#C36578" style={styles.timeIcon} />
+                    <Text style={styles.timeLabel}>Open Bid Time</Text>
+                  </View>
+                  <Text style={styles.timeValue}>
+                    {selectedGame.time ? selectedGame.time.split(' - ')[0] : '--:--'}
+                  </Text>
+                </View>
+
+                {/* Close Bid Time */}
+                <View style={styles.timeRow}>
+                  <View style={styles.timeLabelContainer}>
+                    <Ionicons name="time-outline" size={22} color="#C36578" style={styles.timeIcon} />
+                    <Text style={styles.timeLabel}>Close Bid Time</Text>
+                  </View>
+                  <Text style={styles.timeValue}>
+                    {selectedGame.time ? selectedGame.time.split(' - ')[1] : '--:--'}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.infoModalOkButton}
+                  onPress={() => setInfoModalVisible(false)}
+                >
+                  <Text style={styles.infoModalOkText}>OK</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -430,7 +495,7 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE0',
+    backgroundColor: '#f2e3caff',
   },
   header: {
     flexDirection: 'row',
@@ -478,11 +543,17 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 12,
   },
+  rupeeSymbol: {
+    color: '#fff',
+    fontSize: 22,
+    fontFamily: 'Roboto_700Bold',
+    marginRight: 6,
+  },
   balanceText: {
     color: '#fff',
-    fontSize: 14,
-    marginLeft: 5,
+    fontSize: 16,
     fontFamily: 'Roboto_700Bold',
+    letterSpacing: 1,
   },
   notificationIcon: {
     marginLeft: 5,
@@ -522,21 +593,22 @@ const styles = StyleSheet.create({
     fontFamily: 'Raleway_600SemiBold',
   },
   actionWrapper: {
-    backgroundColor: '#FFEBC8',
-    marginHorizontal: 15,
-    borderRadius: 20,
-    paddingVertical: 8,
-    marginBottom: 8,
+    backgroundColor: '#f8daa7ff',
+    marginHorizontal: 10,
+    borderRadius: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.45,
-    shadowRadius: 10,
-    elevation: 15,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 24,
   },
   contactContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
+    marginTop: -5,
     marginBottom: 10,
   },
   contactButton: {
@@ -551,9 +623,9 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 10,
-    elevation: 15,
+    elevation: 24,
     height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
@@ -571,9 +643,9 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 10,
-    elevation: 15,
+    elevation: 24,
     height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
@@ -589,6 +661,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 10,
+    marginBottom: -5,
     // marginBottom removed as it's inside wrapper
   },
   addMoneyButton: {
@@ -601,9 +674,9 @@ const styles = StyleSheet.create({
     marginRight: 7,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.55,
+    shadowOpacity: 0.6,
     shadowRadius: 10,
-    elevation: 18,
+    elevation: 24,
     height: 40,
     justifyContent: 'flex-start',
     paddingLeft: 2,
@@ -646,6 +719,24 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 12,
   },
+  contactIcon: {
+    width: 34,
+    height: 34,
+    resizeMode: 'contain',
+  },
+  actionIconCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    width: 22,
+    height: 22,
+    resizeMode: 'contain',
+  },
   gamesList: {
     flex: 1,
     paddingHorizontal: 15,
@@ -658,9 +749,9 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.5,
+    shadowOpacity: 0.6,
     shadowRadius: 12,
-    elevation: 18,
+    elevation: 24,
     borderWidth: 0.5,
     borderColor: 'rgba(0,0,0,0.08)',
   },
@@ -696,13 +787,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#D32F2F',
     marginTop: 4,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
   },
   gameTime: {
     fontSize: 12,
-    color: '#666',
+    color: '#000000ff',
     marginTop: 2,
-    fontFamily: 'Poppins_400Regular',
+    fontFamily: 'Poppins_500Medium',
   },
   gameActions: {
     justifyContent: 'space-between',
@@ -715,7 +806,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#D32F2F',
     paddingHorizontal: 15,
     paddingVertical: 6,
-    borderRadius: 15,
+    borderRadius: 25,
   },
   closedBadgeText: {
     color: '#fff',
@@ -726,7 +817,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     paddingHorizontal: 15,
     paddingVertical: 6,
-    borderRadius: 15,
+    borderRadius: 25,
   },
   playNowText: {
     color: '#fff',
@@ -767,6 +858,93 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#555',
     marginTop: 4,
+    fontFamily: 'sans-serif',
+  },
+  navIcon: {
+    width: 35,
+    height: 35,
+    resizeMode: 'contain',
+  },
+  homeIcon: {
+    width: 30,
+    height: 30,
+    resizeMode: 'contain',
+    tintColor: '#fff',
+  },
+  // Game Info Modal Styles
+  infoModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoModalContent: {
+    width: '85%',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 20,
+    elevation: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+  },
+  infoModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 20,
+    position: 'relative',
+  },
+  infoModalTitle: {
+    fontSize: 20,
+    fontFamily: 'Roboto_700Bold',
+    color: '#000',
+    textAlign: 'center',
+  },
+  infoModalClose: {
+    position: 'absolute',
+    right: 0,
+    top: -5,
+  },
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#C36578',
+    borderRadius: 12, // Increased radius for pill shape
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+  },
+  timeLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeIcon: {
+    marginRight: 10,
+  },
+  timeLabel: {
+    fontSize: 16,
+    color: '#000',
+    fontFamily: 'Poppins_500Medium',
+  },
+  timeValue: {
+    fontSize: 16,
+    color: '#666',
+    fontFamily: 'Poppins_400Regular',
+  },
+  infoModalOkButton: {
+    backgroundColor: '#C36578',
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  infoModalOkText: {
+    color: '#fff',
+    fontSize: 16,
     fontFamily: 'Roboto_700Bold',
   },
   // DRAWER STYLES
