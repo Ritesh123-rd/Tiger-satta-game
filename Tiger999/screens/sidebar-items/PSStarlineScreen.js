@@ -1,17 +1,21 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance } from '../../api/auth';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  StatusBar,
+  DeviceEventEmitter,
   ScrollView,
+  StatusBar,
   Switch,
   Animated,
   Easing,
   Dimensions,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -19,7 +23,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const MarqueeText = ({ text, style }) => {
   const animatedValue = useRef(new Animated.Value(0)).current;
   const [textWidth, setTextWidth] = useState(0);
-  const containerWidth = SCREEN_WIDTH - 120;
+  const containerWidth = SCREEN_WIDTH - 120; // Approx width available in header
 
   useEffect(() => {
     if (textWidth > 0) {
@@ -28,7 +32,7 @@ const MarqueeText = ({ text, style }) => {
         Animated.loop(
           Animated.timing(animatedValue, {
             toValue: -textWidth,
-            duration: 8000,
+            duration: 8000, // Adjust speed here
             easing: Easing.linear,
             useNativeDriver: true,
           })
@@ -45,51 +49,71 @@ const MarqueeText = ({ text, style }) => {
         style={[style, { transform: [{ translateX: animatedValue }] }]}
         numberOfLines={1}
       >
-        {text}   {text}   {text}
+        {text}   {text}   {text} {/* Repeat for smooth loop effect */}
       </Animated.Text>
     </View>
   );
 };
 
-export default function PSJackpotScreen({ navigation }) {
-  const [isEnabled, setIsEnabled] = useState(true);
-  const [selectedTab, setSelectedTab] = useState('Jodi');
+export default function PSStarlineScreen({ navigation }) {
+  const [isEnabled, setIsEnabled] = useState(false);
   const toggleSwitch = () => setIsEnabled(previousState => !previousState);
+  const [balance, setBalance] = useState(0.0);
 
-  // Mock Data matching the screenshot
+  const fetchBalance = async () => {
+    try {
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
+  // Mock Data mimicking the screenshot
   const games = [
-    { id: 1, time: '10:30 AM', result: '28', status: 'Close for today', isOpen: false },
-    { id: 2, time: '11:30 AM', result: '73', status: 'Close for today', isOpen: false },
-    { id: 3, time: '12:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 4, time: '01:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 5, time: '02:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 6, time: '03:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 7, time: '04:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 8, time: '05:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 9, time: '06:30 PM', result: '**', status: 'Running Now', isOpen: true },
-    { id: 10, time: '07:30 PM', result: '**', status: 'Running Now', isOpen: true },
+    { id: 1, time: '03:00 PM', result: '228 - 2', status: 'Close for today', isOpen: false },
+    { id: 2, time: '04:00 PM', result: '660 - 2', status: 'Close for today', isOpen: false },
+    { id: 3, time: '05:00 PM', result: '330 - 6', status: 'Close for today', isOpen: false },
+    { id: 4, time: '06:00 PM', result: '590 - 4', status: 'Close for today', isOpen: false },
+    { id: 5, time: '07:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
+    { id: 6, time: '08:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
+    { id: 7, time: '09:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
+    { id: 8, time: '10:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
+    { id: 9, time: '11:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
+    { id: 10, time: '12:00 PM', result: '*** _ *', status: 'Running Now', isOpen: true },
   ];
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
 
-      {/* Fixed Header Section */}
+      {/* Fixed Header Section (Marquee + Top Controls + Rates) */}
       <View style={styles.fixedContent}>
-        {/* Header with Back Button, Title, Balance */}
+        {/* Marquee Header */}
         <View style={styles.header}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
             <Ionicons name="arrow-back" size={24} color="#000" />
           </TouchableOpacity>
 
           <MarqueeText
-            text="PS JACKPOT DASHBOARD"
+            text="PS STARLINE DASHBOARD"
             style={styles.headerTitle}
           />
 
           <View style={styles.balanceChip}>
             <Ionicons name="wallet-outline" size={16} color="#fff" />
-            <Text style={styles.balanceText}>0.0</Text>
+            <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
           </View>
         </View>
 
@@ -103,7 +127,7 @@ export default function PSJackpotScreen({ navigation }) {
           <View style={styles.notificationContainer}>
             <Text style={styles.notificationText}>Notification</Text>
             <Switch
-              trackColor={{ false: "#767577", true: "#1B5E20" }}
+              trackColor={{ false: "#767577", true: "#1B5E20" }} // Dark green when on
               thumbColor={isEnabled ? "#4CAF50" : "#f4f3f4"}
               ios_backgroundColor="#3e3e3e"
               onValueChange={toggleSwitch}
@@ -113,40 +137,35 @@ export default function PSJackpotScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Tab Buttons - Jodi / 1-100 */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              selectedTab === 'Jodi' && styles.tabButtonActive
-            ]}
-            onPress={() => setSelectedTab('Jodi')}
-          >
-            <Text style={[
-              styles.tabButtonText,
-              selectedTab === 'Jodi' && styles.tabButtonTextActive
-            ]}>Jodi</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.tabButton,
-              selectedTab === '1-100' && styles.tabButtonActive
-            ]}
-            onPress={() => setSelectedTab('1-100')}
-          >
-            <Text style={[
-              styles.tabButtonText,
-              selectedTab === '1-100' && styles.tabButtonTextActive
-            ]}>1-100</Text>
-          </TouchableOpacity>
+        {/* Rate Buttons Grid */}
+        <View style={styles.ratesGrid}>
+          <View style={styles.rateRow}>
+            <View style={styles.rateCard}>
+              <Text style={styles.rateTitle}>Single Digit</Text>
+              <Text style={styles.rateValue}>1-10</Text>
+            </View>
+            <View style={styles.rateCard}>
+              <Text style={styles.rateTitle}>Double Pana</Text>
+              <Text style={styles.rateValue}>1-300</Text>
+            </View>
+          </View>
+          <View style={styles.rateRow}>
+            <View style={styles.rateCard}>
+              <Text style={styles.rateTitle}>Single Pana</Text>
+              <Text style={styles.rateValue}>1-150</Text>
+            </View>
+            <View style={styles.rateCard}>
+              <Text style={styles.rateTitle}>Triple Pana</Text>
+              <Text style={styles.rateValue}>1-600</Text>
+            </View>
+          </View>
         </View>
       </View>
 
       {/* Scrollable Game List */}
       <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.gamesParams}>
-          {games.map((game) => (
+          {games.map((game, index) => (
             <View key={game.id} style={styles.gameCard}>
               {/* Left: Time & Status */}
               <View style={styles.gameInfoLeft}>
@@ -167,7 +186,7 @@ export default function PSJackpotScreen({ navigation }) {
               {/* Right: Play Button */}
               <TouchableOpacity style={styles.playButton}>
                 <View style={styles.playIconCircle}>
-                  <Ionicons name="play" size={12} color="#fff" />
+                  <Ionicons name="play" size={14} color="#fff" />
                 </View>
                 <Text style={styles.playButtonText}>Play Game</Text>
               </TouchableOpacity>
@@ -185,7 +204,7 @@ export default function PSJackpotScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5EDE0',
+    backgroundColor: '#F5EDE0', // Beige background
   },
   fixedContent: {
     backgroundColor: '#F5EDE0',
@@ -197,22 +216,22 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 15,
     paddingVertical: 15,
-    paddingTop: 50,
+    paddingTop: 50, // More top padding for status bar
     backgroundColor: '#F5EDE0',
   },
   backButton: {
     padding: 0,
     borderWidth: 1,
     borderColor: '#D3D3D3',
-    borderRadius: 25,
-    width: 45,
+    borderRadius: 25, // Rounder
+    width: 45, // Slightly larger
     height: 45,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F0E6D8',
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 20, // Larger title
     fontFamily: 'RaleighStdDemi',
     color: '#000',
     fontWeight: 'bold',
@@ -221,7 +240,7 @@ const styles = StyleSheet.create({
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#C85C73',
+    backgroundColor: '#C85C73', // Matches the maroon/pinkish color in image
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 25,
@@ -232,6 +251,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'RaleighStdDemi',
     fontWeight: 'bold',
+  },
+  scrollContent: {
+    flex: 1,
+    paddingHorizontal: 15,
   },
   topRow: {
     flexDirection: 'row',
@@ -246,7 +269,7 @@ const styles = StyleSheet.create({
   },
   historyText: {
     fontSize: 16,
-    color: '#8D8D8D',
+    color: '#8D8D8D', // Lighter grey
     marginLeft: 8,
     fontFamily: 'RaleighStdDemi',
   },
@@ -256,47 +279,48 @@ const styles = StyleSheet.create({
   },
   notificationText: {
     fontSize: 16,
-    color: '#8D8D8D',
+    color: '#8D8D8D', // Lighter grey
     marginRight: 10,
     fontFamily: 'RaleighStdDemi',
   },
-  tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 10,
-    paddingHorizontal: 15,
+  ratesGrid: {
+    marginBottom: 10,
+    paddingHorizontal: 10,
   },
-  tabButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 12,
-    borderRadius: 25,
+  rateRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  rateCard: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    marginHorizontal: 5,
+    paddingVertical: 15, // Taller cards
+    paddingHorizontal: 15,
+    borderRadius: 15,
+    marginHorizontal: 6,
     borderWidth: 1,
     borderColor: '#E0E0E0',
-    elevation: 1,
+    elevation: 2,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
   },
-  tabButtonActive: {
-    borderColor: '#C85C73',
-  },
-  tabButtonText: {
-    fontSize: 16,
-    color: '#666',
+  rateTitle: {
+    fontSize: 15,
+    color: '#000',
     fontFamily: 'RaleighStdDemi',
-    fontWeight: '500',
+    fontWeight: '600',
   },
-  tabButtonTextActive: {
-    color: '#C85C73',
+  rateValue: {
+    fontSize: 15,
+    color: '#D84B65', // Pinkish Red match
+    fontFamily: 'RaleighStdDemi',
     fontWeight: 'bold',
-  },
-  scrollContent: {
-    flex: 1,
-    paddingHorizontal: 15,
   },
   gamesParams: {
     marginTop: 5,
@@ -307,9 +331,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     backgroundColor: '#fff',
     borderRadius: 18,
-    paddingVertical: 18,
+    paddingVertical: 18, // More padding
     paddingHorizontal: 15,
-    marginBottom: 12,
+    marginBottom: 15,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     elevation: 2,
@@ -322,7 +346,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   gameTime: {
-    fontSize: 20,
+    fontSize: 20, // Bigger time
     color: '#000',
     fontFamily: 'RaleighStdDemi',
     fontWeight: 'bold',
@@ -339,12 +363,12 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 25,
     marginHorizontal: 10,
-    minWidth: 70,
+    minWidth: 100, // Wider pill
     alignItems: 'center',
   },
   resultText: {
     color: '#fff',
-    fontSize: 18,
+    fontSize: 20, // Bigger result text
     fontFamily: 'RaleighStdDemi',
     fontWeight: 'bold',
   },
@@ -359,17 +383,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   playIconCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#C85C73',
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#C85C73', // Match theme
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 6,
+    marginRight: 8,
   },
   playButtonText: {
     color: '#333',
-    fontSize: 13,
+    fontSize: 14,
     fontFamily: 'RaleighStdDemi',
     fontWeight: '600',
   },

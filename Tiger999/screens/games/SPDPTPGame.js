@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance } from '../../api/auth';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -37,6 +40,30 @@ const MarqueeText = ({ text, style }) => {
 
 export default function SPDPTPGame({ navigation, route }) {
   const { gameName } = route.params;
+  const [balance, setBalance] = useState(0.0);
+
+  const fetchBalance = async () => {
+    try {
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
+
+
   const [selectedGame, setSelectedGame] = useState('CLOSE');
   const [date, setDate] = useState('30-12-2025');
   const [sp, setSp] = useState(true);
@@ -108,7 +135,7 @@ export default function SPDPTPGame({ navigation, route }) {
         <MarqueeText text={`${gameName} - SP DP TP`} style={styles.headerTitle} />
         <View style={styles.balanceChip}>
           <Ionicons name="wallet" size={16} color="#fff" />
-          <Text style={styles.balanceText}>0.0</Text>
+          <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 

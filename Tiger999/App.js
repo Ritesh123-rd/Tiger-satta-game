@@ -9,7 +9,7 @@ import RegisterScreen from './screens/RegisterScreen';
 
 // Main Screens
 import HomeScreen from './screens/HomeScreen';
-import GameDetailScreen from './screens/GameDetailScreen';
+import GameDetailScreen from './screens/sidebar-items/GameDetailScreen';
 
 // Game Play Screens (from games folder)
 import SingleDigitGame from './screens/games/SingleDigitGame';
@@ -34,23 +34,28 @@ import RedJodiGame from './screens/games/RedJodiGame';
 import OddEvenGame from './screens/games/OddEvenGame';
 
 // Utility Screens
-import MyBidsScreen from './screens/MyBidsScreen';
-import PassbookScreen from './screens/PassbookScreen';
-import FundsScreen from './screens/FundsScreen';
-import NotificationScreen from './screens/NotificationScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import GameRateScreen from './screens/GameRateScreen';
-import TimeTableScreen from './screens/TimeTableScreen';
-import UpdatePasswordScreen from './screens/UpdatePasswordScreen';
-import TransactionHistoryScreen from './screens/TransactionHistoryScreen';
-import PSStarlineScreen from './screens/PSStarlineScreen';
-import PSJackpotScreen from './screens/PSJackpotScreen';
-import AddFundScreen from './screens/AddFundScreen';
-import WithdrawFundScreen from './screens/WithdrawFundScreen';
-import ChartsScreen from './screens/ChartsScreen';
-import NoticeBoardScreen from './screens/NoticeBoardScreen';
-import HowToPlayScreen from './screens/HowToPlayScreen';
-import ChangePasswordScreen from './screens/ChangePasswordScreen';
+import MyBidsScreen from './screens/sidebar-items/MyBidsScreen';
+import PassbookScreen from './screens/sidebar-items/PassbookScreen';
+import FundsScreen from './screens/sidebar-items/FundsScreen';
+import NotificationScreen from './screens/sidebar-items/NotificationScreen';
+import SettingsScreen from './screens/sidebar-items/SettingsScreen';
+import GameRateScreen from './screens/sidebar-items/GameRateScreen';
+import TimeTableScreen from './screens/sidebar-items/TimeTableScreen';
+import UpdatePasswordScreen from './screens/sidebar-items/UpdatePasswordScreen';
+import TransactionHistoryScreen from './screens/sidebar-items/TransactionHistoryScreen';
+import PSStarlineScreen from './screens/sidebar-items/PSStarlineScreen';
+import PSJackpotScreen from './screens/sidebar-items/PSJackpotScreen';
+import AddFundScreen from './screens/sidebar-items/AddFundScreen';
+import WithdrawFundScreen from './screens/sidebar-items/WithdrawFundScreen';
+import ChartsScreen from './screens/sidebar-items/ChartsScreen';
+import NoticeBoardScreen from './screens/sidebar-items/NoticeBoardScreen';
+import HowToPlayScreen from './screens/sidebar-items/HowToPlayScreen';
+import ChangePasswordScreen from './screens/sidebar-items/ChangePasswordScreen';
+import BidHistoryScreen from './screens/sidebar-items/BidHistoryScreen';
+import AddFundHistoryScreen from './screens/sidebar-items/AddFundHistoryScreen';
+import WithdrawFundHistoryScreen from './screens/sidebar-items/WithdrawFundHistoryScreen';
+import UpdateBankDetailsScreen from './screens/sidebar-items/UpdateBankDetailsScreen';
+import MyProfileScreen from './screens/sidebar-items/MyProfileScreen';
 
 const Stack = createStackNavigator();
 
@@ -182,6 +187,11 @@ export default function App() {
         <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
         <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+        <Stack.Screen name="BidHistory" component={BidHistoryScreen} />
+        <Stack.Screen name="AddFundHistory" component={AddFundHistoryScreen} />
+        <Stack.Screen name="WithdrawFundHistory" component={WithdrawFundHistoryScreen} />
+        <Stack.Screen name="UpdateBankDetails" component={UpdateBankDetailsScreen} />
+        <Stack.Screen name="MyProfile" component={MyProfileScreen} />
       </Stack.Navigator>
     </NavigationContainer>
   );

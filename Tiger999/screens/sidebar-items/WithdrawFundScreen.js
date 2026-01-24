@@ -1,15 +1,53 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance, getWithdrawRequestHistory } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function WithdrawFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
   const [showTermsModal, setShowTermsModal] = useState(true);
 
-  // Demo user data - replace with actual user data
-  const userName = 'tom';
-  const userPhone = '9552115645';
-  const availableBalance = 0.0;
+  const [balance, setBalance] = useState(0.0);
+  const [userData, setUserData] = useState({ name: '', phone: '' });
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchUserData = async () => {
+    try {
+      const name = await AsyncStorage.getItem('userName');
+      const phone = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      setUserData({
+        name: name || 'User',
+        phone: phone || '',
+      });
+      if (phone && userId) {
+        const response = await getWalletBalance(phone, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+      if (userId) {
+        setLoadingHistory(true);
+        const histResponse = await getWithdrawRequestHistory(userId);
+        if (histResponse && (histResponse.status === true || histResponse.status === 'true')) {
+          setHistory(histResponse.data || []);
+        }
+        setLoadingHistory(false);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLoadingHistory(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -21,41 +59,82 @@ export default function WithdrawFundScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Withdrawal  Fund</Text>
-        <View style={styles.coinsBadge}>
-          <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
-          <Text style={styles.coinsText}>0.0</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('WithdrawFundHistory')} style={styles.historyBtn}>
+            <Ionicons name="time" size={24} color="#C27183" />
+          </TouchableOpacity>
+          <View style={styles.coinsBadge}>
+            <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
+            <Text style={styles.coinsText}>{balance.toFixed(1)}</Text>
+          </View>
         </View>
       </View>
 
       {/* Main Content */}
-      <View style={styles.content}>
-        {/* User Info Card */}
-        <View style={styles.userCard}>
-          <View style={styles.userInfoSection}>
-            <Text style={styles.userName}>{userName}</Text>
-            <Text style={styles.userPhone}>{userPhone}</Text>
+      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          {/* User Info Card */}
+          <View style={styles.userCard}>
+            <View style={styles.userInfoSection}>
+              <Text style={styles.userName}>{userData.name}</Text>
+              <Text style={styles.userPhone}>{userData.phone}</Text>
+            </View>
+            <View style={styles.balanceSection}>
+              <Text style={styles.balanceLabel}>Available Balance</Text>
+              <Text style={styles.balanceAmount}>₹ {balance.toFixed(1)}</Text>
+            </View>
           </View>
-          <View style={styles.balanceSection}>
-            <Text style={styles.balanceLabel}>Available Balance</Text>
-            <Text style={styles.balanceAmount}>₹ {availableBalance.toFixed(1)}</Text>
-          </View>
-        </View>
 
-        {/* Amount Input */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputIconContainer}>
-            <MaterialCommunityIcons name="bank" size={22} color="#fff" />
+          {/* Amount Input */}
+          <View style={styles.inputContainer}>
+            <View style={styles.inputIconContainer}>
+              <MaterialCommunityIcons name="bank" size={22} color="#fff" />
+            </View>
+            <TextInput
+              style={styles.amountInput}
+              placeholder="Enter Amount"
+              placeholderTextColor="#999"
+              keyboardType="numeric"
+              value={amount}
+              onChangeText={setAmount}
+            />
           </View>
-          <TextInput
-            style={styles.amountInput}
-            placeholder="Enter Amount"
-            placeholderTextColor="#999"
-            keyboardType="numeric"
-            value={amount}
-            onChangeText={setAmount}
-          />
+
+          {/* History Section */}
+          <View style={styles.historySection}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Recent Withdrawals</Text>
+              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+            </View>
+
+            {history.length === 0 && !loadingHistory ? (
+              <View style={styles.emptyHistory}>
+                <Text style={styles.emptyHistoryText}>No recent withdrawal requests found.</Text>
+              </View>
+            ) : (
+              history.map((item) => (
+                <View key={item.id} style={styles.historyCard}>
+                  <View style={styles.historyCardLeft}>
+                    <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
+                    <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
+                  </View>
+                  <View style={[
+                    styles.statusPill,
+                    { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
+                  ]}>
+                    <Text style={[
+                      styles.statusText,
+                      { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                    ]}>
+                      {item.request_accecept}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Send Request Button */}
       <View style={styles.buttonContainer}>
@@ -144,6 +223,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     fontFamily: 'RaleighStdDemi'
+  },
+  historyBtn: {
+    padding: 5,
   },
   coinsBadge: {
     flexDirection: 'row',
@@ -248,6 +330,72 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     fontFamily: 'RaleighStdDemi',
+  },
+  scrollContent: {
+    flex: 1,
+  },
+  historySection: {
+    marginTop: 25,
+    marginBottom: 20,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D0C4B0',
+    paddingBottom: 5,
+  },
+  historyTitle: {
+    fontSize: 18,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    fontWeight: 'bold',
+  },
+  historyCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  historyCardLeft: {
+    flex: 1,
+  },
+  historyAmount: {
+    fontSize: 18,
+    color: '#C27183',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  historyDate: {
+    fontSize: 12,
+    color: '#666',
+  },
+  statusPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  emptyHistory: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyHistoryText: {
+    fontSize: 14,
+    color: '#999',
   },
   // Modal Styles
   modalOverlay: {

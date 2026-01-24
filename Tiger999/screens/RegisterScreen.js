@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -11,19 +12,52 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import logo from '../assets/logo/logo.png';
+import { registerUser } from '../api/auth';
 
 export default function RegisterScreen({ navigation }) {
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
 
-  const handleRegister = () => {
-    if (phone && username && password && confirmPassword) {
-      if (password === confirmPassword) {
-        navigation.replace('Home');
-      } else {
-        alert('Passwords do not match');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (phone && username && password) {
+      setIsLoading(true);
+      try {
+        const response = await registerUser(username, password, phone);
+        console.log('Register response:', response);
+
+        if (response && (response.status === 'true' || response.status === true)) {
+          // Save credentials locally for local login check
+          try {
+            await AsyncStorage.setItem('userMobile', phone);
+            await AsyncStorage.setItem('userPassword', password);
+            await AsyncStorage.setItem('userName', username);
+
+            // Save current date as registration date if API doesn't provide it
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('en-GB'); // DD/MM/YYYY
+            await AsyncStorage.setItem('userDate', dateStr);
+
+            if (response.user_id) {
+              await AsyncStorage.setItem('userId', String(response.user_id));
+            }
+
+            console.log('Credentials and user info saved locally');
+          } catch (e) {
+            console.error('Failed to save credentials', e);
+          }
+
+          alert('Registration Successful! Please Login.');
+          navigation.replace('Login');
+        } else {
+          alert(response.message || 'Registration failed');
+        }
+      } catch (error) {
+        alert('Registration Error: ' + error.message);
+      } finally {
+        setIsLoading(false);
       }
     } else {
       alert('Please fill all fields');
@@ -92,24 +126,17 @@ export default function RegisterScreen({ navigation }) {
           />
         </View>
 
-        {/* Confirm Password Input */}
-        <View style={styles.inputContainer}>
-          <View style={styles.inputIcon}>
-            <Ionicons name="lock-closed" size={24} color="#C36578" />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Confirm password"
-            placeholderTextColor="#999"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-        </View>
+
 
         {/* Register Button */}
-        <TouchableOpacity style={styles.registerButton} onPress={handleRegister}>
-          <Text style={styles.registerButtonText}>Register & Login</Text>
+        <TouchableOpacity
+          style={[styles.registerButton, isLoading && { opacity: 0.7 }]}
+          onPress={handleRegister}
+          disabled={isLoading}
+        >
+          <Text style={styles.registerButtonText}>
+            {isLoading ? 'Registering...' : 'Register & Login'}
+          </Text>
         </TouchableOpacity>
 
         {/* Back to Login */}

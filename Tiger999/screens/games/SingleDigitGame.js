@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance } from '../../api/auth';
 import {
   View,
   Text,
@@ -60,6 +63,31 @@ export default function SingleDigitGame({ navigation, route }) {
   const [bids, setBids] = useState([]);
   const [totalBids, setTotalBids] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [balance, setBalance] = useState(0.0);
+  const [specialBids, setSpecialBids] = useState(Array(10).fill(''));
+  const [currentDate, setCurrentDate] = useState('23-01-2026'); // Based on screenshot
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const fetchBalance = async () => {
+    try {
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
 
   const gameOptions = ['CLOSE', 'OPEN'];
 
@@ -89,16 +117,48 @@ export default function SingleDigitGame({ navigation, route }) {
   };
 
   const handleSubmit = () => {
-    if (bids.length > 0) {
-      alert(`${bids.length} bids submitted for ${totalPoints} points!`);
-      // Reset
-      setBids([]);
-      setTotalBids(0);
-      setTotalPoints(0);
+    let finalBids = [...bids];
+
+    if (mode === 'special') {
+      const bidsToAdd = specialBids
+        .map((point, index) => ({ ank: index.toString(), point }))
+        .filter((b) => b.point !== '');
+
+      if (bidsToAdd.length > 0) {
+        const newBids = bidsToAdd.map((b) => ({
+          id: Date.now() + Math.random(),
+          ank: b.ank,
+          point: b.point,
+          type: selectedGame,
+        }));
+        finalBids = [...finalBids, ...newBids];
+        setBids(finalBids);
+        setTotalBids(finalBids.length);
+        const newTotalPoints = finalBids.reduce((sum, b) => sum + (parseInt(b.point) || 0), 0);
+        setTotalPoints(newTotalPoints);
+        setSpecialBids(Array(10).fill(''));
+      }
+    }
+
+    if (finalBids.length > 0) {
+      setShowConfirmModal(true);
     } else {
       alert('Please add at least one bid');
     }
   };
+
+  const finalSubmit = () => {
+    alert(`${bids.length} bids submitted for ${totalPoints} points!`);
+    // Reset
+    setBids([]);
+    setTotalBids(0);
+    setTotalPoints(0);
+    setShowConfirmModal(false);
+  };
+
+  const displayTotalBids = bids.length + (mode === 'special' ? specialBids.filter(b => b !== '').length : 0);
+  const displayTotalPoints = bids.reduce((sum, b) => sum + (parseInt(b.point) || 0), 0) +
+    (mode === 'special' ? specialBids.reduce((sum, b) => sum + (parseInt(b) || 0), 0) : 0);
 
   return (
     <View style={styles.container}>
@@ -112,7 +172,7 @@ export default function SingleDigitGame({ navigation, route }) {
         <MarqueeText text={`${gameName} - SINGLE DIGIT`} style={styles.headerTitle} />
         <View style={styles.balanceChip}>
           <Ionicons name="wallet" size={16} color="#fff" />
-          <Text style={styles.balanceText}>0.0</Text>
+          <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 
@@ -137,69 +197,111 @@ export default function SingleDigitGame({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {/* Game Type Selector */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Select Game Type:</Text>
-          <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
-            <Text style={styles.dropdownText}>{selectedGame}</Text>
-            <Ionicons name="chevron-down" size={20} color="#F5C542" />
-          </TouchableOpacity>
-        </View>
+        {mode === 'special' ? (
+          <View style={styles.specialContainer}>
+            {/* Pill Selectors */}
+            <View style={styles.pillRow}>
+              <View style={styles.pill}>
+                <Ionicons name="calendar-outline" size={20} color="#C36578" />
+                <Text style={styles.pillText}>{currentDate}</Text>
+              </View>
+              <TouchableOpacity style={styles.pill} onPress={() => setShowDropdown(true)}>
+                <Text style={styles.pillText}>{selectedGame}</Text>
+                <Ionicons name="chevron-down" size={20} color="#C36578" style={styles.pillChevron} />
+              </TouchableOpacity>
+            </View>
 
-        {/* Ank Input */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Enter Single Digit:</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Ank"
-            placeholderTextColor="#999"
-            keyboardType="numeric"
-            maxLength={1}
-            value={ank}
-            onChangeText={setAnk}
-          />
-        </View>
+            {/* Digit Grid */}
+            <View style={styles.grid}>
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                <View key={digit} style={styles.gridItem}>
+                  <View style={styles.digitLabel}>
+                    <Text style={styles.digitLabelText}>{digit}</Text>
+                  </View>
+                  <TextInput
+                    style={styles.gridInput}
+                    keyboardType="numeric"
+                    placeholder=""
+                    value={specialBids[digit]}
+                    onChangeText={(text) => {
+                      const newBids = [...specialBids];
+                      newBids[digit] = text;
+                      setSpecialBids(newBids);
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
 
-        {/* Points Input */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Enter Points:</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Point"
-            placeholderTextColor="#999"
-            keyboardType="numeric"
-            value={points}
-            onChangeText={setPoints}
-          />
-        </View>
 
-        {/* Add Button */}
-        <TouchableOpacity style={styles.addButton} onPress={addBid}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
-
-        {/* Table Header */}
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Ank</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
-        </View>
-
-        {/* Bids List */}
-        {bids.map((bid) => (
-          <View key={bid.id} style={styles.bidRow}>
-            <Text style={[styles.bidText, { flex: 1 }]}>{bid.ank}</Text>
-            <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
-            <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
-            <TouchableOpacity
-              style={{ flex: 1, alignItems: 'center' }}
-              onPress={() => deleteBid(bid.id)}
-            >
-              <Ionicons name="trash" size={20} color="#D32F2F" />
-            </TouchableOpacity>
           </View>
-        ))}
+        ) : (
+          <>
+            {/* Game Type Selector */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Select Game Type:</Text>
+              <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
+                <Text style={styles.dropdownText}>{selectedGame}</Text>
+                <Ionicons name="chevron-down" size={20} color="#F5C542" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Ank Input */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Enter Single Digit:</Text>
+              <TextInput
+                style={styles.inputField}
+                placeholder="Ank"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={1}
+                value={ank}
+                onChangeText={setAnk}
+              />
+            </View>
+
+            {/* Points Input */}
+            <View style={styles.row}>
+              <Text style={styles.label}>Enter Points:</Text>
+              <TextInput
+                style={styles.inputField}
+                placeholder="Point"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                value={points}
+                onChangeText={setPoints}
+              />
+            </View>
+
+            {/* Add Button */}
+            <TouchableOpacity style={styles.addButton} onPress={addBid}>
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+
+            {/* Table Header */}
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Ank</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
+            </View>
+
+            {/* Bids List */}
+            {bids.map((bid) => (
+              <View key={bid.id} style={styles.bidRow}>
+                <Text style={[styles.bidText, { flex: 1 }]}>{bid.ank}</Text>
+                <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
+                <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
+                <TouchableOpacity
+                  style={{ flex: 1, alignItems: 'center' }}
+                  onPress={() => deleteBid(bid.id)}
+                >
+                  <Ionicons name="trash" size={20} color="#D32F2F" />
+                </TouchableOpacity>
+              </View>
+            ))}
+          </>
+        )}
       </ScrollView>
 
       {/* Game Type Selection Modal */}
@@ -256,16 +358,66 @@ export default function SingleDigitGame({ navigation, route }) {
         </TouchableOpacity>
       </Modal>
 
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { width: SCREEN_WIDTH * 0.9, maxHeight: '80%' }]}>
+            <Text style={styles.modalTitle}>Confirm Your Bids</Text>
+
+            <View style={styles.confirmTableHeader}>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Ank</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Points</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Type</Text>
+            </View>
+
+            <ScrollView style={{ marginVertical: 10 }}>
+              {bids.map((bid) => (
+                <View key={bid.id} style={styles.confirmBidRow}>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.ank}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.point}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.type}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.confirmTotalRow}>
+              <Text style={styles.confirmTotalLabel}>Total Bids: {totalBids}</Text>
+              <Text style={styles.confirmTotalLabel}>Total Points: {totalPoints}</Text>
+            </View>
+
+            <View style={styles.confirmButtonRow}>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#999' }]}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#C36578' }]}
+                onPress={finalSubmit}
+              >
+                <Text style={styles.confirmButtonText}>Confirm Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       {/* Bottom Submit Bar */}
       <View style={styles.bottomBar}>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Bids</Text>
-            <Text style={styles.statValue}>{totalBids}</Text>
+            <Text style={styles.statValue}>{displayTotalBids}</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Points</Text>
-            <Text style={styles.statValue}>{totalPoints}</Text>
+            <Text style={styles.statValue}>{displayTotalPoints}</Text>
           </View>
         </View>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
@@ -520,5 +672,148 @@ const styles = StyleSheet.create({
   },
   modalOptionTextSelected: {
     color: '#2E4A3E',
+  },
+  // Special Mode Styles
+  specialContainer: {
+    marginTop: 10,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    gap: 15,
+    marginBottom: 20,
+  },
+  pill: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  pillText: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+    marginHorizontal: 8,
+    fontFamily: 'RaleighStdDemi',
+  },
+  pillChevron: {
+    backgroundColor: '#E0E0E0',
+    borderRadius: 15,
+    padding: 2,
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 20,
+  },
+  gridItem: {
+    width: '48%',
+    flexDirection: 'row',
+    height: 50,
+    borderRadius: 8,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  digitLabel: {
+    width: 60,
+    backgroundColor: '#C36578',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  digitLabelText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  gridInput: {
+    flex: 1,
+    backgroundColor: '#D1D9E0',
+    paddingHorizontal: 10,
+    fontSize: 18,
+    textAlign: 'center',
+    color: '#333',
+  },
+  specialSubmitButton: {
+    backgroundColor: '#C36578',
+    paddingVertical: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 10,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+  specialSubmitButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
+  },
+  // Confirmation Modal Styles
+  confirmTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#C36578',
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  confirmHeaderText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  confirmBidRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+  confirmBidText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#333',
+  },
+  confirmTotalRow: {
+    paddingVertical: 15,
+    borderTopWidth: 2,
+    borderTopColor: '#C36578',
+    marginTop: 5,
+  },
+  confirmTotalLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'right',
+    marginBottom: 5,
+  },
+  confirmButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginTop: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

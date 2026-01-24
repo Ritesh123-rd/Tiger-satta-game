@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
   Text,
@@ -12,15 +13,64 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 
 import logo from '../assets/logo/logo.png';
+import { loginUser } from '../api/auth';
 
 export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState(''); // Added password state
 
-  const handleLogin = () => {
-    if (phoneNumber.length === 10) {
-      navigation.replace('Home');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (phoneNumber.length === 10 && password.length > 0) {
+      setIsLoading(true);
+      try {
+        // Try API Login first
+        const response = await loginUser(phoneNumber, password);
+        console.log('Login API Response:', response);
+
+        if (response && (response.status === true || response.status === 'true')) {
+          alert('Login Successful!');
+
+          // Save user info from response
+          await AsyncStorage.setItem('userMobile', phoneNumber);
+          await AsyncStorage.setItem('userPassword', password);
+          if (response.username) await AsyncStorage.setItem('userName', response.username);
+          if (response.user_id) await AsyncStorage.setItem('userId', String(response.user_id));
+          if (response.created_at) {
+            const date = new Date(response.created_at);
+            await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
+          }
+
+          navigation.replace('Home');
+        } else {
+          // Fallback to Local Auth if API fails but user is registered locally
+          const storedMobile = await AsyncStorage.getItem('userMobile');
+          const storedPassword = await AsyncStorage.getItem('userPassword');
+
+          if (storedMobile === phoneNumber && storedPassword === password) {
+            alert('Login Successful! (Local Check)');
+            navigation.replace('Home');
+          } else {
+            alert(response.message || 'Invalid Mobile or Password');
+          }
+        }
+      } catch (error) {
+        console.error('Login Error:', error);
+        // Fallback to Local Auth on network error
+        const storedMobile = await AsyncStorage.getItem('userMobile');
+        const storedPassword = await AsyncStorage.getItem('userPassword');
+        if (storedMobile === phoneNumber && storedPassword === password) {
+          alert('Login Successful! (Offline/Local)');
+          navigation.replace('Home');
+        } else {
+          alert('Login Error: ' + error.message);
+        }
+      } finally {
+        setIsLoading(false);
+      }
     } else {
-      alert('Please enter a valid 10-digit phone number');
+      alert('Please enter a valid 10-digit phone number and password');
     }
   };
 
@@ -65,9 +115,30 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
+        {/* Password Input */}
+        <View style={styles.inputContainer}>
+          <View style={styles.phoneIcon}>
+            <Ionicons name="lock-closed" size={28} color="#fff" />
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#999"
+            secureTextEntry={true}
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
         {/* Login Button */}
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Login</Text>
+        <TouchableOpacity
+          style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
+          onPress={handleLogin}
+          disabled={isLoading}
+        >
+          <Text style={styles.loginButtonText}>
+            {isLoading ? 'Logging in...' : 'Login'}
+          </Text>
         </TouchableOpacity>
 
         {/* Contact Buttons */}

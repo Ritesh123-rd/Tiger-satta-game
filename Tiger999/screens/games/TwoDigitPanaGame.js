@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance } from '../../api/auth';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -24,6 +27,30 @@ const MarqueeText = ({ text, style }) => {
 };
 
 export default function TwoDigitPanaGame({ navigation, route }) {
+  const [balance, setBalance] = useState(0.0);
+
+  const fetchBalance = async () => {
+    try {
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
+
+
   const { gameName } = route.params || { gameName: 'TWO DIGIT PANA' };
   const [selectedGameType, setSelectedGameType] = useState('OPEN');
   const [showDropdown, setShowDropdown] = useState(false);
@@ -47,7 +74,7 @@ export default function TwoDigitPanaGame({ navigation, route }) {
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}><Ionicons name="arrow-back" size={22} color="#000" /></TouchableOpacity>
         <MarqueeText text={`${gameName} - TWO DIGIT PANA`} style={styles.headerTitle} />
-        <View style={styles.balanceChip}><Ionicons name="wallet-outline" size={14} color="#fff" /><Text style={styles.balanceText}>0.0</Text></View>
+        <View style={styles.balanceChip}><Ionicons name="wallet-outline" size={14} color="#fff" /><Text style={styles.balanceText}>{balance.toFixed(1)}</Text></View>
       </View>
 
       <ScrollView style={styles.content}>

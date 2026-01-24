@@ -1,4 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance, getDateTime, getMarkets } from '../api/auth';
 import {
   View,
   Text,
@@ -25,21 +28,115 @@ export default function HomeScreen({ navigation }) {
   const [balance, setBalance] = useState(0.0);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [selectedGame, setSelectedGame] = useState(null);
+  const [serverTime, setServerTime] = useState({
+    date: '',
+    time: '',
+    day: ''
+  });
+  const [userData, setUserData] = useState({
+    name: '',
+    phone: '',
+    date: ''
+  });
+
+  const [gamesList, setGamesList] = useState([]);
+
+  const fetchBalance = async () => {
+    console.log('HomeScreen: fetchBalance started');
+    try {
+      // Fetch Server Time
+      console.log('HomeScreen: Fetching server time...');
+      const timeData = await getDateTime();
+      console.log('HomeScreen: Server time response:', timeData);
+      if (timeData && timeData.status === true) {
+        setServerTime({
+          date: timeData.date,
+          time: timeData.time_12,
+          day: timeData.day
+        });
+      }
+
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const name = await AsyncStorage.getItem('userName');
+      const date = await AsyncStorage.getItem('userDate');
+      const userId = await AsyncStorage.getItem('userId');
+
+      setUserData(prev => ({
+        ...prev,
+        name: name || 'User',
+        phone: mobile || '',
+        date: date || '03/01/2026'
+      }));
+
+      console.log('HomeScreen: Stored mobile:', mobile, 'userId:', userId);
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        console.log('HomeScreen: Balance response:', response);
+        if (response && (response.status === true || response.status === 'true')) {
+          const newBalance = parseFloat(response.balance);
+          console.log('HomeScreen: Setting balance to:', newBalance);
+          setBalance(newBalance);
+        } else {
+          console.log('HomeScreen: Balance status not true');
+        }
+      } else {
+        console.log('HomeScreen: No mobile number or user ID found');
+      }
+
+      // Fetch Markets
+      console.log('HomeScreen: Fetching markets...');
+      const marketResponse = await getMarkets();
+      console.log('HomeScreen: Market response count:', marketResponse?.data?.length);
+
+      if (marketResponse && marketResponse.status === true && marketResponse.data) {
+        const currentTime = new Date();
+        const serverDateStr = timeData?.date || currentTime.toISOString().split('T')[0];
+
+        const transformedMarkets = marketResponse.data.map(market => {
+          // Logic for isOpen: end_time - 30 minutes
+          // end_time is in "HH:mm" format (e.g., "22:30")
+          const [endH, endM] = market.end_time.split(':').map(Number);
+          const marketEndDate = new Date(serverDateStr);
+          marketEndDate.setHours(endH, endM, 0);
+
+          const closeDate = new Date(marketEndDate.getTime() - 30 * 60000); // 30 mins before
+
+          const isCurrentlyOpen = currentTime < closeDate && market.market_status === "1";
+
+          return {
+            id: market.id,
+            name: market.market_name,
+            code: '***-**-***', // Placeholder as per user request to keep details same as before
+            time: `${market.start_time_12} - ${market.end_time_12}`,
+            status: isCurrentlyOpen ? 'Market is Running' : 'Closed for today',
+            isOpen: isCurrentlyOpen,
+            initials: market.market_name.substring(0, 2).toUpperCase()
+          };
+        });
+
+        // Sort: Play Now (Open) first, then Closed
+        const sortedMarkets = transformedMarkets.sort((a, b) => {
+          if (a.isOpen === b.isOpen) return 0;
+          return a.isOpen ? -1 : 1;
+        });
+
+        setGamesList(sortedMarkets);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
 
 
   // Animation value for the drawer slide (starts off-screen to the left)
   const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  // Games List - Original Data
-  const gamesList = [
-    { id: 1, name: 'TIME BAZAR', code: '***_**_***', time: '12:50 PM - 01:50 PM', status: 'Close is Running', isOpen: true, initials: 'TI' },
-    { id: 2, name: 'KARNATAKA DAY', code: '446-43-247', time: '10:10 AM - 11:10 AM', status: 'Closed for today', isOpen: false, initials: 'KA' },
-    { id: 3, name: 'SUN DAY', code: '179-73-139', time: '10:40 AM - 11:44 AM', status: 'Closed for today', isOpen: false, initials: 'SU' },
-    { id: 4, name: 'SRIDEVI', code: '250-78-170', time: '11:25 AM - 12:25 PM', status: 'Closed for today', isOpen: false, initials: 'SR' },
-    { id: 5, name: 'MADHUR DAY', code: '789-56-234', time: '02:00 PM - 03:00 PM', status: 'Closed for today', isOpen: false, initials: 'MA' },
-    { id: 6, name: 'PUNE DAY', code: '785-56-265', time: '02:00 PM - 04:00 PM', status: 'Closed for today', isOpen: false, initials: 'PU' },
-  ];
 
   const makeCall = () => {
     Linking.openURL('tel:919922222222');
@@ -217,15 +314,6 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <View style={styles.gameActions}>
-              <TouchableOpacity
-                style={styles.infoButton}
-                onPress={() => {
-                  setSelectedGame(game);
-                  setInfoModalVisible(true);
-                }}
-              >
-                <Ionicons name="information-circle" size={24} color="#FFC107" />
-              </TouchableOpacity>
               {game.isOpen ? (
                 <View style={styles.playNowBadge}>
                   <Text style={styles.playNowText}>Play Now</Text>
@@ -235,6 +323,15 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.closedBadgeText}>Closed</Text>
                 </View>
               )}
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={() => {
+                  setSelectedGame(game);
+                  setInfoModalVisible(true);
+                }}
+              >
+                <Ionicons name="information-circle" size={24} color="#FFC107" />
+              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
@@ -305,9 +402,9 @@ export default function HomeScreen({ navigation }) {
                   <Ionicons name="person" size={35} color="#fff" />
                 </View>
                 <View style={styles.userInfoText}>
-                  <Text style={styles.userName}>tom</Text>
-                  <Text style={styles.userPhone}>9552115645</Text>
-                  <Text style={styles.userSince}>Since 03/01/2026</Text>
+                  <Text style={styles.userName}>{userData.name}</Text>
+                  <Text style={styles.userPhone}>{userData.phone}</Text>
+                  <Text style={styles.userSince}>Since {userData.date}</Text>
                 </View>
               </View>
               <TouchableOpacity onPress={closeDrawer} style={styles.closeButton}>
@@ -316,6 +413,83 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <ScrollView style={styles.menuItems} showsVerticalScrollIndicator={false}>
+              {/* Menu Item - Home */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="home" />
+                </View>
+                <Text style={styles.menuText}>Home</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - My Profile */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('MyProfile'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="person" />
+                </View>
+                <Text style={styles.menuText}>My Profile</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - Add Money */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('AddFund'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="currency-inr" type="MaterialCommunityIcons" />
+                </View>
+                <Text style={styles.menuText}>Add Money</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - Withdraw Money */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('WithdrawFund'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="cash-remove" type="MaterialCommunityIcons" />
+                </View>
+                <Text style={styles.menuText}>Withdraw Money</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - My Bids */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('MyBids'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="history" type="MaterialCommunityIcons" />
+                </View>
+                <Text style={styles.menuText}>My Bids</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - Passbook */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('Passbook'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="swap-horizontal" type="MaterialCommunityIcons" />
+                </View>
+                <Text style={styles.menuText}>Passbook</Text>
+              </TouchableOpacity>
+
+              {/* Menu Item - Funds */}
+              <TouchableOpacity
+                style={styles.menuItem}
+                onPress={() => { closeDrawer(); navigation.navigate('Funds'); }}
+              >
+                <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                  <MenuIcon name="account-balance" type="MaterialIcons" />
+                </View>
+                <Text style={styles.menuText}>Funds</Text>
+              </TouchableOpacity>
+
               {/* Menu Item - Notification */}
               <TouchableOpacity
                 style={styles.menuItem}
@@ -516,6 +690,7 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.45,
+    shadowRadius: 8,
     shadowRadius: 8,
     elevation: 12,
   },
@@ -800,7 +975,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   infoButton: {
-    marginBottom: 10,
+    marginTop: 10,
   },
   closedBadge: {
     backgroundColor: '#D32F2F',
@@ -947,6 +1122,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: 'Roboto_700Bold',
   },
+  versionText: {
+    textAlign: 'center',
+    color: '#999',
+    fontSize: 12,
+    padding: 20,
+    marginBottom: 20,
+    fontFamily: 'Roboto_700Bold',
+  },
   // DRAWER STYLES
   drawerContainer: {
     flex: 1,
@@ -1051,14 +1234,6 @@ const styles = StyleSheet.create({
   menuText: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'Roboto_700Bold',
-  },
-  versionText: {
-    textAlign: 'center',
-    color: '#999',
-    fontSize: 12,
-    padding: 20,
-    marginBottom: 20,
     fontFamily: 'Roboto_700Bold',
   },
 });

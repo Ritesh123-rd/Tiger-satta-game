@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { getWalletBalance } from '../../api/auth';
 import {
   View,
   Text,
@@ -80,6 +83,28 @@ export default function DoublePanaGame({ navigation, route }) {
   const [totalPoints, setTotalPoints] = useState(0);
   const [specialModeInputs, setSpecialModeInputs] = useState({});
   const [panaSuggestions, setPanaSuggestions] = useState([]);
+  const [balance, setBalance] = useState(0.0);
+
+  const fetchBalance = async () => {
+    try {
+      const mobile = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching balance:', error);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBalance();
+    }, [])
+  );
 
   // Get all double pana numbers as flat array
   const getAllDoublePanas = () => {
@@ -282,7 +307,7 @@ export default function DoublePanaGame({ navigation, route }) {
 
         <View style={styles.balanceChip}>
           <Ionicons name="wallet-outline" size={14} color="#fff" />
-          <Text style={styles.balanceText}>0.0</Text>
+          <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 

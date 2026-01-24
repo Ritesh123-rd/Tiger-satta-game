@@ -9,43 +9,42 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-export default function MyBidsScreen({ navigation }) {
-  const bidOptions = [
+export default function FundsScreen({ navigation }) {
+  const fundOptions = [
     {
       id: 1,
-      title: 'Bid History',
-      subtitle: 'You can view your market bid history',
-      icon: 'calendar'
+      title: 'Add Fund',
+      subtitle: 'You can add fund to your wallet',
+      icon: 'add-circle',
+      screen: 'AddFund'
     },
     {
       id: 2,
-      title: 'Game Results',
-      subtitle: 'You can view your market result history',
-      icon: 'refresh'
+      title: 'Withdraw Fund',
+      subtitle: 'You can withdraw winnings',
+      icon: 'cash',
+      screen: 'WithdrawFund'
     },
     {
       id: 3,
-      title: 'PS Starline Bid History',
-      subtitle: 'You can view starline history',
-      icon: 'game-controller'
+      title: 'Bank Detail',
+      subtitle: 'Add your bank detail for withdrawals',
+      icon: 'business',
+      screen: 'UpdateBankDetails'
     },
     {
       id: 4,
-      title: 'PS Starline Result History',
-      subtitle: 'You can view starline result',
-      icon: 'trophy'
+      title: 'Add Fund History',
+      subtitle: 'You can check your add point history',
+      icon: 'time',
+      screen: 'AddFundHistory'
     },
     {
       id: 5,
-      title: 'PS Jackpot Bid History',
-      subtitle: 'You can view Jackpot history',
-      icon: 'game-controller'
-    },
-    {
-      id: 6,
-      title: 'PS Jackpot Result History',
-      subtitle: 'You can view Jackpot result',
-      icon: 'trophy'
+      title: 'Withdraw Fund History',
+      subtitle: 'You can check your Withdraw point history',
+      icon: 'refresh',
+      screen: 'WithdrawFundHistory'
     },
   ];
 
@@ -57,13 +56,17 @@ export default function MyBidsScreen({ navigation }) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>My Bids</Text>
+        <Text style={styles.headerTitle}>Funds</Text>
         <View style={{ width: 40 }} />
       </View>
 
       <ScrollView style={styles.content}>
-        {bidOptions.map((option) => (
-          <TouchableOpacity key={option.id} style={styles.optionCard}>
+        {fundOptions.map((option) => (
+          <TouchableOpacity
+            key={option.id}
+            style={styles.optionCard}
+            onPress={() => option.screen && navigation.navigate(option.screen)}
+          >
             <View style={styles.iconContainer}>
               <Ionicons name={option.icon} size={28} color="#fff" />
             </View>

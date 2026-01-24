@@ -10,18 +10,58 @@ import {
   Platform,
   ScrollView,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useEffect } from 'react';
+import { getWalletBalance, getFundRequestHistory } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 
 export default function AddFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
 
-  // Mock user data
-  const userData = {
-    name: 'tom',
-    phone: '9552115645',
-    balance: '0.0',
+  const [balance, setBalance] = useState(0.0);
+  const [userData, setUserData] = useState({ name: 'User', phone: '' });
+  const [history, setHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
+  const fetchUserData = async () => {
+    try {
+      const name = await AsyncStorage.getItem('userName');
+      const phone = await AsyncStorage.getItem('userMobile');
+      const userId = await AsyncStorage.getItem('userId');
+      setUserData({
+        name: name || 'User',
+        phone: phone || '',
+      });
+
+      if (phone && userId) {
+        const response = await getWalletBalance(phone, userId);
+        if (response && (response.status === true || response.status === 'true')) {
+          setBalance(parseFloat(response.balance));
+        }
+      }
+
+      if (userId) {
+        setLoadingHistory(true);
+        const histResponse = await getFundRequestHistory(userId);
+        if (histResponse && (histResponse.status === true || histResponse.status === 'true')) {
+          setHistory(histResponse.data || []);
+        }
+        setLoadingHistory(false);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      setLoadingHistory(false);
+    }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUserData();
+    }, [])
+  );
 
   const quickAmounts = [500, 1000, 1500, 2000];
 
@@ -49,9 +89,14 @@ export default function AddFundScreen({ navigation }) {
 
         <Text style={styles.headerTitle}>Add  Fund</Text>
 
-        <View style={styles.coinsBadge}>
-          <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
-          <Text style={styles.coinsText}>0.0</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity onPress={() => navigation.navigate('AddFundHistory')} style={styles.historyBtn}>
+            <Ionicons name="time" size={24} color="#C27183" />
+          </TouchableOpacity>
+          <View style={styles.coinsBadge}>
+            <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
+            <Text style={styles.coinsText}>{balance.toFixed(1)}</Text>
+          </View>
         </View>
       </View>
 
@@ -75,7 +120,7 @@ export default function AddFundScreen({ navigation }) {
             {/* Yellow Bottom Section */}
             <View style={styles.userCardBottom}>
               <Text style={styles.balanceLabel}>Available Balance</Text>
-              <Text style={styles.balanceAmount}>₹ {userData.balance}</Text>
+              <Text style={styles.balanceAmount}>₹ {balance.toFixed(1)}</Text>
             </View>
           </View>
 
@@ -138,6 +183,40 @@ export default function AddFundScreen({ navigation }) {
               ))}
             </View>
           </View>
+
+          {/* History Section */}
+          <View style={styles.historySection}>
+            <View style={styles.historyHeader}>
+              <Text style={styles.historyTitle}>Recent Requests</Text>
+              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+            </View>
+
+            {history.length === 0 && !loadingHistory ? (
+              <View style={styles.emptyHistory}>
+                <Text style={styles.emptyHistoryText}>No recent fund requests found.</Text>
+              </View>
+            ) : (
+              history.map((item) => (
+                <View key={item.id} style={styles.historyCard}>
+                  <View style={styles.historyCardLeft}>
+                    <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
+                    <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
+                  </View>
+                  <View style={[
+                    styles.statusPill,
+                    { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
+                  ]}>
+                    <Text style={[
+                      styles.statusText,
+                      { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                    ]}>
+                      {item.request_accecept}
+                    </Text>
+                  </View>
+                </View>
+              ))
+            )}
+          </View>
         </ScrollView>
 
         {/* Pay Now Button */}
@@ -172,6 +251,9 @@ const styles = StyleSheet.create({
     fontFamily: 'RaleighStdDemi',
     color: '#000',
     fontWeight: 'bold',
+  },
+  historyBtn: {
+    padding: 5,
   },
   coinsBadge: {
     flexDirection: 'row',
@@ -345,5 +427,71 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: 'RaleighStdDemi',
     fontWeight: 'bold',
+  },
+  historySection: {
+    marginTop: 10,
+    marginBottom: 100, // Extra space for scroll
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D0C4B0',
+    paddingBottom: 5,
+  },
+  historyTitle: {
+    fontSize: 18,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    fontWeight: 'bold',
+  },
+  historyCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 15,
+    marginBottom: 10,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  historyCardLeft: {
+    flex: 1,
+  },
+  historyAmount: {
+    fontSize: 18,
+    color: '#C27183',
+    fontFamily: 'Poppins_700Bold',
+    marginBottom: 2,
+  },
+  historyDate: {
+    fontSize: 12,
+    color: '#666',
+    fontFamily: 'Poppins_400Regular',
+  },
+  statusPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 11,
+    fontFamily: 'Poppins_600SemiBold',
+    fontWeight: 'bold',
+  },
+  emptyHistory: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyHistoryText: {
+    fontSize: 14,
+    color: '#999',
+    fontFamily: 'Poppins_400Regular',
   },
 });
