@@ -178,7 +178,7 @@ export default function OddEvenGame({ navigation, route }) {
                             {selectedType === 'ODD' && <View style={styles.radioInner} />}
                         </View>
                         <Text style={[styles.oddEvenText, selectedType === 'ODD' && styles.oddEvenTextActive]}>
-                            Odd Digit
+                            Odd Digi
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity
