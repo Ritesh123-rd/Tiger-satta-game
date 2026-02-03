@@ -17,6 +17,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -72,6 +73,7 @@ const MarqueeText = ({ text, style }) => {
 };
 
 export default function DoublePanaGame({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { gameName, gameType } = route.params || { gameName: 'DOUBLE PANA', gameType: 'open' };
   const [mode, setMode] = useState('easy'); // 'easy' or 'special'
   const [selectedGameType, setSelectedGameType] = useState('OPEN');
@@ -84,6 +86,7 @@ export default function DoublePanaGame({ navigation, route }) {
   const [specialModeInputs, setSpecialModeInputs] = useState({});
   const [panaSuggestions, setPanaSuggestions] = useState([]);
   const [balance, setBalance] = useState(0.0);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const fetchBalance = async () => {
     try {
@@ -212,15 +215,8 @@ export default function DoublePanaGame({ navigation, route }) {
       return;
     }
 
-    Alert.alert(
-      'Success',
-      `${newBids.length} bids submitted!`,
-      [{
-        text: 'OK', onPress: () => {
-          setSpecialModeInputs({});
-        }
-      }]
-    );
+    setBids(newBids);
+    setShowConfirmModal(true);
   };
 
   const handleDeleteBid = (bidId) => {
@@ -232,6 +228,10 @@ export default function DoublePanaGame({ navigation, route }) {
       Alert.alert('Error', 'Please add at least one bid');
       return;
     }
+    setShowConfirmModal(true);
+  };
+
+  const finalSubmit = () => {
     Alert.alert(
       'Success',
       `${totalBids} bids submitted for ${totalPoints} points!`,
@@ -240,6 +240,8 @@ export default function DoublePanaGame({ navigation, route }) {
           setBids([]);
           setPoints('');
           setPanaInput('');
+          setSpecialModeInputs({});
+          setShowConfirmModal(false);
         }
       }]
     );
@@ -252,7 +254,7 @@ export default function DoublePanaGame({ navigation, route }) {
       <Text style={styles.bidCell}>{item.type}</Text>
       <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
         <View style={styles.deleteIconContainer}>
-          <Ionicons name="close" size={12} color="#C36578" />
+          <Ionicons name="trash-outline" size={12} color="#C36578" />
         </View>
       </TouchableOpacity>
     </View>
@@ -323,7 +325,7 @@ export default function DoublePanaGame({ navigation, route }) {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.modeButton, mode === 'special' && styles.modeButtonActiveSpecial]}
+            style={[styles.modeButton, mode === 'special' && styles.modeButtonActive]}
             onPress={() => setMode('special')}
           >
             <Text style={[styles.modeButtonText, mode === 'special' && styles.modeButtonTextActive]}>
@@ -454,7 +456,7 @@ export default function DoublePanaGame({ navigation, route }) {
 
       {/* Bottom Bar */}
       {mode === 'easy' ? (
-        <View style={styles.bottomBar}>
+        <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
           <View style={styles.statsContainer}>
             <View style={styles.statItem}>
               <Text style={styles.statLabel}>Bids</Text>
@@ -470,7 +472,10 @@ export default function DoublePanaGame({ navigation, route }) {
           </TouchableOpacity>
         </View>
       ) : (
-        <TouchableOpacity style={styles.fullSubmitButton} onPress={handleSpecialModeSubmit}>
+        <TouchableOpacity
+          style={[styles.fullSubmitButton, { paddingBottom: Math.max(insets.bottom, 18), height: 60 + insets.bottom }]}
+          onPress={handleSpecialModeSubmit}
+        >
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       )}
@@ -527,6 +532,59 @@ export default function DoublePanaGame({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { width: SCREEN_WIDTH * 0.9, maxHeight: '80%' }]}>
+            <Text style={styles.modalTitle}>Confirm Your Bids</Text>
+
+            <View style={styles.confirmTableHeader}>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Pana</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Points</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Type</Text>
+            </View>
+
+            <ScrollView style={{ marginVertical: 10 }}>
+              {bids.map((bid) => (
+                <View key={bid.id} style={styles.confirmBidRow}>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.pana}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.points}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.type}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.confirmTotalRow}>
+              <Text style={styles.confirmTotalLabel}>Total Bids: {totalBids}</Text>
+              <Text style={styles.confirmTotalLabel}>Total Points: {totalPoints}</Text>
+            </View>
+
+            <View style={styles.confirmButtonRow}>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#999' }]}
+                onPress={() => {
+                  if (mode === 'special') setBids([]);
+                  setShowConfirmModal(false);
+                }}
+              >
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#C36578' }]}
+                onPress={finalSubmit}
+              >
+                <Text style={styles.confirmButtonText}>Confirm Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -599,10 +657,6 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
   },
   modeButtonActive: {
-    backgroundColor: '#2E4A3E',
-    borderColor: '#2E4A3E',
-  },
-  modeButtonActiveSpecial: {
     backgroundColor: '#C36578',
     borderColor: '#C36578',
   },
@@ -821,10 +875,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    paddingBottom: 25,
     backgroundColor: '#F5EDE0',
     borderTopWidth: 2,
     borderTopColor: '#C36578',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   statsContainer: {
     flex: 1,
@@ -861,6 +918,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#C36578',
     paddingVertical: 18,
     alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center'
   },
   // Special Mode Styles
   specialModeHeader: {
@@ -994,5 +1056,63 @@ const styles = StyleSheet.create({
   },
   modalOptionTextSelected: {
     color: '#2E4A3E',
+  },
+  // Confirmation Modal Styles
+  confirmTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#C36578',
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  confirmHeaderText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 14,
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmBidRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+  confirmBidText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmTotalRow: {
+    paddingVertical: 15,
+    borderTopWidth: 2,
+    borderTopColor: '#C36578',
+    marginTop: 5,
+  },
+  confirmTotalLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'right',
+    marginBottom: 5,
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
   },
 });

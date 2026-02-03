@@ -1,69 +1,37 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance } from '../../api/auth';
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  ScrollView,
-  StatusBar,
-  Modal,
-  Dimensions,
-  Animated,
-  Easing,
+  View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { API_BASE_URL } from '../../api/config';
+import { getWalletBalance } from '../../api/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// Custom Marquee Component
-const MarqueeText = ({ text, style }) => {
-  const animatedValue = useRef(new Animated.Value(0)).current;
-  const [textWidth, setTextWidth] = useState(0);
-  const containerWidth = SCREEN_WIDTH - 140;
+const SingleDigitBulkGame = ({ navigation, route }) => {
+  const insets = useSafeAreaInsets();
+  const { gameName, gameId } = route.params || {};
+  const [selectedGame, setSelectedGame] = useState('OPEN');
+  const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
+  const [points, setPoints] = useState('');
+  const [selectedDigits, setSelectedDigits] = useState({}); // Object
+  const [balance, setBalance] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  useEffect(() => {
-    if (textWidth > 0) {
-      animatedValue.setValue(containerWidth);
-      Animated.loop(
-        Animated.timing(animatedValue, {
-          toValue: -textWidth,
-          duration: 8000,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        })
-      ).start();
-    }
-  }, [textWidth, containerWidth]);
-
-  return (
-    <View style={{ width: containerWidth, overflow: 'hidden', alignItems: 'center' }}>
-      <Animated.Text
-        onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-        style={[style, { transform: [{ translateX: animatedValue }] }]}
-        numberOfLines={1}
-      >
-        {text}   {text}   {text}
-      </Animated.Text>
-    </View>
-  );
-};
-
-export default function SingleDigitBulkGame({ navigation, route }) {
-  const { gameName } = route.params;
-  const [balance, setBalance] = useState(0.0);
-
-  const fetchBalance = async () => {
+  // Fetch Wallet Balance
+  const fetchWalletBalance = async () => {
     try {
       const mobile = await AsyncStorage.getItem('userMobile');
       const userId = await AsyncStorage.getItem('userId');
       if (mobile && userId) {
-        const response = await getWalletBalance(mobile, userId);
-        if (response && (response.status === true || response.status === 'true')) {
-          setBalance(parseFloat(response.balance));
+        const data = await getWalletBalance(mobile, userId);
+        if (data && (data.status === true || data.status === 'true')) {
+          setBalance(parseFloat(data.balance));
         }
       }
     } catch (error) {
@@ -72,205 +40,273 @@ export default function SingleDigitBulkGame({ navigation, route }) {
   };
 
   useFocusEffect(
-    useCallback(() => {
-      fetchBalance();
+    React.useCallback(() => {
+      fetchWalletBalance();
     }, [])
   );
 
-
-  const [mode, setMode] = useState('special');
-  const [selectedGame, setSelectedGame] = useState('CLOSE');
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [date, setDate] = useState('30-12-2025');
-  const [selectedDigits, setSelectedDigits] = useState({});
-  const [totalBids, setTotalBids] = useState(0);
-  const [totalPoints, setTotalPoints] = useState(0);
-
-  const digits = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
   const handleDigitPress = (digit) => {
-    setSelectedDigits(prev => ({
-      ...prev,
-      [digit]: prev[digit] ? null : ''
-    }));
-  };
-
-  const handlePointChange = (digit, points) => {
-    const newPoints = { ...selectedDigits };
-    newPoints[digit] = points;
-    setSelectedDigits(newPoints);
-
-    // Calculate totals
-    let bids = 0;
-    let pts = 0;
-    Object.values(newPoints).forEach(p => {
-      if (p && p !== '') {
-        bids++;
-        pts += parseInt(p) || 0;
-      }
+    if (!points || parseInt(points) <= 0) {
+      Alert.alert('Error', 'Please enter valid points first');
+      return;
+    }
+    setSelectedDigits(prev => {
+      const newSelections = { ...prev };
+      const currentPoints = parseInt(points) || 0;
+      const existingPoints = parseInt(newSelections[digit]) || 0;
+      const newTotal = existingPoints + currentPoints;
+      newSelections[digit] = newTotal;
+      return newSelections;
     });
-    setTotalBids(bids);
-    setTotalPoints(pts);
   };
 
-  const handleSubmit = () => {
-    if (totalBids > 0) {
-      alert(`${totalBids} bids submitted for ${totalPoints} points!`);
-      setSelectedDigits({});
-      setTotalBids(0);
-      setTotalPoints(0);
-    } else {
-      alert('Please select at least one digit and enter points');
+  const calculateTotalPoints = () => {
+    return Object.values(selectedDigits).reduce((sum, p) => sum + (parseInt(p) || 0), 0);
+  };
+
+  const handleSubmit = async () => {
+    const digits = Object.keys(selectedDigits);
+    if (digits.length === 0) {
+      Alert.alert('Error', 'Please select at least one number');
+      return;
+    }
+    const totalPoints = calculateTotalPoints();
+    if (totalPoints > balance) {
+      Alert.alert('Error', 'Insufficient balance');
+      return;
+    }
+    // Show confirmation modal instead of direct submit
+    setShowConfirmModal(true);
+  };
+
+  const handleFinalSubmit = async () => {
+    setSubmitting(true);
+    try {
+      const token = await AsyncStorage.getItem('user_token');
+      const digits = Object.keys(selectedDigits);
+      const bids = digits.map(digit => ({
+        game_id: gameId,
+        game_type: selectedGame,
+        digit: digit.toString(),
+        points: selectedDigits[digit],
+        type: 'single_digit'
+      }));
+      const response = await fetch(`${API_BASE_URL}/place-bid-bulk`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ bids })
+      });
+      const data = await response.json();
+      if (data.status === 'success') {
+        setShowConfirmModal(false); // Close modal
+        Alert.alert('Success', 'Bids placed successfully!', [
+          {
+            text: 'OK', onPress: () => {
+              setSelectedDigits({});
+              setPoints('');
+              fetchWalletBalance();
+              navigation.goBack();
+            }
+          }
+        ]);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to place bids');
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Network request failed or Endpoint not found');
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
-
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <MarqueeText text={`${gameName} - SINGLE DIGIT BULK`} style={styles.headerTitle} />
-        <View style={styles.balanceChip}>
-          <Ionicons name="wallet" size={16} color="#fff" />
-          <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
+        <View style={styles.headerTitleContainer}>
+          <Text style={styles.headerTitle}>{gameName || 'RAJDHANI NIGHT'}</Text>
+        </View>
+        <View style={styles.walletContainer}>
+          <Ionicons name="wallet-outline" size={20} color="#fff" />
+          <Text style={styles.walletText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
-        <View style={styles.modeContainer}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Select Game Type:</Text>
           <TouchableOpacity
-            style={[styles.modeButton, mode === 'easy' && styles.modeButtonActive]}
-            onPress={() => setMode('easy')}
+            style={styles.dropdownButton}
+            onPress={() => setIsGameTypeOpen(!isGameTypeOpen)}
           >
-            <Text style={[styles.modeText, mode === 'easy' && styles.modeTextActive]}>
-              EASY MODE
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.modeButton, mode === 'special' && styles.modeButtonActive]}
-            onPress={() => setMode('special')}
-          >
-            <Text style={[styles.modeText, mode === 'special' && styles.modeTextActive]}>
-              SPECIAL MODE
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.dateRow}>
-          <View style={styles.dateBox}>
-            <Ionicons name="calendar" size={20} color="#C36578" />
-            <Text style={styles.dateText}>{date}</Text>
-          </View>
-          <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
             <Text style={styles.dropdownText}>{selectedGame}</Text>
-            <Ionicons name="chevron-down" size={20} color="#F5C542" />
+            <Ionicons name={isGameTypeOpen ? "chevron-up" : "chevron-down"} size={20} color="#C36578" />
           </TouchableOpacity>
         </View>
-
-        {/* Number Grid */}
-        <View style={styles.gridContainer}>
-          {[0, 1, 2, 3, 4].map(row => (
-            <View key={row} style={styles.gridRow}>
-              {[0, 1].map(col => {
-                const digit = row * 2 + col;
-                const isSelected = selectedDigits[digit] !== undefined;
-                return (
-                  <View key={digit} style={styles.gridItem}>
-                    <TouchableOpacity
-                      style={[
-                        styles.digitButton,
-                        isSelected && styles.digitButtonSelected
-                      ]}
-                      onPress={() => handleDigitPress(digit)}
-                    >
-                      <Text style={[
-                        styles.digitText,
-                        isSelected && styles.digitTextSelected
-                      ]}>
-                        {digit}
-                      </Text>
-                    </TouchableOpacity>
-                    {isSelected && (
-                      <TextInput
-                        style={styles.pointInput}
-                        placeholder="Points"
-                        placeholderTextColor="#999"
-                        keyboardType="numeric"
-                        value={selectedDigits[digit]}
-                        onChangeText={(val) => handlePointChange(digit, val)}
-                      />
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          ))}
+        {isGameTypeOpen && (
+          <View style={styles.dropdownList}>
+            {['OPEN', 'CLOSE'].map((type) => (
+              <TouchableOpacity
+                key={type}
+                style={styles.dropdownItem}
+                onPress={() => {
+                  setSelectedGame(type);
+                  setIsGameTypeOpen(false);
+                }}
+              >
+                <Text style={[styles.dropdownItemText, selectedGame === type && styles.selectedDropdownText]}>{type}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Enter Points:</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder=""
+            keyboardType="number-pad"
+            value={points}
+            onChangeText={setPoints}
+          />
         </View>
-
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <View style={styles.keypadContainer}>
+          <View style={styles.keypadRow}>
+            {[1, 2, 3].map(num => (
+              <KeypadButton
+                key={num}
+                number={num}
+                val={selectedDigits[num]}
+                selected={selectedDigits[num] !== undefined}
+                onPress={() => handleDigitPress(num)}
+              />
+            ))}
+          </View>
+          <View style={styles.keypadRow}>
+            {[4, 5, 6].map(num => (
+              <KeypadButton
+                key={num}
+                number={num}
+                val={selectedDigits[num]}
+                selected={selectedDigits[num] !== undefined}
+                onPress={() => handleDigitPress(num)}
+              />
+            ))}
+          </View>
+          <View style={styles.keypadRow}>
+            {[7, 8, 9].map(num => (
+              <KeypadButton
+                key={num}
+                number={num}
+                val={selectedDigits[num]}
+                selected={selectedDigits[num] !== undefined}
+                onPress={() => handleDigitPress(num)}
+              />
+            ))}
+          </View>
+          <View style={styles.keypadRow}>
+            <KeypadButton
+              number={0}
+              val={selectedDigits[0]}
+              selected={selectedDigits[0] !== undefined}
+              onPress={() => handleDigitPress(0)}
+            />
+          </View>
+        </View>
+      </ScrollView>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
+        <View style={styles.summaryContainer}>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Bids</Text>
+            <Text style={styles.summaryValue}>{Object.keys(selectedDigits).length}</Text>
+          </View>
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryLabel}>Points</Text>
+            <Text style={styles.summaryValue}>{calculateTotalPoints()}</Text>
+          </View>
+        </View>
+        <TouchableOpacity
+          style={[styles.submitButton, submitting && styles.disabledButton]}
+          onPress={handleSubmit}
+          disabled={submitting}
+        >
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
-      </ScrollView>
+      </View>
 
-      {/* Game Type Selection Modal */}
+      {/* Confirmation Modal */}
       <Modal
-        visible={showDropdown}
+        visible={showConfirmModal}
         transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowDropdown(false)}
+        animationType="slide"
+        onRequestClose={() => setShowConfirmModal(false)}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowDropdown(false)}
-        >
+        <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Game Type</Text>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGame === 'OPEN' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGame('OPEN');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGame === 'OPEN' && styles.modalOptionTextSelected
-              ]}>OPEN</Text>
-              {selectedGame === 'OPEN' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGame === 'CLOSE' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGame('CLOSE');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGame === 'CLOSE' && styles.modalOptionTextSelected
-              ]}>CLOSE</Text>
-              {selectedGame === 'CLOSE' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Confirm Bids</Text>
+            <View style={styles.modalListHeader}>
+              <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Digit</Text>
+              <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Points</Text>
+              <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Type</Text>
+            </View>
+            <ScrollView style={styles.modalList} contentContainerStyle={{ paddingBottom: 20 }}>
+              {Object.keys(selectedDigits).map((digit) => (
+                <View key={digit} style={styles.modalListItem}>
+                  <Text style={[styles.modalListItemText, { flex: 1 }]}>{digit}</Text>
+                  <Text style={[styles.modalListItemText, { flex: 1 }]}>{selectedDigits[digit]}</Text>
+                  <Text style={[styles.modalListItemText, { flex: 1 }]}>{selectedGame}</Text>
+                </View>
+              ))}
+            </ScrollView>
+            <View style={styles.modalSummary}>
+              <Text style={styles.modalSummaryText}>Total Bids: {Object.keys(selectedDigits).length}</Text>
+              <Text style={styles.modalSummaryText}>Total Points: {calculateTotalPoints()}</Text>
+            </View>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.confirmButton, submitting && styles.disabledButton]}
+                onPress={handleFinalSubmit}
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.modalButtonText}>Final Submit</Text>
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
+
     </View>
   );
-}
+};
+
+// Helper Component for Keypad Button
+const KeypadButton = ({ number, selected, val, onPress }) => (
+  <TouchableOpacity
+    style={[styles.keypadButton, selected && styles.keypadButtonSelected]}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
+    {selected && (
+      <Text style={styles.keypadPoints}>{val}</Text>
+    )}
+    <Text style={[styles.keypadText, selected && styles.keypadTextSelected]}>{number}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
@@ -279,206 +315,300 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 15,
-    paddingVertical: 12,
     paddingTop: 40,
+    paddingBottom: 15,
+  },
+  backButton: {
+    padding: 5,
+    backgroundColor: 'rgba(0,0,0,0.05)',
+    borderRadius: 20
+  },
+  headerTitleContainer: {
+    flex: 1,
+    alignItems: 'center',
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    flex: 1,
-    textAlign: 'center',
-    marginHorizontal: 10,
+    textTransform: 'uppercase',
     fontFamily: 'RaleighStdDemi',
   },
-  balanceChip: {
+  walletContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#C36578',
     paddingHorizontal: 10,
     paddingVertical: 5,
-    borderRadius: 15,
+    borderRadius: 20,
+    gap: 5
   },
-  balanceText: {
+  walletText: {
     color: '#fff',
-    fontSize: 12,
     fontWeight: 'bold',
-    marginLeft: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontSize: 14
   },
-  content: {
-    flex: 1,
-    padding: 15,
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 100
   },
-  modeContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    gap: 10,
-  },
-  modeButton: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#E0E0E0',
-  },
-  modeButtonActive: {
-    backgroundColor: '#C36578',
-    borderColor: '#C36578',
-  },
-  modeText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-    fontFamily: 'RaleighStdDemi',
-  },
-  modeTextActive: {
-    color: '#fff',
-  },
-  dateRow: {
-    flexDirection: 'row',
-    marginBottom: 20,
-    gap: 10,
-  },
-  dateBox: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 10,
-  },
-  dateText: {
-    fontSize: 14,
-    color: '#000',
-    fontFamily: 'RaleighStdDemi',
-  },
-  dropdown: {
-    flex: 1,
+  inputGroup: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  label: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+    flex: 1,
+    fontFamily: 'RaleighStdDemi'
+  },
+  dropdownButton: {
+    flex: 1.5,
+    flexDirection: 'row',
     backgroundColor: '#fff',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#ddd',
     paddingHorizontal: 15,
-    paddingVertical: 12,
-    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   dropdownText: {
-    fontSize: 14,
-    color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontSize: 16,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi'
   },
-  gridContainer: {
-    marginBottom: 20,
-  },
-  gridRow: {
-    flexDirection: 'row',
+  dropdownList: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    marginTop: -10,
     marginBottom: 15,
-    gap: 15,
+    marginLeft: '40%', // Align with the dropdown button
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 }
   },
-  gridItem: {
-    flex: 1,
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#eee'
   },
-  digitButton: {
-    backgroundColor: '#C36578',
-    paddingVertical: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 8,
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi'
   },
-  digitButtonSelected: {
-    backgroundColor: '#8B6174',
+  selectedDropdownText: {
+    color: '#C36578',
+    fontWeight: 'bold'
   },
-  digitText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    fontFamily: 'RaleighStdDemi',
-  },
-  digitTextSelected: {
-    color: '#F5C542',
-  },
-  pointInput: {
-    backgroundColor: '#D4E3EB',
-    paddingVertical: 10,
+  textInput: {
+    flex: 1.5,
+    backgroundColor: '#fff',
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: '#ddd',
     paddingHorizontal: 15,
-    borderRadius: 8,
-    fontSize: 14,
-    color: '#000',
+    paddingVertical: 10,
+    fontSize: 16,
+    color: '#333',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'RaleighStdDemi'
+  },
+  keypadContainer: {
+    marginTop: 20,
+    alignItems: 'center',
+    gap: 15
+  },
+  keypadRow: {
+    flexDirection: 'row',
+    gap: 15,
+    justifyContent: 'center',
+    width: '100%'
+  },
+  keypadButton: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#C36578',
+    borderRadius: 15,
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    position: 'relative' // For absolute positioning of points
+  },
+  keypadButtonSelected: {
+    backgroundColor: '#8B4250',
+    borderWidth: 2,
+    borderColor: '#F5C542'
+  },
+  keypadText: {
+    color: '#fff',
+    fontSize: 32,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi'
+  },
+  keypadTextSelected: {
+    color: '#F5C542'
+  },
+  keypadPoints: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    fontSize: 10,
+    color: '#fff',
+    fontWeight: 'bold'
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#EBDCCB',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#DCC3B0',
+    justifyContent: 'space-between'
+  },
+  summaryContainer: {
+    flexDirection: 'row',
+    gap: 30
+  },
+  summaryItem: {
+    alignItems: 'center'
+  },
+  summaryLabel: {
+    fontSize: 12,
+    color: '#555',
+    fontFamily: 'RaleighStdDemi'
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+    fontFamily: 'RaleighStdDemi'
   },
   submitButton: {
     backgroundColor: '#C36578',
-    paddingVertical: 15,
+    paddingHorizontal: 40,
+    paddingVertical: 12,
     borderRadius: 10,
-    alignItems: 'center',
-    marginBottom: 20,
+    elevation: 2
+  },
+  disabledButton: {
+    opacity: 0.7
   },
   submitButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'RaleighStdDemi'
   },
   // Modal Styles
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'center'
   },
   modalContent: {
+    width: '90%',
     backgroundColor: '#fff',
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 25,
-    width: SCREEN_WIDTH * 0.8,
-    maxWidth: 320,
-    elevation: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 10,
+    borderRadius: 15,
+    padding: 20,
+    maxHeight: '80%'
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#C36578',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontFamily: 'RaleighStdDemi'
+  },
+  modalListHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#F5EDE0',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 5
+  },
+  modalListHeaderText: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'center',
+    fontFamily: 'RaleighStdDemi'
+  },
+  modalList: {
+    maxHeight: 200
+  },
+  modalListItem: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee'
+  },
+  modalListItemText: {
+    fontSize: 14,
+    color: '#555',
+    textAlign: 'center',
+    fontFamily: 'RaleighStdDemi'
+  },
+  modalSummary: {
+    marginTop: 15,
+    alignItems: 'flex-end',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+    paddingTop: 10
+  },
+  modalSummaryText: {
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
-    textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 5,
+    fontFamily: 'RaleighStdDemi'
   },
-  modalOption: {
+  modalButtons: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    marginBottom: 10,
-    backgroundColor: '#F5EDE0',
-    borderWidth: 2,
-    borderColor: '#E8E8E8',
+    marginTop: 20,
+    gap: 15
   },
-  modalOptionSelected: {
-    backgroundColor: '#E8F5E9',
-    borderColor: '#2E4A3E',
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center'
   },
-  modalOptionText: {
+  cancelButton: {
+    backgroundColor: '#999'
+  },
+  confirmButton: {
+    backgroundColor: '#C36578'
+  },
+  modalButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
     fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    fontFamily: 'RaleighStdDemi',
-  },
-  modalOptionTextSelected: {
-    color: '#2E4A3E',
-  },
+    fontFamily: 'RaleighStdDemi'
+  }
 });
+
+export default SingleDigitBulkGame;

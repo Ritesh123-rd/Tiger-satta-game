@@ -17,21 +17,23 @@ import {
     Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 // Single Pana numbers organized by their sum (add-ank)
+// Single Pana numbers organized by their sum (add-ank)
 const SINGLE_PANA_NUMBERS = {
-    1: ['127', '136', '145', '190', '235', '280', '370', '460', '479', '569', '389', '578'],
-    2: ['128', '137', '146', '236', '245', '290', '380', '470', '489', '579', '678', '560'],
-    3: ['129', '138', '147', '156', '237', '246', '345', '390', '480', '570', '589', '679'],
-    4: ['120', '139', '148', '157', '238', '247', '256', '346', '490', '580', '689', '670'],
-    5: ['130', '149', '158', '167', '239', '248', '257', '347', '356', '590', '680', '789'],
-    6: ['140', '159', '168', '230', '249', '258', '267', '348', '357', '456', '690', '780'],
-    7: ['150', '169', '178', '240', '259', '268', '349', '358', '367', '457', '790', '680'],
-    8: ['160', '179', '250', '269', '278', '340', '359', '368', '458', '467', '890', '570'],
-    9: ['170', '189', '260', '279', '350', '369', '378', '459', '468', '567', '890', '180'],
-    0: ['180', '270', '360', '450', '369', '279', '180', '478', '289', '379', '469', '568'],
+    1: ['128', '137', '146', '236', '245', '290', '380', '470', '489', '579', '678', '560'],
+    2: ['129', '138', '147', '156', '237', '246', '345', '390', '480', '570', '589', '679'],
+    3: ['120', '139', '148', '157', '238', '247', '256', '346', '490', '580', '689', '670'],
+    4: ['130', '149', '158', '167', '239', '248', '257', '347', '356', '590', '680', '789'],
+    5: ['140', '159', '168', '230', '249', '258', '267', '348', '357', '456', '690', '780'],
+    6: ['150', '169', '178', '240', '259', '268', '349', '358', '367', '457', '790', '680'],
+    7: ['160', '179', '250', '269', '278', '340', '359', '368', '458', '467', '890', '570'],
+    8: ['170', '189', '260', '279', '350', '369', '378', '459', '468', '567', '890', '180'],
+    9: ['180', '270', '360', '450', '369', '279', '180', '478', '289', '379', '469', '568'],
+    0: ['127', '136', '145', '190', '235', '280', '370', '460', '479', '569', '389', '578'],
 };
 
 // Custom Marquee Component
@@ -71,29 +73,30 @@ const MarqueeText = ({ text, style }) => {
 };
 
 export default function SinglePanaBulkGame({ navigation, route }) {
+    const insets = useSafeAreaInsets();
     const { gameName, gameType } = route.params;
-  const [balance, setBalance] = useState(0.0);
+    const [balance, setBalance] = useState(0.0);
 
-  const fetchBalance = async () => {
-    try {
-      const mobile = await AsyncStorage.getItem('userMobile');
-      const userId = await AsyncStorage.getItem('userId');
-      if (mobile && userId) {
-        const response = await getWalletBalance(mobile, userId);
-        if (response && (response.status === true || response.status === 'true')) {
-          setBalance(parseFloat(response.balance));
+    const fetchBalance = async () => {
+        try {
+            const mobile = await AsyncStorage.getItem('userMobile');
+            const userId = await AsyncStorage.getItem('userId');
+            if (mobile && userId) {
+                const response = await getWalletBalance(mobile, userId);
+                if (response && (response.status === true || response.status === 'true')) {
+                    setBalance(parseFloat(response.balance));
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching balance:', error);
         }
-      }
-    } catch (error) {
-      console.error('Error fetching balance:', error);
-    }
-  };
+    };
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchBalance();
-    }, [])
-  );
+    useFocusEffect(
+        useCallback(() => {
+            fetchBalance();
+        }, [])
+    );
 
 
     const [selectedGameType, setSelectedGameType] = useState('OPEN');
@@ -264,7 +267,7 @@ export default function SinglePanaBulkGame({ navigation, route }) {
             </View>
 
             {/* Bottom Bar */}
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
                 <View style={styles.statsContainer}>
                     <View style={styles.statItem}>
                         <Text style={styles.statLabel}>Bids</Text>
@@ -535,10 +538,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 20,
         paddingVertical: 15,
-        paddingBottom: 25,
-        backgroundColor: '#F5EDE0',
+        backgroundColor: '#EBDCCB',
         borderTopWidth: 2,
         borderTopColor: '#C36578',
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
     },
     statsContainer: {
         flex: 1,

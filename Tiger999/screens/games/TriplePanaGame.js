@@ -17,6 +17,7 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -60,6 +61,7 @@ const MarqueeText = ({ text, style }) => {
 };
 
 export default function TriplePanaGame({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const [balance, setBalance] = useState(0.0);
 
   const fetchBalance = async () => {
@@ -88,6 +90,10 @@ export default function TriplePanaGame({ navigation, route }) {
   const [selectedGameType, setSelectedGameType] = useState('OPEN');
   const [showDropdown, setShowDropdown] = useState(false);
   const [panaInputs, setPanaInputs] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bids, setBids] = useState([]);
+  const [totalBids, setTotalBids] = useState(0);
+  const [totalPoints, setTotalPoints] = useState(0);
 
   // Get current date in DD-MM-YYYY format
   const getCurrentDate = () => {
@@ -108,31 +114,42 @@ export default function TriplePanaGame({ navigation, route }) {
 
   // Handle Submit
   const handleSubmit = () => {
-    const bids = [];
+    const newBids = [];
     Object.keys(panaInputs).forEach(pana => {
       const pointValue = panaInputs[pana];
       if (pointValue && parseInt(pointValue) > 0) {
-        bids.push({
+        newBids.push({
+          id: `${pana}-${Date.now()}-${Math.random()}`,
           pana: pana,
-          points: pointValue,
+          point: pointValue,
           type: selectedGameType.toLowerCase(),
         });
       }
     });
 
-    if (bids.length === 0) {
+    if (newBids.length === 0) {
       Alert.alert('Error', 'Please enter points for at least one pana');
       return;
     }
 
-    const totalPoints = bids.reduce((sum, bid) => sum + parseInt(bid.points), 0);
+    const calculatedTotalPoints = newBids.reduce((sum, bid) => sum + parseInt(bid.point), 0);
+    setBids(newBids);
+    setTotalBids(newBids.length);
+    setTotalPoints(calculatedTotalPoints);
+    setShowConfirmModal(true);
+  };
 
+  const finalSubmit = () => {
     Alert.alert(
       'Success',
-      `${bids.length} bids submitted for ${totalPoints} points!`,
+      `${totalBids} bids submitted for ${totalPoints} points!`,
       [{
         text: 'OK', onPress: () => {
           setPanaInputs({});
+          setBids([]);
+          setTotalBids(0);
+          setTotalPoints(0);
+          setShowConfirmModal(false);
         }
       }]
     );
@@ -176,7 +193,7 @@ export default function TriplePanaGame({ navigation, route }) {
         </View>
 
         {/* Triple Pana Grid */}
-        <View style={styles.panaGrid}>
+        <View style={[styles.panaGrid, { paddingBottom: 80 }]}>
           {TRIPLE_PANA_NUMBERS.map((pana, index) => (
             <View key={pana} style={styles.panaItem}>
               <View style={styles.panaNumberBox}>
@@ -193,12 +210,15 @@ export default function TriplePanaGame({ navigation, route }) {
             </View>
           ))}
         </View>
-
-        {/* Submit Button */}
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Submit</Text>
-        </TouchableOpacity>
       </ScrollView>
+
+      {/* Submit Button */}
+      <TouchableOpacity
+        style={[styles.submitButton, { paddingBottom: Math.max(insets.bottom, 16), height: 60 + insets.bottom }]}
+        onPress={handleSubmit}
+      >
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
 
       {/* Game Type Selection Modal */}
       <Modal
@@ -252,6 +272,56 @@ export default function TriplePanaGame({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <Modal
+        visible={showConfirmModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowConfirmModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { width: SCREEN_WIDTH * 0.9, maxHeight: '80%' }]}>
+            <Text style={styles.modalTitle}>Confirm Your Bids</Text>
+
+            <View style={styles.confirmTableHeader}>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Pana</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Points</Text>
+              <Text style={[styles.confirmHeaderText, { flex: 1 }]}>Type</Text>
+            </View>
+
+            <ScrollView style={{ marginVertical: 10 }}>
+              {bids.map((bid) => (
+                <View key={bid.id} style={styles.confirmBidRow}>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.pana}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.point}</Text>
+                  <Text style={[styles.confirmBidText, { flex: 1 }]}>{bid.type}</Text>
+                </View>
+              ))}
+            </ScrollView>
+
+            <View style={styles.confirmTotalRow}>
+              <Text style={styles.confirmTotalLabel}>Total Bids: {totalBids}</Text>
+              <Text style={styles.confirmTotalLabel}>Total Points: {totalPoints}</Text>
+            </View>
+
+            <View style={styles.confirmButtonRow}>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#999' }]}
+                onPress={() => setShowConfirmModal(false)}
+              >
+                <Text style={styles.confirmButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.confirmButton, { backgroundColor: '#C36578' }]}
+                onPress={finalSubmit}
+              >
+                <Text style={styles.confirmButtonText}>Confirm Submit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
       </Modal>
     </View>
   );
@@ -391,9 +461,12 @@ const styles = StyleSheet.create({
   submitButton: {
     backgroundColor: '#C36578',
     paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
-    marginBottom: 30,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center'
   },
   submitButtonText: {
     color: '#fff',
@@ -453,5 +526,63 @@ const styles = StyleSheet.create({
   },
   modalOptionTextSelected: {
     color: '#2E4A3E',
+  },
+  // Confirmation Modal Styles
+  confirmTableHeader: {
+    flexDirection: 'row',
+    backgroundColor: '#C36578',
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  confirmHeaderText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 14,
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmBidRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EEE',
+  },
+  confirmBidText: {
+    textAlign: 'center',
+    fontSize: 14,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmTotalRow: {
+    paddingVertical: 15,
+    borderTopWidth: 2,
+    borderTopColor: '#C36578',
+    marginTop: 5,
+  },
+  confirmTotalLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'right',
+    marginBottom: 5,
+    fontFamily: 'RaleighStdDemi',
+  },
+  confirmButtonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+    gap: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: 'center',
+  },
+  confirmButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
   },
 });

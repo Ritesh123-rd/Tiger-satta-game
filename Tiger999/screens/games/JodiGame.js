@@ -1,77 +1,51 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance } from '../../api/auth';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    TextInput,
-    FlatList,
-    Alert,
-    StatusBar,
-    Modal,
-    Dimensions,
-    Animated,
-    Easing,
+    View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal, FlatList
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
+import { API_BASE_URL } from '../../api/config';
+import { getWalletBalance } from '../../api/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
-// Custom Marquee Component
-const MarqueeText = ({ text, style }) => {
-    const animatedValue = useRef(new Animated.Value(0)).current;
-    const [textWidth, setTextWidth] = useState(0);
-    const containerWidth = SCREEN_WIDTH - 140;
+const JodiGame = ({ navigation, route }) => {
+    const insets = useSafeAreaInsets();
+    const { gameName, gameId } = route.params || {};
+    const [selectedGame, setSelectedGame] = useState('OPEN'); // Although Jodi usually doesn't have open/close, keeping as per UI
+    const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
+    const [mode, setMode] = useState('EASY'); // 'EASY' or 'SPECIAL'
+    const [balance, setBalance] = useState(0);
+    const [loading, setLoading] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [currentDate, setCurrentDate] = useState('');
+
+    // Easy Mode State
+    const [easyJodi, setEasyJodi] = useState('');
+    const [easyPoints, setEasyPoints] = useState('');
+    const [easyBids, setEasyBids] = useState([]);
+
+    // Special Mode State
+    // We'll store special mode inputs in an object { '00': '10', '05': '50' }
+    const [specialBids, setSpecialBids] = useState({});
 
     useEffect(() => {
-        if (textWidth > 0) {
-            animatedValue.setValue(containerWidth);
-            Animated.loop(
-                Animated.timing(animatedValue, {
-                    toValue: -textWidth,
-                    duration: 8000,
-                    easing: Easing.linear,
-                    useNativeDriver: true,
-                })
-            ).start();
-        }
-    }, [textWidth, containerWidth]);
+        const d = new Date();
+        const formatted = `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`;
+        setCurrentDate(formatted);
+    }, []);
 
-    return (
-        <View style={{ width: containerWidth, overflow: 'hidden', alignItems: 'center' }}>
-            <Animated.Text
-                onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
-                style={[style, { transform: [{ translateX: animatedValue }] }]}
-                numberOfLines={1}
-            >
-                {text}   {text}   {text}
-            </Animated.Text>
-        </View>
-    );
-};
-
-export default function JodiGame({ navigation, route }) {
-    const { gameName, gameType } = route.params || { gameName: 'JODI', gameType: 'open' };
-    const [selectedGameType, setSelectedGameType] = useState('OPEN');
-    const [showDropdown, setShowDropdown] = useState(false);
-    const [jodi, setJodi] = useState('');
-    const [points, setPoints] = useState('');
-    const [bids, setBids] = useState([]);
-    const [totalBids, setTotalBids] = useState(0);
-    const [totalPoints, setTotalPoints] = useState(0);
-    const [balance, setBalance] = useState(0.0);
-
-    const fetchBalance = async () => {
+    const fetchWalletBalance = async () => {
         try {
             const mobile = await AsyncStorage.getItem('userMobile');
-      const userId = await AsyncStorage.getItem('userId');
-      if (mobile && userId) {
-        const response = await getWalletBalance(mobile, userId);
-        if (response && (response.status === true || response.status === 'true')) {
-                    setBalance(parseFloat(response.balance));
+            const userId = await AsyncStorage.getItem('userId');
+            if (mobile && userId) {
+                const data = await getWalletBalance(mobile, userId);
+                if (data && (data.status === true || data.status === 'true')) {
+                    setBalance(parseFloat(data.balance));
                 }
             }
         } catch (error) {
@@ -80,152 +54,311 @@ export default function JodiGame({ navigation, route }) {
     };
 
     useFocusEffect(
-        useCallback(() => {
-            fetchBalance();
+        React.useCallback(() => {
+            fetchWalletBalance();
         }, [])
     );
 
-    useEffect(() => {
-        let bidCount = bids.length;
-        let pointSum = bids.reduce((sum, bid) => sum + parseInt(bid.points || 0), 0);
-        setTotalBids(bidCount);
-        setTotalPoints(pointSum);
-    }, [bids]);
-
-    const handleAddBid = () => {
-        if (!jodi || jodi.length !== 2) {
-            Alert.alert('Error', 'Please enter a valid 2-digit jodi');
+    // --- Handlers for Easy Mode ---
+    const handleAddEasyBid = () => {
+        if (!easyJodi || easyJodi.length !== 2) {
+            Alert.alert('Error', 'Please enter a valid 2-digit Jodi');
             return;
         }
-        if (!points || parseInt(points) <= 0) {
+        if (!easyPoints || parseInt(easyPoints) <= 0) {
             Alert.alert('Error', 'Please enter valid points');
             return;
         }
-
         const newBid = {
-            id: `${jodi}-${Date.now()}-${Math.random()}`,
-            jodi: jodi,
-            points: points,
-            type: selectedGameType.toLowerCase(),
+            id: Date.now().toString() + Math.random().toString(),
+            jodi: easyJodi,
+            points: easyPoints,
+            type: selectedGame
         };
-
-        setBids(prev => [...prev, newBid]);
-        setJodi('');
-        setPoints('');
+        setEasyBids([...easyBids, newBid]);
+        setEasyJodi('');
+        setEasyPoints('');
     };
 
-    const handleDeleteBid = (bidId) => {
-        setBids(prev => prev.filter(bid => bid.id !== bidId));
+    const handleDeleteEasyBid = (id) => {
+        setEasyBids(easyBids.filter(b => b.id !== id));
     };
 
+    // --- Handlers for Special Mode ---
+    const handleSpecialPointChange = (jodi, value) => {
+        setSpecialBids(prev => {
+            const newBids = { ...prev };
+            if (!value) {
+                delete newBids[jodi];
+            } else {
+                newBids[jodi] = value;
+            }
+            return newBids;
+        });
+    };
+
+    // --- Calculation ---
+    const calculateTotalBids = () => {
+        if (mode === 'EASY') return easyBids.length;
+        return Object.keys(specialBids).length;
+    };
+
+    const calculateTotalPoints = () => {
+        if (mode === 'EASY') {
+            return easyBids.reduce((sum, bid) => sum + parseInt(bid.points), 0);
+        }
+        return Object.values(specialBids).reduce((sum, p) => sum + (parseInt(p) || 0), 0);
+    };
+
+    // --- Submission ---
     const handleSubmit = () => {
-        if (bids.length === 0) {
+        const totalPoints = calculateTotalPoints();
+        const totalCount = calculateTotalBids();
+
+        if (totalCount === 0) {
             Alert.alert('Error', 'Please add at least one bid');
             return;
         }
-        Alert.alert(
-            'Success',
-            `${totalBids} bids submitted for ${totalPoints} points!`,
-            [{ text: 'OK', onPress: () => { setBids([]); setJodi(''); setPoints(''); } }]
-        );
+        if (totalPoints > balance) {
+            Alert.alert('Error', 'Insufficient balance');
+            return;
+        }
+        setShowConfirmModal(true);
     };
 
-    const renderBidItem = ({ item }) => (
-        <View style={styles.bidRow}>
-            <Text style={styles.bidCell}>{item.jodi}</Text>
-            <Text style={styles.bidCell}>{item.points}</Text>
-            <Text style={styles.bidCell}>{item.type}</Text>
-            <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
-                <View style={styles.deleteIconContainer}>
-                    <Ionicons name="close" size={12} color="#C36578" />
-                </View>
-            </TouchableOpacity>
-        </View>
-    );
+    const handleFinalSubmit = async () => {
+        setSubmitting(true);
+        try {
+            const token = await AsyncStorage.getItem('user_token');
+            let bidsPayload = [];
+
+            if (mode === 'EASY') {
+                bidsPayload = easyBids.map(b => ({
+                    game_id: gameId,
+                    game_type: b.type,
+                    digit: b.jodi,
+                    points: b.points,
+                    type: 'jodi'
+                }));
+            } else {
+                // Special Mode
+                bidsPayload = Object.keys(specialBids).map(jodi => ({
+                    game_id: gameId,
+                    game_type: selectedGame, // Uses the selected open/close at top
+                    digit: jodi,
+                    points: specialBids[jodi],
+                    type: 'jodi'
+                }));
+            }
+
+            const response = await fetch(`${API_BASE_URL}/place-bid-bulk`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ bids: bidsPayload })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                setShowConfirmModal(false);
+                Alert.alert('Success', 'Bids placed successfully!', [
+                    {
+                        text: 'OK', onPress: () => {
+                            setEasyBids([]);
+                            setSpecialBids({});
+                            setEasyJodi('');
+                            setEasyPoints('');
+                            fetchWalletBalance();
+                            navigation.goBack();
+                        }
+                    }
+                ]);
+            } else {
+                Alert.alert('Error', data.message || 'Failed to place bids');
+            }
+        } catch (error) {
+            Alert.alert('Error', 'Network request failed');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+
+    // --- Render Helpers ---
+    const renderSpecialGrid = () => {
+        // 00 to 99
+        const gridItems = [];
+        for (let i = 0; i < 100; i++) {
+            const jodi = i.toString().padStart(2, '0');
+            gridItems.push(jodi);
+        }
+
+        return (
+            <View style={styles.gridContainer}>
+                {gridItems.map((jodi) => (
+                    <View key={jodi} style={styles.gridItem}>
+                        <View style={styles.gridHeader}>
+                            <Text style={styles.gridHeaderText}>{jodi}</Text>
+                        </View>
+                        <TextInput
+                            style={styles.gridInput}
+                            keyboardType="number-pad"
+                            placeholder=""
+                            value={specialBids[jodi] || ''}
+                            onChangeText={(val) => handleSpecialPointChange(jodi, val)}
+                        />
+                    </View>
+                ))}
+            </View>
+        );
+    };
 
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
 
+            {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={22} color="#000" />
+                    <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
-                <MarqueeText text={`${gameName} - JODI`} style={styles.headerTitle} />
-                <View style={styles.balanceChip}>
-                    <Ionicons name="wallet-outline" size={14} color="#fff" />
-                    <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
+                <View style={styles.headerTitleContainer}>
+                    <Text style={styles.headerTitle}>{gameName || 'SRIDEVI NIGHT'} - JODI</Text>
+                </View>
+                <View style={styles.walletContainer}>
+                    <Ionicons name="wallet-outline" size={20} color="#fff" />
+                    <Text style={styles.walletText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
-            <View style={styles.content}>
-                <View style={styles.inputRow}>
-                    <Text style={styles.inputLabel}>Select Game Type:</Text>
-                    <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
-                        <Text style={styles.dropdownText}>{selectedGameType}</Text>
-                        <Ionicons name="chevron-down" size={20} color="#B8860B" />
+            {/* Mode Selector */}
+            <View style={styles.modeContainer}>
+                <TouchableOpacity
+                    style={[styles.modeButton, mode === 'EASY' && styles.modeButtonSelected]}
+                    onPress={() => setMode('EASY')}
+                >
+                    <Text style={[styles.modeButtonText, mode === 'EASY' && styles.modeButtonTextSelected]}>EASY MODE</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.modeButton, mode === 'SPECIAL' && styles.modeButtonSelected]}
+                    onPress={() => setMode('SPECIAL')}
+                >
+                    <Text style={[styles.modeButtonText, mode === 'SPECIAL' && styles.modeButtonTextSelected]}>SPECIAL MODE</Text>
+                </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.scrollContent}>
+
+                {/* Common Top Inputs */}
+                {mode === 'SPECIAL' && (
+                    <View style={styles.inputGroup}>
+                        <View style={styles.dateBadge}>
+                            <Ionicons name="calendar-outline" size={18} color="#C36578" />
+                            <Text style={styles.dateText}>{currentDate}</Text>
+                        </View>
+                    </View>
+                )}
+
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Select Game Type:</Text>
+                    <TouchableOpacity
+                        style={styles.dropdownButton}
+                        onPress={() => setIsGameTypeOpen(!isGameTypeOpen)}
+                    >
+                        <Text style={styles.dropdownText}>{selectedGame}</Text>
+                        <Ionicons name={isGameTypeOpen ? "chevron-up" : "chevron-down"} size={20} color="#C36578" />
                     </TouchableOpacity>
                 </View>
-
-                <View style={styles.inputRow}>
-                    <Text style={styles.inputLabel}>Enter Jodi:</Text>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Jodi"
-                        placeholderTextColor="#999"
-                        keyboardType="numeric"
-                        maxLength={2}
-                        value={jodi}
-                        onChangeText={setJodi}
-                    />
-                </View>
-
-                <View style={styles.inputRow}>
-                    <Text style={styles.inputLabel}>Enter Points:</Text>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Point"
-                        placeholderTextColor="#999"
-                        keyboardType="numeric"
-                        value={points}
-                        onChangeText={setPoints}
-                    />
-                </View>
-
-                <TouchableOpacity style={styles.addButton} onPress={handleAddBid}>
-                    <Text style={styles.addButtonText}>Add</Text>
-                </TouchableOpacity>
-
-                <View style={styles.tableHeader}>
-                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Jodi</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Point</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Type</Text>
-                    <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Delete</Text>
-                </View>
-
-                <FlatList
-                    data={bids}
-                    renderItem={renderBidItem}
-                    keyExtractor={item => item.id}
-                    style={styles.bidsList}
-                    showsVerticalScrollIndicator={false}
-                    ListEmptyComponent={
-                        <View style={styles.emptyList}>
-                            <Text style={styles.emptyText}>No bids added yet</Text>
-                        </View>
-                    }
-                />
-            </View>
-
-            <View style={styles.bottomBar}>
-                <View style={styles.statsContainer}>
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Bids</Text>
-                        <Text style={styles.statValue}>{totalBids}</Text>
+                {isGameTypeOpen && (
+                    <View style={styles.dropdownList}>
+                        {['OPEN', 'CLOSE'].map((type) => (
+                            <TouchableOpacity
+                                key={type}
+                                style={styles.dropdownItem}
+                                onPress={() => {
+                                    setSelectedGame(type);
+                                    setIsGameTypeOpen(false);
+                                }}
+                            >
+                                <Text style={[styles.dropdownItemText, selectedGame === type && styles.selectedDropdownText]}>{type}</Text>
+                            </TouchableOpacity>
+                        ))}
                     </View>
-                    <View style={styles.statItem}>
-                        <Text style={styles.statLabel}>Points</Text>
-                        <Text style={styles.statValue}>{totalPoints}</Text>
+                )}
+
+                {/* Content Body Based on Mode */}
+                {mode === 'EASY' ? (
+                    <>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Enter Jodi Digit:</Text>
+                            <TextInput
+                                style={styles.textInput}
+                                placeholder=""
+                                keyboardType="number-pad"
+                                maxLength={2}
+                                value={easyJodi}
+                                onChangeText={setEasyJodi}
+                            />
+                        </View>
+                        <View style={styles.inputGroup}>
+                            <Text style={styles.label}>Enter Points:</Text>
+                            <TextInput
+                                style={styles.textInput}
+                                placeholder="Point"
+                                placeholderTextColor="#aaa"
+                                keyboardType="number-pad"
+                                value={easyPoints}
+                                onChangeText={setEasyPoints}
+                            />
+                        </View>
+
+                        <TouchableOpacity style={styles.addButton} onPress={handleAddEasyBid}>
+                            <Text style={styles.addButtonText}>Add</Text>
+                        </TouchableOpacity>
+
+                        {/* Table Header */}
+                        <View style={styles.tableHeader}>
+                            <Text style={styles.tableHeaderText}>Jodi</Text>
+                            <Text style={styles.tableHeaderText}>Point</Text>
+                            <Text style={styles.tableHeaderText}>Type</Text>
+                            <Text style={styles.tableHeaderText}>Delete</Text>
+                        </View>
+
+                        {/* List */}
+                        {easyBids.map((bid) => (
+                            <View key={bid.id} style={styles.tableRow}>
+                                <Text style={styles.tableCell}>{bid.jodi}</Text>
+                                <Text style={styles.tableCell}>{bid.points}</Text>
+                                <Text style={styles.tableCell}>{bid.type}</Text>
+                                <TouchableOpacity style={styles.tableCell} onPress={() => handleDeleteEasyBid(bid.id)}>
+                                    <Ionicons name="trash-outline" size={20} color="#C36578" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                        {easyBids.length === 0 && (
+                            <Text style={styles.emptyText}>No bids added</Text>
+                        )}
+                    </>
+                ) : (
+                    <>
+                        {/* SPECIAL MODE GRID */}
+                        {renderSpecialGrid()}
+                    </>
+                )}
+            </ScrollView>
+
+            {/* Footer */}
+            <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
+                <View style={styles.summaryContainer}>
+                    <View style={styles.summaryItem}>
+                        <Text style={styles.summaryLabel}>Bids</Text>
+                        <Text style={styles.summaryValue}>{calculateTotalBids()}</Text>
+                    </View>
+                    <View style={styles.summaryItem}>
+                        <Text style={styles.summaryLabel}>Points</Text>
+                        <Text style={styles.summaryValue}>{calculateTotalPoints()}</Text>
                     </View>
                 </View>
                 <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
@@ -233,67 +366,448 @@ export default function JodiGame({ navigation, route }) {
                 </TouchableOpacity>
             </View>
 
-            <Modal visible={showDropdown} transparent={true} animationType="fade" onRequestClose={() => setShowDropdown(false)}>
-                <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDropdown(false)}>
+            {/* Confirmation Modal */}
+            <Modal
+                visible={showConfirmModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowConfirmModal(false)}
+            >
+                <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Select Game Type</Text>
-                        <TouchableOpacity
-                            style={[styles.modalOption, selectedGameType === 'OPEN' && styles.modalOptionSelected]}
-                            onPress={() => { setSelectedGameType('OPEN'); setShowDropdown(false); }}
-                        >
-                            <Text style={[styles.modalOptionText, selectedGameType === 'OPEN' && styles.modalOptionTextSelected]}>OPEN</Text>
-                            {selectedGameType === 'OPEN' && <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />}
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={[styles.modalOption, selectedGameType === 'CLOSE' && styles.modalOptionSelected]}
-                            onPress={() => { setSelectedGameType('CLOSE'); setShowDropdown(false); }}
-                        >
-                            <Text style={[styles.modalOptionText, selectedGameType === 'CLOSE' && styles.modalOptionTextSelected]}>CLOSE</Text>
-                            {selectedGameType === 'CLOSE' && <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />}
-                        </TouchableOpacity>
+                        <Text style={styles.modalTitle}>Confirm Bids</Text>
+                        <View style={styles.modalListHeader}>
+                            <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Jodi</Text>
+                            <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Points</Text>
+                            <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Type</Text>
+                        </View>
+
+                        <ScrollView style={styles.modalList}>
+                            {mode === 'EASY' ? (
+                                easyBids.map((bid) => (
+                                    <View key={bid.id} style={styles.modalListItem}>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.jodi}</Text>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.points}</Text>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.type}</Text>
+                                    </View>
+                                ))
+                            ) : (
+                                Object.keys(specialBids).map((jodi) => (
+                                    <View key={jodi} style={styles.modalListItem}>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{jodi}</Text>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{specialBids[jodi]}</Text>
+                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{selectedGame}</Text>
+                                    </View>
+                                ))
+                            )}
+                        </ScrollView>
+
+                        <View style={styles.modalSummary}>
+                            <Text style={styles.modalSummaryText}>Total Bids: {calculateTotalBids()}</Text>
+                            <Text style={styles.modalSummaryText}>Total Points: {calculateTotalPoints()}</Text>
+                        </View>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setShowConfirmModal(false)}>
+                                <Text style={styles.modalButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.confirmButton, submitting && styles.disabledButton]}
+                                onPress={handleFinalSubmit}
+                                disabled={submitting}
+                            >
+                                {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.modalButtonText}>Final Submit</Text>}
+                            </TouchableOpacity>
+                        </View>
                     </View>
-                </TouchableOpacity>
+                </View>
             </Modal>
+
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#F5EDE0' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 12, paddingTop: 45, backgroundColor: '#F5EDE0' },
-    backButton: { width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F0E8Da' },
-    headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi', textTransform: 'uppercase', letterSpacing: 0.5 },
-    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 18, gap: 4 },
-    balanceText: { color: '#fff', fontSize: 12, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
-    content: { flex: 1, paddingHorizontal: 15, paddingTop: 10 },
-    inputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-    inputLabel: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi', flex: 1 },
-    dropdown: { flex: 1.2, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 25, borderWidth: 1, borderColor: '#E8E8E8' },
-    dropdownText: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi', fontWeight: '500' },
-    textInput: { flex: 1.2, backgroundColor: '#fff', paddingHorizontal: 15, paddingVertical: 12, borderRadius: 25, fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi', borderWidth: 1, borderColor: '#E8E8E8', textAlign: 'center' },
-    addButton: { backgroundColor: '#C36578', paddingVertical: 14, borderRadius: 25, alignItems: 'center', marginBottom: 15 },
-    addButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
-    tableHeader: { flexDirection: 'row', paddingVertical: 10, paddingHorizontal: 5, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-    tableHeaderText: { flex: 1, textAlign: 'center', fontSize: 13, fontWeight: '600', fontFamily: 'RaleighStdDemi' },
-    bidsList: { flex: 1 },
-    bidRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 10, marginBottom: 6, backgroundColor: '#fff', borderRadius: 12, borderWidth: 1, borderColor: '#F0F0F0' },
-    bidCell: { flex: 1, textAlign: 'center', fontSize: 14, color: '#333', fontFamily: 'RaleighStdDemi' },
-    deleteBtn: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    deleteIconContainer: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: '#C36578', justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
-    emptyList: { paddingVertical: 40, alignItems: 'center' },
-    emptyText: { fontSize: 14, color: '#999', fontFamily: 'RaleighStdDemi' },
-    bottomBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 15, paddingBottom: 25, backgroundColor: '#F5EDE0', borderTopWidth: 2, borderTopColor: '#C36578' },
-    statsContainer: { flex: 1, flexDirection: 'row' },
-    statItem: { flex: 1, alignItems: 'center' },
-    statLabel: { fontSize: 13, color: '#666', fontFamily: 'RaleighStdDemi' },
-    statValue: { fontSize: 18, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi' },
-    submitButton: { backgroundColor: '#C36578', paddingHorizontal: 45, paddingVertical: 14, borderRadius: 8 },
-    submitButtonText: { color: '#fff', fontSize: 16, fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
-    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
-    modalContent: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 20, paddingHorizontal: 25, width: SCREEN_WIDTH * 0.8, maxWidth: 320, elevation: 10 },
-    modalTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', fontFamily: 'RaleighStdDemi', textAlign: 'center', marginBottom: 20 },
-    modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, marginBottom: 10, backgroundColor: '#F5EDE0', borderWidth: 2, borderColor: '#E8E8E8' },
-    modalOptionSelected: { backgroundColor: '#E8F5E9', borderColor: '#2E4A3E' },
-    modalOptionText: { fontSize: 16, fontWeight: '600', color: '#333', fontFamily: 'RaleighStdDemi' },
-    modalOptionTextSelected: { color: '#2E4A3E' },
+    container: {
+        flex: 1,
+        backgroundColor: '#F5EDE0',
+    },
+    header: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 15,
+        paddingTop: 40,
+        paddingBottom: 15,
+    },
+    backButton: {
+        padding: 5,
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 20
+    },
+    headerTitleContainer: {
+        flex: 1,
+        alignItems: 'center',
+    },
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#000',
+        textTransform: 'uppercase',
+        fontFamily: 'RaleighStdDemi',
+    },
+    walletContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#C36578',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 20,
+        gap: 5
+    },
+    walletText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 14
+    },
+    modeContainer: {
+        flexDirection: 'row',
+        marginHorizontal: 15,
+        marginBottom: 10,
+        borderRadius: 10,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#C36578'
+    },
+    modeButton: {
+        flex: 1,
+        paddingVertical: 12,
+        alignItems: 'center',
+        backgroundColor: '#fff'
+    },
+    modeButtonSelected: {
+        backgroundColor: '#C36578'
+    },
+    modeButtonText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#333',
+        fontFamily: 'RaleighStdDemi'
+    },
+    modeButtonTextSelected: {
+        color: '#fff'
+    },
+    scrollContent: {
+        padding: 20,
+        paddingBottom: 100
+    },
+    inputGroup: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 15,
+    },
+    label: {
+        fontSize: 16,
+        color: '#333',
+        fontWeight: '500',
+        flex: 1,
+        fontFamily: 'RaleighStdDemi'
+    },
+    dropdownButton: {
+        flex: 1.5,
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    dropdownText: {
+        fontSize: 16,
+        color: '#333',
+        fontFamily: 'RaleighStdDemi'
+    },
+    dropdownList: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        marginTop: -10,
+        marginBottom: 15,
+        marginLeft: '40%',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        shadowOffset: { width: 0, height: 2 }
+    },
+    dropdownItem: {
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderBottomWidth: 0.5,
+        borderBottomColor: '#eee'
+    },
+    dropdownItemText: {
+        fontSize: 16,
+        color: '#333',
+        fontFamily: 'RaleighStdDemi'
+    },
+    selectedDropdownText: {
+        color: '#C36578',
+        fontWeight: 'bold'
+    },
+    textInput: {
+        flex: 1.5,
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        paddingHorizontal: 15,
+        paddingVertical: 10,
+        fontSize: 16,
+        color: '#333',
+        textAlign: 'center',
+        fontFamily: 'RaleighStdDemi'
+    },
+    addButton: {
+        backgroundColor: '#C36578',
+        paddingVertical: 12,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginBottom: 20
+    },
+    addButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        fontFamily: 'RaleighStdDemi'
+    },
+    tableHeader: {
+        flexDirection: 'row',
+        borderBottomWidth: 1,
+        borderBottomColor: '#C36578',
+        paddingBottom: 10,
+        marginBottom: 10
+    },
+    tableHeaderText: {
+        flex: 1,
+        textAlign: 'center',
+        color: '#C36578',
+        fontWeight: 'bold',
+        fontFamily: 'RaleighStdDemi'
+    },
+    tableRow: {
+        flexDirection: 'row',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee'
+    },
+    tableCell: {
+        flex: 1,
+        textAlign: 'center',
+        color: '#333',
+        fontFamily: 'RaleighStdDemi',
+        alignItems: 'center'
+    },
+    emptyText: {
+        textAlign: 'center',
+        color: '#999',
+        marginTop: 20,
+        fontFamily: 'RaleighStdDemi'
+    },
+    // Special Mode Styles
+    dateBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingHorizontal: 15,
+        paddingVertical: 8,
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#ddd',
+        gap: 8
+    },
+    dateText: {
+        fontSize: 14,
+        color: '#333',
+        fontWeight: 'bold'
+    },
+    gridContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+        gap: 10
+    },
+    gridItem: {
+        width: '47%',
+        flexDirection: 'row',
+        borderRadius: 8,
+        overflow: 'hidden',
+        marginBottom: 10,
+        borderWidth: 1,
+        borderColor: '#ddd'
+    },
+    gridHeader: {
+        width: 50,
+        backgroundColor: '#C36578',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    gridHeaderText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16
+    },
+    gridInput: {
+        flex: 1,
+        backgroundColor: '#D3DCE6', // Light grayish blue from screenshot
+        textAlign: 'center',
+        fontSize: 16,
+        color: '#333',
+        paddingVertical: 10
+    },
+
+    // Footer
+    footer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#EBDCCB',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 15,
+        borderTopWidth: 1,
+        borderTopColor: '#DCC3B0',
+        justifyContent: 'space-between'
+    },
+    summaryContainer: {
+        flexDirection: 'row',
+        gap: 30
+    },
+    summaryItem: {
+        alignItems: 'center'
+    },
+    summaryLabel: {
+        fontSize: 12,
+        color: '#555',
+        fontFamily: 'RaleighStdDemi'
+    },
+    summaryValue: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#000',
+        fontFamily: 'RaleighStdDemi'
+    },
+    submitButton: {
+        backgroundColor: '#C36578',
+        paddingHorizontal: 40,
+        paddingVertical: 12,
+        borderRadius: 10,
+        elevation: 2
+    },
+    disabledButton: {
+        opacity: 0.7
+    },
+    submitButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        fontFamily: 'RaleighStdDemi'
+    },
+
+    // Modal
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    modalContent: {
+        width: '90%',
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 20,
+        maxHeight: '80%'
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#C36578',
+        textAlign: 'center',
+        marginBottom: 15,
+        fontFamily: 'RaleighStdDemi'
+    },
+    modalListHeader: {
+        flexDirection: 'row',
+        backgroundColor: '#F5EDE0',
+        padding: 10,
+        borderRadius: 8,
+        marginBottom: 5
+    },
+    modalListHeaderText: {
+        fontWeight: 'bold',
+        fontSize: 14,
+        color: '#333',
+        textAlign: 'center',
+        fontFamily: 'RaleighStdDemi'
+    },
+    modalList: {
+        maxHeight: 200
+    },
+    modalListItem: {
+        flexDirection: 'row',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee'
+    },
+    modalListItemText: {
+        fontSize: 14,
+        color: '#555',
+        textAlign: 'center',
+        fontFamily: 'RaleighStdDemi'
+    },
+    modalSummary: {
+        marginTop: 15,
+        alignItems: 'flex-end',
+        borderTopWidth: 1,
+        borderTopColor: '#eee',
+        paddingTop: 10
+    },
+    modalSummaryText: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 5,
+        fontFamily: 'RaleighStdDemi'
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 20,
+        gap: 15
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 10,
+        alignItems: 'center'
+    },
+    cancelButton: {
+        backgroundColor: '#999'
+    },
+    confirmButton: {
+        backgroundColor: '#C36578'
+    },
+    modalButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+        fontSize: 16,
+        fontFamily: 'RaleighStdDemi'
+    }
 });
+
+export default JodiGame;

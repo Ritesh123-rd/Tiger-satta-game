@@ -16,6 +16,7 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -54,6 +55,7 @@ const MarqueeText = ({ text, style }) => {
 
 
 export default function SingleDigitGame({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { gameName, gameType } = route.params;
   const [mode, setMode] = useState('easy'); // 'easy' or 'special'
   const [selectedGame, setSelectedGame] = useState('CLOSE');
@@ -409,7 +411,7 @@ export default function SingleDigitGame({ navigation, route }) {
       </Modal>
 
       {/* Bottom Submit Bar */}
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12), height: 75 + insets.bottom }]}>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Bids</Text>
@@ -582,12 +584,16 @@ const styles = StyleSheet.create({
   },
   bottomBar: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: '#EBDCCB',
     paddingHorizontal: 15,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: '#E0E0E0',
     alignItems: 'center',
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
   },
   statsContainer: {
     flexDirection: 'row',
