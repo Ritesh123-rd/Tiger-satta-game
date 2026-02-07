@@ -22,7 +22,7 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.8; // 80% screen width
-
+//home
 export default function HomeScreen({ navigation }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [balance, setBalance] = useState(0.0);
