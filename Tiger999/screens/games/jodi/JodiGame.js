@@ -33,16 +33,14 @@ const JodiGame = ({ navigation, route }) => {
     // We'll store special mode inputs in an object { '00': '10', '05': '50' }
     const [specialBids, setSpecialBids] = useState({});
 
-    useEffect(()=> {
-
-        if(isOpenAvailable === false){
-            Alert.alert("market close",
-                "joddi game ke liye open time samapt ho chuka hai.",
-                [{text:"ok", onPress:()=> navigation.goBack()}]
-
-            )
+    useEffect(() => {
+        if (isOpenAvailable === false) {
+            Alert.alert("Market Closed",
+                "Jodi game ke liye open time samapt ho chuka hai.",
+                [{ text: "OK", onPress: () => navigation.navigate('Home') }]
+            );
         }
-    },[isOpenAvailable]);
+    }, [isOpenAvailable]);
 
     useEffect(() => {
         const d = new Date();
