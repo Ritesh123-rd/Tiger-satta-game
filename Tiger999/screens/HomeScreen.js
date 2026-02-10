@@ -23,6 +23,7 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 import Sidebar from '../components/Sidebar';
+
 //home
 export default function HomeScreen({ navigation }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
@@ -94,8 +95,6 @@ export default function HomeScreen({ navigation }) {
         const serverDateStr = timeData?.date || currentTime.toISOString().split('T')[0];
 
         const transformedMarkets = marketResponse.data.map(market => {
-          // Logic for isOpen: end_time - 30 minutes
-          // end_time is in "HH:mm" format (e.g., "22:30")
           const [endH, endM] = market.end_time.split(':').map(Number);
           const marketEndDate = new Date(serverDateStr);
           marketEndDate.setHours(endH, endM, 0);
@@ -107,7 +106,7 @@ export default function HomeScreen({ navigation }) {
           return {
             id: market.id,
             name: market.market_name,
-            code: '***-**-***', // Placeholder as per user request to keep details same as before
+            code: '***-**-***',
             time: `${market.start_time_12} - ${market.end_time_12}`,
             status: isCurrentlyOpen ? 'Market is Running' : 'Closed for today',
             isOpen: isCurrentlyOpen,
@@ -115,7 +114,6 @@ export default function HomeScreen({ navigation }) {
           };
         });
 
-        // Sort: Play Now (Open) first, then Closed
         const sortedMarkets = transformedMarkets.sort((a, b) => {
           if (a.isOpen === b.isOpen) return 0;
           return a.isOpen ? -1 : 1;
@@ -133,11 +131,6 @@ export default function HomeScreen({ navigation }) {
       fetchBalance();
     }, [])
   );
-
-
-  // Animation value for the drawer slide (starts off-screen to the left)
-  const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   const makeCall = () => {
     Linking.openURL('tel:919922222222');
@@ -165,7 +158,6 @@ export default function HomeScreen({ navigation }) {
   const closeDrawer = () => {
     setDrawerVisible(false);
   };
-
 
   return (
     <View style={styles.container}>
@@ -423,10 +415,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // backgroundColor: '#C36578', // Transparent/matching background
     paddingHorizontal: 15,
     paddingVertical: 12,
-    paddingTop: 45, // Adjusted for status bar
+    paddingTop: 45,
   },
   menuButton: {
     flexDirection: 'row',
@@ -438,7 +429,6 @@ const styles = StyleSheet.create({
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.45,
-    shadowRadius: 8,
     shadowRadius: 8,
     elevation: 12,
   },
@@ -480,7 +470,6 @@ const styles = StyleSheet.create({
   },
   notificationIcon: {
     marginLeft: 5,
-    // color handled in component
   },
   gameButtonsContainer: {
     flexDirection: 'row',
@@ -585,7 +574,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 10,
     marginBottom: -5,
-    // marginBottom removed as it's inside wrapper
   },
   addMoneyButton: {
     flex: 1,
@@ -625,7 +613,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 16, // Keep 16 or 17
+    fontSize: 16,
     marginLeft: 10,
     fontFamily: 'Roboto_700Bold',
   },
@@ -761,9 +749,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  navItemActive: {
-    // Home stays inside footer now
-  },
+  navItemActive: {},
   homeCircle: {
     width: 55,
     height: 55,
@@ -794,7 +780,6 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
     tintColor: '#fff',
   },
-  // Game Info Modal Styles
   infoModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -836,7 +821,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: '#C36578',
-    borderRadius: 12, // Increased radius for pill shape
+    borderRadius: 12,
     paddingVertical: 10,
     paddingHorizontal: 15,
     marginBottom: 15,
