@@ -17,43 +17,24 @@ const CircleIcon = ({ iconType, size = 30 }) => {
   const renderIcon = () => {
     switch (iconType) {
       case 'single-digit':
-        // Single dot in circle
+        // Single dot in circle   F
         return (
           <View style={styles.iconInner}>
             <View style={[styles.dot, { width: 14, height: 14, borderRadius: 7 }]} />
           </View>
         );
-      case 'single-digit-bulk':
-        // Circle with inner ring
-        return (
-          <View style={styles.iconInner}>
-            <View style={[styles.ringOuter]}>
-              <View style={styles.ringInner} />
-            </View>
-          </View>
-        );
-      case 'jodi':
-        // Two dots
+      
+      case 'jodi':  
+        // Two dots  F
         return (
           <View style={[styles.iconInner, { flexDirection: 'row', gap: 6 }]}>
             <View style={[styles.dot, { width: 12, height: 12, borderRadius: 6 }]} />
             <View style={[styles.dot, { width: 12, height: 12, borderRadius: 6 }]} />
           </View>
         );
-      case 'jodi-bulk':
-        // Two rings
-        return (
-          <View style={[styles.iconInner, { flexDirection: 'row', gap: 4 }]}>
-            <View style={[styles.ringSmall]}>
-              <View style={styles.ringSmallInner} />
-            </View>
-            <View style={[styles.ringSmall]}>
-              <View style={styles.ringSmallInner} />
-            </View>
-          </View>
-        );
+     
       case 'single-pana':
-        // Card with plus
+        // Card with plus  F
         return (
           <View style={styles.iconInner}>
             <View style={styles.cardIcon}>
@@ -61,47 +42,25 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-      case 'single-pana-bulk':
-        // Two cards with plus
-        return (
-          <View style={[styles.iconInner, { flexDirection: 'row' }]}>
-            <View style={[styles.cardIcon, styles.cardSmall, { marginRight: -6 }]}>
-              <Text style={[styles.plusText, { fontSize: 14 }]}>+</Text>
-            </View>
-            <View style={[styles.cardIcon, styles.cardSmall]}>
-              <Text style={[styles.plusText, { fontSize: 14 }]}>+</Text>
-            </View>
-          </View>
-        );
+     
       case 'double-pana':
-        // Two cards overlapping
+        // Two cards overlapping  F
         return (
           <View style={[styles.iconInner, { flexDirection: 'row' }]}>
             <View style={[styles.cardPlain, { marginRight: -8 }]} />
             <View style={styles.cardPlain} />
           </View>
         );
-      case 'double-pana-bulk':
-        // Two cards with plus overlapping
-        return (
-          <View style={[styles.iconInner, { flexDirection: 'row' }]}>
-            <View style={[styles.cardIcon, styles.cardSmall, { marginRight: -6 }]}>
-              <Text style={[styles.plusText, { fontSize: 12 }]}>+</Text>
-            </View>
-            <View style={[styles.cardIcon, styles.cardSmall]}>
-              <Text style={[styles.plusText, { fontSize: 12 }]}>+</Text>
-            </View>
-          </View>
-        );
+      
       case 'triple-pana':
-        // Asterisk/star
+        // Asterisk/star  F
         return (
           <View style={styles.iconInner}>
             <Text style={{ color: '#fff', fontSize: 28, fontWeight: 'bold' }}>✲</Text>
           </View>
         );
       case 'full-sangam':
-        // 3x3 dots grid
+        // 3x3 dots grid  F
         return (
           <View style={styles.iconInner}>
             <View style={styles.dotGrid}>
@@ -112,7 +71,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
           </View>
         );
       case 'half-sangam':
-        // 2x3 dots grid
+        // 2x3 dots grid  F
         return (
           <View style={styles.iconInner}>
             <View style={[styles.dotGrid, { width: 32 }]}>
@@ -122,19 +81,9 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-      case 'pana-family':
-        // Card with plus in box
-        return (
-          <View style={styles.iconInner}>
-            <View style={styles.boxedCard}>
-              <View style={styles.cardIconSmall}>
-                <Text style={[styles.plusText, { fontSize: 10 }]}>+</Text>
-              </View>
-            </View>
-          </View>
-        );
+     
       case 'sp-dp-tp':
-        // Connected squares
+        // Connected squares  F
         return (
           <View style={styles.iconInner}>
             <View style={styles.connectedSquares}>
@@ -146,15 +95,9 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-      case 'two-digit-pana':
-        // Checkmark in circle
-        return (
-          <View style={styles.iconInner}>
-            <Ionicons name="checkmark" size={24} color="#fff" />
-          </View>
-        );
+   
       case 'sp-motor':
-        // Circular arrows
+        // Circular arrows  F
         return (
           <View style={styles.iconInner}>
             <View style={styles.motorIcon}>
@@ -163,7 +106,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
           </View>
         );
       case 'dp-motor':
-        // Two concentric circles
+        // Two concentric circles  F
         return (
           <View style={styles.iconInner}>
             <View style={styles.concentricOuter}>
@@ -171,17 +114,9 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-      case 'jodi-family':
-        // Single ring
-        return (
-          <View style={styles.iconInner}>
-            <View style={[styles.ringOuter, { width: 24, height: 24 }]}>
-              <View style={[styles.ringInner, { width: 12, height: 12, borderRadius: 6 }]} />
-            </View>
-          </View>
-        );
+      
       case 'red-jodi':
-        // Two dots horizontal
+        // Two dots horizontal   F
         return (
           <View style={[styles.iconInner, { flexDirection: 'row', gap: 8 }]}>
             <View style={[styles.dot, { width: 10, height: 10, borderRadius: 5 }]} />
@@ -189,7 +124,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
           </View>
         );
       case 'odd-even':
-        // Hexagon pattern
+        // Hexagon pattern    F
         return (
           <View style={styles.iconInner}>
             <View style={styles.hexGrid}>
@@ -215,29 +150,22 @@ const CircleIcon = ({ iconType, size = 30 }) => {
 };
 
 export default function GameDetailScreen({ navigation, route }) {
-  const { gameName, gameCode } = route.params;
+  const { gameName, gameCode, isOpenAvailable, isCloseAvailable } = route.params;
 
   const gameTypes = [
     { id: 1, name: 'Single Digit', iconType: 'single-digit', screen: 'SingleDigitGame' },
-    { id: 2, name: 'Single Digit Bulk', iconType: 'single-digit-bulk', screen: 'SingleDigitBulkGame' },
-    { id: 3, name: 'Jodi', iconType: 'jodi', screen: 'JodiGame' },
-    { id: 4, name: 'Jodi Bulk', iconType: 'jodi-bulk', screen: 'JodiBulkGame' },
-    { id: 5, name: 'Single Pana', iconType: 'single-pana', screen: 'SinglePanaGame' },
-    { id: 6, name: 'Single Pana Bulk', iconType: 'single-pana-bulk', screen: 'SinglePanaBulkGame' },
-    { id: 7, name: 'Double Pana', iconType: 'double-pana', screen: 'DoublePanaGame' },
-    { id: 8, name: 'Double Pana Bulk', iconType: 'double-pana-bulk', screen: 'DoublePanaBulkGame' },
-    { id: 9, name: 'Triple Pana', iconType: 'triple-pana', screen: 'TriplePanaGame' },
-    { id: 10, name: 'Full Sangam', iconType: 'full-sangam', screen: 'FullSangamGame' },
-    { id: 11, name: 'Half Sangam (A)', iconType: 'half-sangam', screen: 'HalfSangamAGame' },
-    { id: 12, name: 'Half Sangam (B)', iconType: 'half-sangam', screen: 'HalfSangamBGame' },
-    { id: 13, name: 'Pana Family', iconType: 'pana-family', screen: 'PanaFamilyGame' },
-    { id: 14, name: 'SP DP TP', iconType: 'sp-dp-tp', screen: 'SPDPTPGame' },
-    { id: 15, name: 'Two Digit Pana', iconType: 'two-digit-pana', screen: 'TwoDigitPanaGame' },
-    { id: 16, name: 'SP Motor', iconType: 'sp-motor', screen: 'SPMotorGame' },
-    { id: 17, name: 'DP Motor', iconType: 'dp-motor', screen: 'DPMotorGame' },
-    { id: 18, name: 'Jodi Family', iconType: 'jodi-family', screen: 'JodiFamilyGame' },
-    { id: 19, name: 'Red Jodi', iconType: 'red-jodi', screen: 'RedJodiGame' },
-    { id: 20, name: 'Odd Even', iconType: 'odd-even', screen: 'OddEvenGame' },
+    { id: 2, name: 'Jodi', iconType: 'jodi', screen: 'JodiGame' },
+    { id: 3, name: 'Single Pana', iconType: 'single-pana', screen: 'SinglePanaGame' },
+    { id: 4, name: 'Double Pana', iconType: 'double-pana', screen: 'DoublePanaGame' },
+    { id: 5, name: 'Triple Pana', iconType: 'triple-pana', screen: 'TriplePanaGame' },
+    { id: 6, name: 'Full Sangam', iconType: 'full-sangam', screen: 'FullSangamGame' },
+    { id: 7, name: 'Half Sangam (A)', iconType: 'half-sangam', screen: 'HalfSangamAGame' },
+    { id: 8, name: 'Half Sangam (B)', iconType: 'half-sangam', screen: 'HalfSangamBGame' },
+    { id: 9, name: 'SP DP TP', iconType: 'sp-dp-tp', screen: 'SPDPTPGame' },
+    { id: 10, name: 'SP Motor', iconType: 'sp-motor', screen: 'SPMotorGame' },
+    { id: 11, name: 'DP Motor', iconType: 'dp-motor', screen: 'DPMotorGame' },
+    { id: 12, name: 'Red Jodi', iconType: 'red-jodi', screen: 'RedJodiGame' },
+    { id: 13, name: 'Odd Even', iconType: 'odd-even', screen: 'OddEvenGame' },
   ];
 
   return (
@@ -262,7 +190,9 @@ export default function GameDetailScreen({ navigation, route }) {
               onPress={() => navigation.navigate(type.screen, {
                 gameName,
                 gameCode,
-                gameType: type.name
+                gameType: type.name,
+                isOpenAvailable,
+                isCloseAvailable
               })}
             >
               <View style={styles.iconCircle}>

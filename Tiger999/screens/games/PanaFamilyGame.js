@@ -53,8 +53,15 @@ export default function PanaFamilyGame({ navigation, route }) {
   );
 
 
-  const { gameName } = route.params || { gameName: 'PANA FAMILY' };
-  const [selectedGameType, setSelectedGameType] = useState('OPEN');
+  const { gameName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'PANA FAMILY' };
+
+  // Filter game options based on availability
+  const gameOptions = [
+    ...(isOpenAvailable ? ['OPEN'] : []),
+    ...(isCloseAvailable ? ['CLOSE'] : [])
+  ];
+
+  const [selectedGameType, setSelectedGameType] = useState(gameOptions[0] || 'OPEN');
   const [showDropdown, setShowDropdown] = useState(false);
   const [digit, setDigit] = useState('');
   const [points, setPoints] = useState('');
@@ -253,7 +260,7 @@ export default function PanaFamilyGame({ navigation, route }) {
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDropdown(false)}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Game Type</Text>
-            {['OPEN', 'CLOSE'].map(type => (
+            {gameOptions.map(type => (
               <TouchableOpacity key={type} style={[styles.modalOption, selectedGameType === type && styles.modalOptionSelected]} onPress={() => { setSelectedGameType(type); setShowDropdown(false); }}>
                 <Text style={[styles.modalOptionText, selectedGameType === type && styles.modalOptionTextSelected]}>{type}</Text>
                 {selectedGameType === type && <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />}

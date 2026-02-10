@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance } from '../../api/auth';
+import { getWalletBalance, TriplePatti, getMarkets } from '../../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
@@ -79,15 +79,41 @@ export default function TriplePanaGame({ navigation, route }) {
     }
   };
 
+  const fetchMarketId = async () => {
+    try {
+      const response = await getMarkets();
+      if (response && response.status === true) {
+        const currentMarket = response.data.find(m => m.market_name === gameName);
+        if (currentMarket) {
+          setMarketId(currentMarket.id);
+          console.log('TriplePana Game: Market ID found:', currentMarket.id);
+        } else {
+          console.warn('TriplePana Game: Market not found for gameName:', gameName);
+        }
+      }
+    } catch (error) {
+      console.error('TriplePana Game: Error fetching markets:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchBalance();
+      fetchMarketId();
     }, [])
   );
 
 
-  const { gameName, gameType } = route.params || { gameName: 'TRIPLE PANA', gameType: 'open' };
-  const [selectedGameType, setSelectedGameType] = useState('OPEN');
+  const { gameName, gameType, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'TRIPLE PANA', gameType: 'open' };
+  const [marketId, setMarketId] = useState(null);
+
+  // Filter game options based on availability
+  const gameOptions = [
+    ...(isOpenAvailable ? ['OPEN'] : []),
+    ...(isCloseAvailable ? ['CLOSE'] : [])
+  ];
+
+  const [selectedGameType, setSelectedGameType] = useState(gameOptions[0] || 'OPEN');
   const [showDropdown, setShowDropdown] = useState(false);
   const [panaInputs, setPanaInputs] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -139,20 +165,68 @@ export default function TriplePanaGame({ navigation, route }) {
     setShowConfirmModal(true);
   };
 
-  const finalSubmit = () => {
-    Alert.alert(
-      'Success',
-      `${totalBids} bids submitted for ${totalPoints} points!`,
-      [{
-        text: 'OK', onPress: () => {
-          setPanaInputs({});
-          setBids([]);
-          setTotalBids(0);
-          setTotalPoints(0);
-          setShowConfirmModal(false);
+  const finalSubmit = async () => {
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
+
+      if (!userId || !marketId) {
+        Alert.alert('Error', 'User ID or Market ID missing. Please restart app.');
+        return;
+      }
+
+      setShowConfirmModal(false);
+
+      // Group bids by type (OPEN/CLOSE)
+      const bidsByType = {};
+      bids.forEach(bid => {
+        if (!bidsByType[bid.type]) {
+          bidsByType[bid.type] = [];
         }
-      }]
-    );
+        bidsByType[bid.type].push(bid);
+      });
+
+      let successCount = 0;
+      const totalTypes = Object.keys(bidsByType).length;
+
+      for (const type of Object.keys(bidsByType)) {
+        const typeBids = bidsByType[type];
+        const numbers = typeBids.map(b => b.pana);
+        const amounts = typeBids.map(b => parseInt(b.point));
+
+        const session = type.toUpperCase();
+
+        console.log(`Submitting Triple Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session });
+
+        const response = await TriplePatti(userId, username, numbers, amounts, gameName, String(marketId), session);
+
+        if (response && response.status === 'success') {
+          successCount++;
+        } else {
+          Alert.alert('Error', `Failed to place ${session} bets: ${response?.message || 'Unknown error'}`);
+        }
+      }
+
+      if (successCount === totalTypes) {
+        Alert.alert(
+          'Success',
+          'Bids Submitted Successfully!',
+          [{
+            text: 'OK', onPress: () => {
+              setPanaInputs({});
+              setBids([]);
+              setTotalBids(0);
+              setTotalPoints(0);
+              fetchBalance();
+            }
+          }]
+        );
+      }
+
+    } catch (error) {
+      console.error("Error submitting bids:", error);
+      Alert.alert('Error', "Network request failed");
+    }
   };
 
   return (
@@ -233,43 +307,28 @@ export default function TriplePanaGame({ navigation, route }) {
           onPress={() => setShowDropdown(false)}
         >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Game Type</Text>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGameType === 'OPEN' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGameType('OPEN');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGameType === 'OPEN' && styles.modalOptionTextSelected
-              ]}>OPEN</Text>
-              {selectedGameType === 'OPEN' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGameType === 'CLOSE' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGameType('CLOSE');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGameType === 'CLOSE' && styles.modalOptionTextSelected
-              ]}>CLOSE</Text>
-              {selectedGameType === 'CLOSE' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
+            <Text style={styles.modalTitle}>Select  Type</Text>
+            {gameOptions.map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.modalOption,
+                  selectedGameType === option && styles.modalOptionSelected
+                ]}
+                onPress={() => {
+                  setSelectedGameType(option);
+                  setShowDropdown(false);
+                }}
+              >
+                <Text style={[
+                  styles.modalOptionText,
+                  selectedGameType === option && styles.modalOptionTextSelected
+                ]}>{option}</Text>
+                {selectedGameType === option && (
+                  <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
         </TouchableOpacity>
       </Modal>

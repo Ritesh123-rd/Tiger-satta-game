@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance } from '../../api/auth';
+import { getWalletBalance, getSingleDigitGame, getMarkets } from '../../../api/auth';
 import {
   View,
   Text,
@@ -56,9 +56,18 @@ const MarqueeText = ({ text, style }) => {
 
 export default function SingleDigitGame({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { gameName, gameType } = route.params;
+  const { gameName, gameCode, isOpenAvailable = true, isCloseAvailable = true } = route.params;
+  const [marketId, setMarketId] = useState(null);
   const [mode, setMode] = useState('easy'); // 'easy' or 'special'
-  const [selectedGame, setSelectedGame] = useState('CLOSE');
+
+  // Filter game options based on availability
+  const gameOptions = [
+    ...(isOpenAvailable ? ['OPEN'] : []),
+    ...(isCloseAvailable ? ['CLOSE'] : [])
+  ];
+
+  // Default to first available option
+  const [selectedGame, setSelectedGame] = useState(gameOptions[0] || 'CLOSE');
   const [showDropdown, setShowDropdown] = useState(false);
   const [ank, setAnk] = useState('');
   const [points, setPoints] = useState('');
@@ -85,13 +94,30 @@ export default function SingleDigitGame({ navigation, route }) {
     }
   };
 
+  const fetchMarketId = async () => {
+    try {
+      const response = await getMarkets();
+      if (response && response.status === true) {
+        const currentMarket = response.data.find(m => m.market_name === gameName);
+        if (currentMarket) {
+          setMarketId(currentMarket.id);
+          console.log('Market ID found:', currentMarket.id);
+        } else {
+          console.warn('Market not found for gameName:', gameName);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching markets:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchBalance();
+      fetchMarketId();
     }, [])
   );
 
-  const gameOptions = ['CLOSE', 'OPEN'];
 
   const addBid = () => {
     if (ank && points) {
@@ -149,13 +175,40 @@ export default function SingleDigitGame({ navigation, route }) {
     }
   };
 
-  const finalSubmit = () => {
-    alert(`${bids.length} bids submitted for ${totalPoints} points!`);
-    // Reset
-    setBids([]);
-    setTotalBids(0);
-    setTotalPoints(0);
+  const finalSubmit = async () => {
     setShowConfirmModal(false);
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile'); // Fallback to mobile if name missing
+
+      if (!userId || !marketId) {
+        alert('User ID or Market ID missing. Please restart app.');
+        return;
+      }
+
+      const numbers = bids.map(b => b.ank);
+      const amounts = bids.map(b => parseInt(b.point));
+      const session = selectedGame; // 'OPEN' or 'CLOSE'
+
+      console.log('Submitting Bid:', { userId, username, numbers, amounts, gameName, marketId, session });
+
+      const response = await getSingleDigitGame(userId, username, numbers, amounts, gameName, String(marketId), session);
+
+      if (response && response.status === 'success') {
+        alert('Bids placed successfully!');
+        setBids([]);
+        setTotalBids(0);
+        setTotalPoints(0);
+        setSpecialBids(Array(10).fill(''));
+        fetchBalance(); // Refresh balance
+      } else {
+        alert('Failed to place bid: ' + (response?.message || 'Unknown error'));
+      }
+
+    } catch (error) {
+      console.error('Bid Submission Error:', error);
+      alert('An error occurred while placing the bid.');
+    }
   };
 
   const displayTotalBids = bids.length + (mode === 'special' ? specialBids.filter(b => b !== '').length : 0);
@@ -320,42 +373,27 @@ export default function SingleDigitGame({ navigation, route }) {
         >
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Game Type</Text>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGame === 'OPEN' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGame('OPEN');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGame === 'OPEN' && styles.modalOptionTextSelected
-              ]}>OPEN</Text>
-              {selectedGame === 'OPEN' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.modalOption,
-                selectedGame === 'CLOSE' && styles.modalOptionSelected
-              ]}
-              onPress={() => {
-                setSelectedGame('CLOSE');
-                setShowDropdown(false);
-              }}
-            >
-              <Text style={[
-                styles.modalOptionText,
-                selectedGame === 'CLOSE' && styles.modalOptionTextSelected
-              ]}>CLOSE</Text>
-              {selectedGame === 'CLOSE' && (
-                <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
-              )}
-            </TouchableOpacity>
+            {gameOptions.map((option) => (
+              <TouchableOpacity
+                key={option}
+                style={[
+                  styles.modalOption,
+                  selectedGame === option && styles.modalOptionSelected
+                ]}
+                onPress={() => {
+                  setSelectedGame(option);
+                  setShowDropdown(false);
+                }}
+              >
+                <Text style={[
+                  styles.modalOptionText,
+                  selectedGame === option && styles.modalOptionTextSelected
+                ]}>{option}</Text>
+                {selectedGame === option && (
+                  <Ionicons name="checkmark-circle" size={22} color="#2E4A3E" />
+                )}
+              </TouchableOpacity>
+            ))}
           </View>
         </TouchableOpacity>
       </Modal>

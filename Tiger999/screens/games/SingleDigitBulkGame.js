@@ -13,8 +13,15 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const SingleDigitBulkGame = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
-  const { gameName, gameId } = route.params || {};
-  const [selectedGame, setSelectedGame] = useState('OPEN');
+  const { gameName, gameId, isOpenAvailable = true, isCloseAvailable = true } = route.params || {};
+
+  // Filter game options based on availability
+  const gameOptions = [
+    ...(isOpenAvailable ? ['OPEN'] : []),
+    ...(isCloseAvailable ? ['CLOSE'] : [])
+  ];
+
+  const [selectedGame, setSelectedGame] = useState(gameOptions[0] || 'OPEN');
   const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
   const [points, setPoints] = useState('');
   const [selectedDigits, setSelectedDigits] = useState({}); // Object
@@ -151,7 +158,7 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
         </View>
         {isGameTypeOpen && (
           <View style={styles.dropdownList}>
-            {['OPEN', 'CLOSE'].map((type) => (
+            {gameOptions.map((type) => (
               <TouchableOpacity
                 key={type}
                 style={styles.dropdownItem}

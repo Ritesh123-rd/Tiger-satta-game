@@ -54,8 +54,15 @@ export default function TwoDigitPanaGame({ navigation, route }) {
     }, [])
   );
 
-  const { gameName } = route.params || { gameName: 'TWO DIGIT PANA' };
-  const [selectedGameType, setSelectedGameType] = useState('OPEN');
+  const { gameName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'TWO DIGIT PANA' };
+
+  // Filter game options based on availability
+  const gameOptions = [
+    ...(isOpenAvailable ? ['OPEN'] : []),
+    ...(isCloseAvailable ? ['CLOSE'] : [])
+  ];
+
+  const [selectedGameType, setSelectedGameType] = useState(gameOptions[0] || 'OPEN');
   const [showDropdown, setShowDropdown] = useState(false);
   const [pana, setPana] = useState('');
   const [points, setPoints] = useState('');
@@ -334,7 +341,7 @@ export default function TwoDigitPanaGame({ navigation, route }) {
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDropdown(false)}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Select Game Type</Text>
-            {['OPEN', 'CLOSE'].map(type => (
+            {gameOptions.map(type => (
               <TouchableOpacity
                 key={type}
                 style={[styles.modalOption, selectedGameType === type && styles.modalOptionSelected]}

@@ -57,8 +57,15 @@ const MarqueeText = ({ text, style }) => {
 
 export default function JodiFamilyGame({ navigation, route }) {
     const insets = useSafeAreaInsets();
-    const { gameName } = route.params || { gameName: 'JODI FAMILY' };
-    const [selectedGameType, setSelectedGameType] = useState('OPEN');
+    const { gameName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'JODI FAMILY' };
+
+    // Filter game options based on availability
+    const gameOptions = [
+        ...(isOpenAvailable ? ['OPEN'] : []),
+        ...(isCloseAvailable ? ['CLOSE'] : [])
+    ];
+
+    const [selectedGameType, setSelectedGameType] = useState(gameOptions[0] || 'OPEN');
     const [showDropdown, setShowDropdown] = useState(false);
     const [showPointsPicker, setShowPointsPicker] = useState(false);
     const [digit, setDigit] = useState('');
@@ -452,7 +459,7 @@ export default function JodiFamilyGame({ navigation, route }) {
                 <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDropdown(false)}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Select Game Type</Text>
-                        {['OPEN', 'CLOSE'].map(type => (
+                        {gameOptions.map(type => (
                             <TouchableOpacity
                                 key={type}
                                 style={[styles.modalOption, selectedGameType === type && styles.modalOptionSelected]}

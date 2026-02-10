@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance } from '../../api/auth';
+import { getWalletBalance, spdptp, getMarkets } from '../../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
   View,
@@ -42,8 +42,10 @@ const MarqueeText = ({ text, style }) => {
 
 export default function SPDPTPGame({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { gameName } = route.params;
+  const { gameName, marketId, gameSession, marketName } = route.params;
   const [balance, setBalance] = useState(0.0);
+  const [loading, setLoading] = useState(false);
+  const [currentMarketId, setCurrentMarketId] = useState(marketId);
 
   const fetchBalance = async () => {
     try {
@@ -60,15 +62,32 @@ export default function SPDPTPGame({ navigation, route }) {
     }
   };
 
+  const fetchMarkets = async () => {
+    try {
+      const response = await getMarkets();
+      if (response && response.status === true) {
+        const currentMarket = response.data.find(m => m.market_name === gameName);
+        if (currentMarket) {
+          setCurrentMarketId(currentMarket.id);
+          console.log('Market fetched and updated:', currentMarket.id);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching markets:', error);
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       fetchBalance();
+      fetchMarkets();
     }, [])
   );
 
 
-  const [selectedGame, setSelectedGame] = useState('CLOSE');
-  const [date, setDate] = useState('30-12-2025');
+  const [selectedGame, setSelectedGame] = useState(gameSession || 'CLOSE');
+  // Use current date or passed date
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-GB').replace(/\//g, '-'));
   const [sp, setSp] = useState(false);
   const [dp, setDp] = useState(false);
   const [tp, setTp] = useState(false);
@@ -124,6 +143,7 @@ export default function SPDPTPGame({ navigation, route }) {
           pana: tpNum.toString().padStart(3, '0'),
           point: pointsNum,
           type: 'TP',
+          session: selectedGame,
         });
       }
     }
@@ -149,6 +169,8 @@ export default function SPDPTPGame({ navigation, route }) {
           pana: pana.toString().padStart(3, '0'),
           point: pointsNum,
           type: 'DP',
+          originalDigit: digit,
+          session: selectedGame,
         });
       });
     }
@@ -156,44 +178,53 @@ export default function SPDPTPGame({ navigation, route }) {
     // Generate SP (Single Pana - all 3 digits different)
     // 12 results for each digit
     if (sp) {
-      const spPanas = [];
+
+
+      // Re-implementing logic cleanly to avoid potential copy-paste errors from replacement
+      const spPanasCorrect = [];
       for (let i = 0; i <= 9; i++) {
         if (i !== digitNum) {
           for (let j = 0; j <= 9; j++) {
             if (j !== digitNum && j !== i) {
-              // Create permutations with all different digits
-              spPanas.push(parseInt(`${digitNum}${i}${j}`));
-              spPanas.push(parseInt(`${digitNum}${j}${i}`));
-              spPanas.push(parseInt(`${i}${digitNum}${j}`));
-              spPanas.push(parseInt(`${i}${j}${digitNum}`));
-              spPanas.push(parseInt(`${j}${digitNum}${i}`));
-              spPanas.push(parseInt(`${j}${i}${digitNum}`));
+              spPanasCorrect.push(parseInt(`${digitNum}${i}${j}`));
+              spPanasCorrect.push(parseInt(`${digitNum}${j}${i}`));
+              spPanasCorrect.push(parseInt(`${i}${digitNum}${j}`));
+              spPanasCorrect.push(parseInt(`${i}${j}${digitNum}`));
+              spPanasCorrect.push(parseInt(`${j}${digitNum}${i}`));
+              spPanasCorrect.push(parseInt(`${j}${i}${digitNum}`));
             }
           }
         }
       }
 
+
       // Remove duplicates and take first 12
-      const uniqueSpPanas = [...new Set(spPanas)].slice(0, 12);
+      const uniqueSpPanas = [...new Set(spPanasCorrect)].slice(0, 12);
       uniqueSpPanas.forEach((pana, index) => {
         newBids.push({
           id: `sp-${pana}-${index}`,
           pana: pana.toString().padStart(3, '0'),
           point: pointsNum,
           type: 'SP',
+          originalDigit: digit,
+          session: selectedGame,
         });
       });
     }
 
-    setBids(newBids);
-    setTotalBids(newBids.length);
-    setTotalPoints(newBids.length * pointsNum);
+    // Add new bids to existing bids
+    const updatedBids = [...bids, ...newBids];
+    setBids(updatedBids);
+    setTotalBids(updatedBids.length);
+    const newTotalPoints = updatedBids.reduce((sum, bid) => sum + parseInt(bid.point), 0);
+    setTotalPoints(newTotalPoints);
   };
 
   const deleteBid = (id) => {
     const bidToDelete = bids.find(b => b.id === id);
-    setBids(bids.filter(b => b.id !== id));
-    setTotalBids(totalBids - 1);
+    const updatedBids = bids.filter(b => b.id !== id);
+    setBids(updatedBids);
+    setTotalBids(updatedBids.length);
     setTotalPoints(totalPoints - parseInt(bidToDelete.point));
   };
 
@@ -205,15 +236,59 @@ export default function SPDPTPGame({ navigation, route }) {
     }
   };
 
-  const confirmSubmit = () => {
-    // Clear after confirmation
-    setBids([]);
-    setTotalBids(0);
-    setTotalPoints(0);
-    setDigit('');
-    setPoints('');
+  const confirmSubmit = async () => {
+    setLoading(true);
     setShowConfirmModal(false);
-    alert('Bids submitted successfully!');
+
+    try {
+      const userId = await AsyncStorage.getItem('userId');
+      const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile'); // Fallback to mobile if name not found
+
+      if (!userId || !currentMarketId) {
+        alert('User ID or Market ID not found. Please login again or restart the app.');
+        setLoading(false);
+        return;
+      }
+
+      // Calculate total amount
+      const currentTotalAmount = bids.reduce((sum, bid) => sum + parseInt(bid.point), 0);
+
+      // Format bids to match expected API structure
+      const formattedBids = bids.map(bid => ({
+        digit: bid.pana,
+        points: parseInt(bid.point),
+        type: bid.type,
+        session: bid.session || selectedGame
+      }));
+
+      const response = await spdptp(
+        userId,
+        username,
+        formattedBids,
+        marketName || gameName,
+        currentMarketId,
+        currentTotalAmount
+      );
+
+      if (response && (response.status === true || response.status === 'true')) {
+        alert('Bids submitted successfully!');
+        setBids([]);
+        setTotalBids(0);
+        setTotalPoints(0);
+        setDigit('');
+        setPoints('');
+        fetchBalance(); // Refresh balance
+      } else {
+        alert(response?.message || 'Failed to submit bids. Please check your balance and try again.');
+        fetchBalance();
+      }
+
+    } catch (error) {
+      console.error('Error submitting bids:', error);
+      alert('An error occurred while submitting bids. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

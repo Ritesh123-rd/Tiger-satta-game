@@ -6,22 +6,23 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { API_BASE_URL } from '../../api/config';
-import { getWalletBalance } from '../../api/auth';
+import { getWalletBalance, getMarkets, JodiGame as PlaceJodiBet } from '../../../api/auth';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const JodiGame = ({ navigation, route }) => {
     const insets = useSafeAreaInsets();
-    const { gameName, gameId } = route.params || {};
-    const [selectedGame, setSelectedGame] = useState('OPEN'); // Although Jodi usually doesn't have open/close, keeping as per UI
-    const [isGameTypeOpen, setIsGameTypeOpen] = useState(false);
+    const { gameName, gameId, isOpenAvailable = true, isCloseAvailable = true } = route.params || {};
+
+
     const [mode, setMode] = useState('EASY'); // 'EASY' or 'SPECIAL'
     const [balance, setBalance] = useState(0);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [currentDate, setCurrentDate] = useState('');
+    const [marketId, setMarketId] = useState(gameId || null);
 
     // Easy Mode State
     const [easyJodi, setEasyJodi] = useState('');
@@ -31,6 +32,17 @@ const JodiGame = ({ navigation, route }) => {
     // Special Mode State
     // We'll store special mode inputs in an object { '00': '10', '05': '50' }
     const [specialBids, setSpecialBids] = useState({});
+
+    useEffect(()=> {
+
+        if(isOpenAvailable === false){
+            Alert.alert("market close",
+                "joddi game ke liye open time samapt ho chuka hai.",
+                [{text:"ok", onPress:()=> navigation.goBack()}]
+
+            )
+        }
+    },[isOpenAvailable]);
 
     useEffect(() => {
         const d = new Date();
@@ -53,9 +65,27 @@ const JodiGame = ({ navigation, route }) => {
         }
     };
 
+    const fetchMarketId = async () => {
+        try {
+            const response = await getMarkets();
+            if (response && response.status === true) {
+                const currentMarket = response.data.find(m => m.market_name === gameName);
+                if (currentMarket) {
+                    setMarketId(currentMarket.id);
+                    console.log('Jodi Game: Market ID found:', currentMarket.id);
+                } else {
+                    console.warn('Jodi Game: Market not found for gameName:', gameName);
+                }
+            }
+        } catch (error) {
+            console.error('Jodi Game: Error fetching markets:', error);
+        }
+    };
+
     useFocusEffect(
         React.useCallback(() => {
             fetchWalletBalance();
+            if (!marketId) fetchMarketId();
         }, [])
     );
 
@@ -72,8 +102,7 @@ const JodiGame = ({ navigation, route }) => {
         const newBid = {
             id: Date.now().toString() + Math.random().toString(),
             jodi: easyJodi,
-            points: easyPoints,
-            type: selectedGame
+            points: easyPoints
         };
         setEasyBids([...easyBids, newBid]);
         setEasyJodi('');
@@ -128,41 +157,37 @@ const JodiGame = ({ navigation, route }) => {
 
     const handleFinalSubmit = async () => {
         setSubmitting(true);
+        setShowConfirmModal(false);
         try {
-            const token = await AsyncStorage.getItem('user_token');
+            const userId = await AsyncStorage.getItem('userId');
+            const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
+
+            if (!userId || !marketId) {
+                Alert.alert('Error', 'User ID or Market ID missing. Please restart app.');
+                setSubmitting(false);
+                return;
+            }
+
             let bidsPayload = [];
 
             if (mode === 'EASY') {
-                bidsPayload = easyBids.map(b => ({
-                    game_id: gameId,
-                    game_type: b.type,
-                    digit: b.jodi,
-                    points: b.points,
-                    type: 'jodi'
-                }));
+                bidsPayload = easyBids;
             } else {
                 // Special Mode
                 bidsPayload = Object.keys(specialBids).map(jodi => ({
-                    game_id: gameId,
-                    game_type: selectedGame, // Uses the selected open/close at top
-                    digit: jodi,
-                    points: specialBids[jodi],
-                    type: 'jodi'
+                    jodi: jodi,
+                    points: specialBids[jodi]
                 }));
             }
 
-            const response = await fetch(`${API_BASE_URL}/place-bid-bulk`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ bids: bidsPayload })
-            });
+            const numbers = bidsPayload.map(b => b.jodi || b.digit); // b.jodi from easy, b.digit fallback
+            const amounts = bidsPayload.map(b => parseInt(b.points));
 
-            const data = await response.json();
-            if (data.status === 'success') {
-                setShowConfirmModal(false);
+            console.log('Submitting Jodi Bid:', { userId, username, numbers, amounts, gameName, marketId });
+
+            const response = await PlaceJodiBet(userId, username, numbers, amounts, gameName, String(marketId));
+
+            if (response && response.status === 'success') {
                 Alert.alert('Success', 'Bids placed successfully!', [
                     {
                         text: 'OK', onPress: () => {
@@ -171,14 +196,14 @@ const JodiGame = ({ navigation, route }) => {
                             setEasyJodi('');
                             setEasyPoints('');
                             fetchWalletBalance();
-                            navigation.goBack();
                         }
                     }
                 ]);
             } else {
-                Alert.alert('Error', data.message || 'Failed to place bids');
+                Alert.alert('Error', response?.message || 'Failed to place bids');
             }
         } catch (error) {
+            console.error('Jodi Bid Error:', error);
             Alert.alert('Error', 'Network request failed');
         } finally {
             setSubmitting(false);
@@ -261,32 +286,7 @@ const JodiGame = ({ navigation, route }) => {
                     </View>
                 )}
 
-                <View style={styles.inputGroup}>
-                    <Text style={styles.label}>Select Game Type:</Text>
-                    <TouchableOpacity
-                        style={styles.dropdownButton}
-                        onPress={() => setIsGameTypeOpen(!isGameTypeOpen)}
-                    >
-                        <Text style={styles.dropdownText}>{selectedGame}</Text>
-                        <Ionicons name={isGameTypeOpen ? "chevron-up" : "chevron-down"} size={20} color="#C36578" />
-                    </TouchableOpacity>
-                </View>
-                {isGameTypeOpen && (
-                    <View style={styles.dropdownList}>
-                        {['OPEN', 'CLOSE'].map((type) => (
-                            <TouchableOpacity
-                                key={type}
-                                style={styles.dropdownItem}
-                                onPress={() => {
-                                    setSelectedGame(type);
-                                    setIsGameTypeOpen(false);
-                                }}
-                            >
-                                <Text style={[styles.dropdownItemText, selectedGame === type && styles.selectedDropdownText]}>{type}</Text>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
-                )}
+
 
                 {/* Content Body Based on Mode */}
                 {mode === 'EASY' ? (
@@ -322,7 +322,6 @@ const JodiGame = ({ navigation, route }) => {
                         <View style={styles.tableHeader}>
                             <Text style={styles.tableHeaderText}>Jodi</Text>
                             <Text style={styles.tableHeaderText}>Point</Text>
-                            <Text style={styles.tableHeaderText}>Type</Text>
                             <Text style={styles.tableHeaderText}>Delete</Text>
                         </View>
 
@@ -331,7 +330,6 @@ const JodiGame = ({ navigation, route }) => {
                             <View key={bid.id} style={styles.tableRow}>
                                 <Text style={styles.tableCell}>{bid.jodi}</Text>
                                 <Text style={styles.tableCell}>{bid.points}</Text>
-                                <Text style={styles.tableCell}>{bid.type}</Text>
                                 <TouchableOpacity style={styles.tableCell} onPress={() => handleDeleteEasyBid(bid.id)}>
                                     <Ionicons name="trash-outline" size={20} color="#C36578" />
                                 </TouchableOpacity>
@@ -379,7 +377,6 @@ const JodiGame = ({ navigation, route }) => {
                         <View style={styles.modalListHeader}>
                             <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Jodi</Text>
                             <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Points</Text>
-                            <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Type</Text>
                         </View>
 
                         <ScrollView style={styles.modalList}>
@@ -388,7 +385,6 @@ const JodiGame = ({ navigation, route }) => {
                                     <View key={bid.id} style={styles.modalListItem}>
                                         <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.jodi}</Text>
                                         <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.points}</Text>
-                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{bid.type}</Text>
                                     </View>
                                 ))
                             ) : (
@@ -396,7 +392,6 @@ const JodiGame = ({ navigation, route }) => {
                                     <View key={jodi} style={styles.modalListItem}>
                                         <Text style={[styles.modalListItemText, { flex: 1 }]}>{jodi}</Text>
                                         <Text style={[styles.modalListItemText, { flex: 1 }]}>{specialBids[jodi]}</Text>
-                                        <Text style={[styles.modalListItemText, { flex: 1 }]}>{selectedGame}</Text>
                                     </View>
                                 ))
                             )}

@@ -151,6 +151,7 @@ export const getBetHistory = async (userId, firstDate, lastDate) => {
         throw error;
     }
 };
+
 export const getFundRequestHistory = async (userId) => {
     try {
         console.log('Fetching Fund Request History for:', userId);
@@ -183,6 +184,7 @@ export const getFundRequestHistory = async (userId) => {
         throw error;
     }
 };
+
 
 export const getWithdrawRequestHistory = async (userId) => {
     try {
@@ -313,6 +315,532 @@ export const getUserProfile = async (userId) => {
         }
     } catch (error) {
         console.error('Get Profile API Error:', error);
+        throw error;
+    }
+};
+
+
+
+
+
+//All Games
+
+export const getSingleDigitGame = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
+    try {
+        console.log('Placing Bet via Single Digit Game API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSingleAnk.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "numbers": Numbers,
+                "amounts": Amounts,
+                "market_name": market_name,
+                "market_id": market_id,
+                "session": session
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const JodiGame = async (UserId, Username, Numbers, Amounts, market_name, market_id) => {
+    try {
+        console.log('Placing Bet via Jodi Game API:', { UserId, Username, Numbers, Amounts, market_name, market_id });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertJodi.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "numbers": Numbers,
+                "amounts": Amounts,
+                "market_name": market_name,
+                "market_id": market_id,
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const SinglePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
+    try {
+        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSinglePatti.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "numbers": Numbers,
+                "amounts": Amounts,
+                "market_name": market_name,
+                "market_id": market_id,
+                "session": session
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+
+export const DoublePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
+    try {
+        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertDoublePatti.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "numbers": Numbers,
+                "amounts": Amounts,
+                "market_name": market_name,
+                "market_id": market_id,
+                "session": session
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+
+export const TriplePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
+    try {
+        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertTriplePatti.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "numbers": Numbers,
+                "amounts": Amounts,
+                "market_name": market_name,
+                "market_id": market_id,
+                "session": session
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const spdptp = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
+    try {
+        console.log('Placing Bet via SP_DP_TP API:', { UserId, Username, Bids, market_name, market_id, total_amount });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsert_SP_DP_TP.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_name": market_name,
+                "market_id": market_id,
+                "total_amount": total_amount
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+
+export const placeSPMotorBet = async (UserId, Username, Bids, market_name, market_id, total_amount, pana_name) => {
+    try {
+        console.log('Placing Bet via placeSPMotorBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, pana_name });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSP_Motor.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+                "pana_name": pana_name
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeDPMotorBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
+    try {
+        console.log('Placing Bet via placeSPMotorBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertDP_Motor.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeOddEvenBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
+    try {
+        console.log('Placing Bet via placeOddEvenBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertOddEven.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeRedJodiBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
+    try {
+        console.log('Placing Bet via placeRedJodiBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertRedJodi.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeHalfSangamABet = async (UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name) => {
+    try {
+        console.log('Placing Bet via placeHalfSangamABet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertHalfSangamA.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+                "session": session,
+                "pana_name": pana_name
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeHalfSangamBBet = async (UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name) => {
+    try {
+        console.log('Placing Bet via placeHalfSangamBBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertHalfSangamB.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+                "session": session,
+                "pana_name": pana_name
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const placeFullSangamBet = async (UserId, Username, Bids, market_name, market_id, total_amount, open_closed) => {
+    try {
+        console.log('Placing Bet via placeFullSangamBet API:', { UserId, Username, Bids, market_name, market_id, total_amount, open_closed });
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertFullSangam.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "bids": Bids,
+                "market_id": market_id,
+                "market_name": market_name,
+                "total_amount": total_amount,
+                "open_closed": open_closed,
+                "pana_name": "Full Sangam"
+            }),
+        });
+
+        const text = await response.text();
+        console.log('Place Bet API raw response:', text);
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
         throw error;
     }
 };

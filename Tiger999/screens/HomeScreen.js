@@ -14,7 +14,6 @@ import {
   Animated,
   Dimensions,
   Easing,
-  SafeAreaView,
   Share,
   Image
 } from 'react-native';
@@ -22,7 +21,7 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.8; // 80% screen width
-//home
+
 export default function HomeScreen({ navigation }) {
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [balance, setBalance] = useState(0.0);
@@ -95,13 +94,28 @@ export default function HomeScreen({ navigation }) {
         const transformedMarkets = marketResponse.data.map(market => {
           // Logic for isOpen: end_time - 30 minutes
           // end_time is in "HH:mm" format (e.g., "22:30")
+          const [startH, startM] = market.start_time.split(':').map(Number);
           const [endH, endM] = market.end_time.split(':').map(Number);
+
+          const marketStartDate = new Date(serverDateStr);
+          marketStartDate.setHours(startH, startM, 0);
+
           const marketEndDate = new Date(serverDateStr);
           marketEndDate.setHours(endH, endM, 0);
 
+          // Calculate midpoint time (for OPEN bidding cutoff)
+          const midpointTime = new Date((marketStartDate.getTime() + marketEndDate.getTime()) / 2);
+
+          // CLOSE bidding closes 30 mins before end_time
           const closeDate = new Date(marketEndDate.getTime() - 30 * 60000); // 30 mins before
 
           const isCurrentlyOpen = currentTime < closeDate && market.market_status === "1";
+
+          // OPEN option available until midpoint time
+          const isOpenAvailable = currentTime < midpointTime && market.market_status === "1";
+
+          // CLOSE option available until 30 mins before end_time
+          const isCloseAvailable = currentTime < closeDate && market.market_status === "1";
 
           return {
             id: market.id,
@@ -110,6 +124,8 @@ export default function HomeScreen({ navigation }) {
             time: `${market.start_time_12} - ${market.end_time_12}`,
             status: isCurrentlyOpen ? 'Market is Running' : 'Closed for today',
             isOpen: isCurrentlyOpen,
+            isOpenAvailable: isOpenAvailable,
+            isCloseAvailable: isCloseAvailable,
             initials: market.market_name.substring(0, 2).toUpperCase()
           };
         });
@@ -294,7 +310,9 @@ export default function HomeScreen({ navigation }) {
               if (game.isOpen) {
                 navigation.navigate('GameDetail', {
                   gameName: game.name,
-                  gameCode: game.code
+                  gameCode: game.code,
+                  isOpenAvailable: game.isOpenAvailable,
+                  isCloseAvailable: game.isCloseAvailable
                 });
               }
             }}

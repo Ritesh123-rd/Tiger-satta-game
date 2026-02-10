@@ -9,29 +9,22 @@ import RegisterScreen from './screens/RegisterScreen';
 
 // Main Screens
 import HomeScreen from './screens/HomeScreen';
-import GameDetailScreen from './screens/sidebar-items/GameDetailScreen';
+import GameDetailScreen from './screens/gamehome/GameDetailScreen';
 
 // Game Play Screens (from games folder)
-import SingleDigitGame from './screens/games/SingleDigitGame';
-import SingleDigitBulkGame from './screens/games/SingleDigitBulkGame';
-import JodiGame from './screens/games/JodiGame';
-import JodiBulkGame from './screens/games/JodiBulkGame';
-import SinglePanaGame from './screens/games/SinglePanaGame';
-import SinglePanaBulkGame from './screens/games/SinglePanaBulkGame';
-import DoublePanaGame from './screens/games/DoublePanaGame';
-import DoublePanaBulkGame from './screens/games/DoublePanaBulkGame';
-import TriplePanaGame from './screens/games/TriplePanaGame';
-import FullSangamGame from './screens/games/FullSangamGame';
-import HalfSangamAGame from './screens/games/HalfSangamAGame';
-import HalfSangamBGame from './screens/games/HalfSangamBGame';
-import PanaFamilyGame from './screens/games/PanaFamilyGame';
-import SPDPTPGame from './screens/games/SPDPTPGame';
-import TwoDigitPanaGame from './screens/games/TwoDigitPanaGame';
-import SPMotorGame from './screens/games/SPMotorGame';
-import DPMotorGame from './screens/games/DPMotorGame';
-import JodiFamilyGame from './screens/games/JodiFamilyGame';
-import RedJodiGame from './screens/games/RedJodiGame';
-import OddEvenGame from './screens/games/OddEvenGame';
+import SingleDigitGame from './screens/games/singleank/SingleDigitGame';
+import JodiGame from './screens/games/jodi/JodiGame';
+import SinglePanaGame from './screens/games/singlepatti/SinglePanaGame';
+import DoublePanaGame from './screens/games/doublepatti/DoublePanaGame';
+import TriplePanaGame from './screens/games/triplepana/TriplePanaGame';
+import HalfSangamAGame from './screens/games/halfsangamA/HalfSangamAGame';
+import HalfSangamBGame from './screens/games/halfsangamB/HalfSangamBGame';
+import SPDPTPGame from './screens/games/spdptp/SPDPTPGame';
+import SPMotorGame from './screens/games/spmotargame/SPMotorGame';
+import DPMotorGame from './screens/games/dpmotargame/DPMotorGame';
+import RedJodiGame from './screens/games/redjodigame/RedJodiGame';
+import OddEvenGame from './screens/games/oddeven/OddEvenGame';
+import FullSangamGame from './screens/games/fullsangam/FullSangamGame';
 
 // Utility Screens
 import MyBidsScreen from './screens/sidebar-items/MyBidsScreen';
@@ -149,23 +142,16 @@ export default function App() {
 
         {/* Game Play Screens */}
         <Stack.Screen name="SingleDigitGame" component={SingleDigitGame} />
-        <Stack.Screen name="SingleDigitBulkGame" component={SingleDigitBulkGame} />
         <Stack.Screen name="JodiGame" component={JodiGame} />
-        <Stack.Screen name="JodiBulkGame" component={JodiBulkGame} />
         <Stack.Screen name="SinglePanaGame" component={SinglePanaGame} />
-        <Stack.Screen name="SinglePanaBulkGame" component={SinglePanaBulkGame} />
         <Stack.Screen name="DoublePanaGame" component={DoublePanaGame} />
-        <Stack.Screen name="DoublePanaBulkGame" component={DoublePanaBulkGame} />
         <Stack.Screen name="TriplePanaGame" component={TriplePanaGame} />
         <Stack.Screen name="FullSangamGame" component={FullSangamGame} />
         <Stack.Screen name="HalfSangamAGame" component={HalfSangamAGame} />
         <Stack.Screen name="HalfSangamBGame" component={HalfSangamBGame} />
-        <Stack.Screen name="PanaFamilyGame" component={PanaFamilyGame} />
         <Stack.Screen name="SPDPTPGame" component={SPDPTPGame} />
-        <Stack.Screen name="TwoDigitPanaGame" component={TwoDigitPanaGame} />
         <Stack.Screen name="SPMotorGame" component={SPMotorGame} />
         <Stack.Screen name="DPMotorGame" component={DPMotorGame} />
-        <Stack.Screen name="JodiFamilyGame" component={JodiFamilyGame} />
         <Stack.Screen name="RedJodiGame" component={RedJodiGame} />
         <Stack.Screen name="OddEvenGame" component={OddEvenGame} />
 
