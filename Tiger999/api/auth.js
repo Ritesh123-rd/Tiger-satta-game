@@ -837,7 +837,7 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
             if (jsonMatch) {
                 return JSON.parse(jsonMatch[0]);
             }
-            throw new Error('Invalid Plce Bet JSON: ' + text.substring(0, 50));
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
         }
     } catch (error) {
         console.error('Place Bet API Error:', error);
