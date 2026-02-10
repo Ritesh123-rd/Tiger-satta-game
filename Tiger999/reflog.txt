@@ -1,0 +1,13 @@
+﻿0bfe2a3 HEAD@{Tue Feb 10 18:30:37 2026}: commit: Fixed syntax and reference errors in HomeScreen.js
+57b69bb HEAD@{Tue Feb 10 18:25:33 2026}: commit: Refactored Sidebar with exact design preservation
+707061b HEAD@{Tue Feb 10 18:23:50 2026}: reset: moving to HEAD^
+5f932ae HEAD@{Tue Feb 10 18:13:26 2026}: commit: Integrated Half Sangam A/B and Full Sangam APIs and refactored game components
+707061b HEAD@{Sat Feb 7 14:30:38 2026}: commit: home comment added
+85e45d0 HEAD@{Tue Feb 3 20:07:34 2026}: commit: rd changes buddy
+fa2ced7 HEAD@{Tue Feb 3 19:56:10 2026}: commit: feat: implement responsive footers across all game screens and update colors
+80eac3f HEAD@{Sat Jan 24 16:31:31 2026}: commit: Update code
+6425fd9 HEAD@{Tue Jan 13 21:22:29 2026}: commit: Update HomeScreen and assets
+56d9d89 HEAD@{Fri Jan 9 12:14:20 2026}: commit: rd code
+1038260 HEAD@{Fri Jan 9 12:02:00 2026}: commit: Your message here
+37ed547 HEAD@{Thu Jan 8 16:51:29 2026}: commit: Add complete Tiger999 project code
+f3ce1ad HEAD@{Thu Jan 8 14:39:41 2026}: commit (initial): Initial commit - Tiger 999 Satta Game

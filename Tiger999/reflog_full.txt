@@ -1,0 +1,40 @@
+﻿707061b refs/heads/master@{2026-02-10 19:22:19 +0530}: reset: moving to 707061b
+707061b HEAD@{2026-02-10 19:22:19 +0530}: reset: moving to 707061b
+0bfe2a3 refs/remotes/origin/master@{2026-02-10 18:30:41 +0530}: update by push
+0bfe2a3 refs/heads/master@{2026-02-10 18:30:37 +0530}: commit: Fixed syntax and reference errors in HomeScreen.js
+0bfe2a3 HEAD@{2026-02-10 18:30:37 +0530}: commit: Fixed syntax and reference errors in HomeScreen.js
+57b69bb refs/remotes/origin/master@{2026-02-10 18:25:48 +0530}: update by push
+57b69bb refs/heads/master@{2026-02-10 18:25:33 +0530}: commit: Refactored Sidebar with exact design preservation
+57b69bb HEAD@{2026-02-10 18:25:33 +0530}: commit: Refactored Sidebar with exact design preservation
+707061b refs/heads/master@{2026-02-10 18:23:50 +0530}: reset: moving to HEAD^
+707061b HEAD@{2026-02-10 18:23:50 +0530}: reset: moving to HEAD^
+5f932ae refs/remotes/origin/master@{2026-02-10 18:13:31 +0530}: update by push
+5f932ae refs/heads/master@{2026-02-10 18:13:26 +0530}: commit: Integrated Half Sangam A/B and Full Sangam APIs and refactored game components
+5f932ae HEAD@{2026-02-10 18:13:26 +0530}: commit: Integrated Half Sangam A/B and Full Sangam APIs and refactored game components
+707061b refs/remotes/origin/master@{2026-02-07 14:30:46 +0530}: update by push
+707061b refs/heads/master@{2026-02-07 14:30:38 +0530}: commit: home comment added
+707061b HEAD@{2026-02-07 14:30:38 +0530}: commit: home comment added
+85e45d0 refs/remotes/origin/master@{2026-02-03 20:07:45 +0530}: update by push
+85e45d0 refs/heads/master@{2026-02-03 20:07:34 +0530}: commit: rd changes buddy
+85e45d0 HEAD@{2026-02-03 20:07:34 +0530}: commit: rd changes buddy
+fa2ced7 refs/remotes/origin/master@{2026-02-03 19:56:30 +0530}: update by push
+fa2ced7 refs/heads/master@{2026-02-03 19:56:10 +0530}: commit: feat: implement responsive footers across all game screens and update colors
+fa2ced7 HEAD@{2026-02-03 19:56:10 +0530}: commit: feat: implement responsive footers across all game screens and update colors
+80eac3f refs/remotes/origin/master@{2026-01-24 16:31:59 +0530}: update by push
+80eac3f refs/heads/master@{2026-01-24 16:31:31 +0530}: commit: Update code
+80eac3f HEAD@{2026-01-24 16:31:31 +0530}: commit: Update code
+6425fd9 refs/remotes/origin/master@{2026-01-13 21:22:41 +0530}: update by push
+6425fd9 refs/heads/master@{2026-01-13 21:22:29 +0530}: commit: Update HomeScreen and assets
+6425fd9 HEAD@{2026-01-13 21:22:29 +0530}: commit: Update HomeScreen and assets
+56d9d89 refs/remotes/origin/master@{2026-01-09 12:14:27 +0530}: update by push
+56d9d89 refs/heads/master@{2026-01-09 12:14:20 +0530}: commit: rd code
+56d9d89 HEAD@{2026-01-09 12:14:20 +0530}: commit: rd code
+1038260 refs/remotes/origin/master@{2026-01-09 12:02:42 +0530}: update by push
+1038260 refs/heads/master@{2026-01-09 12:02:00 +0530}: commit: Your message here
+1038260 HEAD@{2026-01-09 12:02:00 +0530}: commit: Your message here
+37ed547 refs/remotes/origin/master@{2026-01-08 16:51:38 +0530}: update by push
+37ed547 refs/heads/master@{2026-01-08 16:51:29 +0530}: commit: Add complete Tiger999 project code
+37ed547 HEAD@{2026-01-08 16:51:29 +0530}: commit: Add complete Tiger999 project code
+f3ce1ad refs/remotes/origin/master@{2026-01-08 14:39:50 +0530}: update by push
+f3ce1ad refs/heads/master@{2026-01-08 14:39:41 +0530}: commit (initial): Initial commit - Tiger 999 Satta Game
+f3ce1ad HEAD@{2026-01-08 14:39:41 +0530}: commit (initial): Initial commit - Tiger 999 Satta Game
