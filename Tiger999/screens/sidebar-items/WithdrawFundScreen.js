@@ -2,17 +2,19 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, ActivityIndicator } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, getWithdrawRequestHistory } from '../../api/auth';
+import { getWalletBalance, getWithdrawRequestHistory, withdrawfund } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Alert } from 'react-native';
 
 export default function WithdrawFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
   const [showTermsModal, setShowTermsModal] = useState(true);
 
   const [balance, setBalance] = useState(0.0);
-  const [userData, setUserData] = useState({ name: '', phone: '' });
+  const [userData, setUserData] = useState({ name: '', phone: '', id: '' });
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchUserData = async () => {
     try {
@@ -22,6 +24,7 @@ export default function WithdrawFundScreen({ navigation }) {
       setUserData({
         name: name || 'User',
         phone: phone || '',
+        id: userId || '',
       });
       if (phone && userId) {
         const response = await getWalletBalance(phone, userId);
@@ -48,6 +51,52 @@ export default function WithdrawFundScreen({ navigation }) {
       fetchUserData();
     }, [])
   );
+
+  const handleWithdrawRequest = async () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount.');
+      return;
+    }
+
+    const withdrawAmt = parseFloat(amount);
+    if (withdrawAmt < 1000) {
+      Alert.alert('Error', 'Minimum withdrawal amount is ₹ 1000.');
+      return;
+    }
+
+    if (withdrawAmt > balance) {
+      Alert.alert('Error', 'Insufficient balance for withdrawal.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await withdrawfund(userData.id, userData.name, amount);
+
+      // Success check matches AddFund screen logic for consistency
+      const isSuccess = response && (
+        response.status === true ||
+        response.status === 'true' ||
+        response.status === 'success' ||
+        response.status === 1 ||
+        response.status === '1' ||
+        (response.message && response.message.toLowerCase().includes('success'))
+      );
+
+      if (isSuccess) {
+        Alert.alert('Success', response.message || 'Withdrawal request submitted successfully!');
+        setAmount('');
+        fetchUserData(); // Refresh balance and history
+      } else {
+        Alert.alert('Error', response.message || 'Failed to submit withdrawal request. Please try again.');
+      }
+    } catch (error) {
+      console.error('Withdraw Fund Error:', error);
+      Alert.alert('Error', 'Something went wrong. Please check your connection.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -138,10 +187,19 @@ export default function WithdrawFundScreen({ navigation }) {
 
       {/* Send Request Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.sendButton}>
-          <Text style={styles.sendButtonText}>Send Request</Text>
+        <TouchableOpacity
+          style={[styles.sendButton, submitting && { opacity: 0.7 }]}
+          onPress={handleWithdrawRequest}
+          disabled={submitting}
+        >
+          {submitting ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.sendButtonText}>Send Request</Text>
+          )}
         </TouchableOpacity>
       </View>
+
 
       {/* Terms & Conditions Modal */}
       <Modal

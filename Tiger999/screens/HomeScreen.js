@@ -135,7 +135,7 @@ export default function HomeScreen({ navigation }) {
 
         const sortedMarkets = transformedMarkets.sort((a, b) => {
           if (a.isOpen === b.isOpen) return 0;
-          return a.isOpen ? -1 : 1;
+          return a.isOpen ? 1 : -1;
         });
 
         setGamesList(sortedMarkets);
@@ -294,6 +294,15 @@ export default function HomeScreen({ navigation }) {
             </View>
 
             <View style={styles.gameActions}>
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={() => {
+                  setSelectedGame(game);
+                  setInfoModalVisible(true);
+                }}
+              >
+                <Ionicons name="information-circle-outline" size={24} color="#FFC107" />
+              </TouchableOpacity>
               {game.isOpen ? (
                 <View style={styles.playNowBadge}>
                   <Text style={styles.playNowText}>Play Now</Text>
@@ -303,15 +312,6 @@ export default function HomeScreen({ navigation }) {
                   <Text style={styles.closedBadgeText}>Closed</Text>
                 </View>
               )}
-              <TouchableOpacity
-                style={styles.infoButton}
-                onPress={() => {
-                  setSelectedGame(game);
-                  setInfoModalVisible(true);
-                }}
-              >
-                <Ionicons name="information-circle" size={24} color="#FFC107" />
-              </TouchableOpacity>
             </View>
           </TouchableOpacity>
         ))}
@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   },
   actionWrapper: {
     backgroundColor: '#f8daa7ff',
-    marginHorizontal: 10,
+    marginHorizontal: 13,
     borderRadius: 12,
     paddingVertical: 10,
     marginBottom: 12,
@@ -732,13 +732,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   infoButton: {
-    marginTop: 10,
   },
   closedBadge: {
     backgroundColor: '#D32F2F',
     paddingHorizontal: 15,
     paddingVertical: 6,
     borderRadius: 25,
+    marginTop: 10,
   },
   closedBadgeText: {
     color: '#fff',
@@ -750,6 +750,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 6,
     borderRadius: 25,
+    marginTop: 10,
   },
   playNowText: {
     color: '#fff',

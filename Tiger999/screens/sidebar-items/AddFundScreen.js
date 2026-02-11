@@ -15,16 +15,18 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect } from 'react';
-import { getWalletBalance, getFundRequestHistory } from '../../api/auth';
+import { getWalletBalance, getFundRequestHistory, addfund } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Alert } from 'react-native';
 
 export default function AddFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
 
   const [balance, setBalance] = useState(0.0);
-  const [userData, setUserData] = useState({ name: 'User', phone: '' });
+  const [userData, setUserData] = useState({ name: 'User', phone: '', id: '' });
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchUserData = async () => {
     try {
@@ -34,6 +36,7 @@ export default function AddFundScreen({ navigation }) {
       setUserData({
         name: name || 'User',
         phone: phone || '',
+        id: userId || '',
       });
 
       if (phone && userId) {
@@ -75,6 +78,40 @@ export default function AddFundScreen({ navigation }) {
 
   const handleWhatsApp = () => {
     Linking.openURL('https://wa.me/919999999999');
+  };
+
+  const handleAddFund = async () => {
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      Alert.alert('Error', 'Please enter a valid amount.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const response = await addfund(userData.id, userData.name, amount);
+      // More robust success check: status can be true, 'true', 1, '1' or message contains 'success'
+      const isSuccess = response && (
+        response.status === true ||
+        response.status === 'true' ||
+        response.status === 1 ||
+        response.status === '1' ||
+        (response.message && response.message.toLowerCase().includes('success'))
+      );
+
+      if (isSuccess) {
+        Alert.alert('Success', response.message || 'Fund request submitted successfully!');
+        setAmount('');
+        fetchUserData(); // Refresh balance and history
+      } else {
+        Alert.alert('Error', response.message || 'Failed to submit fund request. Please try again.');
+      }
+    } catch (error) {
+
+      console.error('Add Fund Error:', error);
+      Alert.alert('Error', 'Something went wrong. Please check your connection.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -221,10 +258,19 @@ export default function AddFundScreen({ navigation }) {
 
         {/* Pay Now Button */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.payButton}>
-            <Text style={styles.payButtonText}>Pay Now</Text>
+          <TouchableOpacity
+            style={[styles.payButton, submitting && { opacity: 0.7 }]}
+            onPress={handleAddFund}
+            disabled={submitting}
+          >
+            {submitting ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.payButtonText}>Pay Now</Text>
+            )}
           </TouchableOpacity>
         </View>
+
       </KeyboardAvoidingView>
     </View>
   );

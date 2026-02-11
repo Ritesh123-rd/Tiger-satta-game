@@ -85,6 +85,9 @@ export default function MyBidsScreen({ navigation }) {
               if (option.id === 1) {
                 navigation.navigate('BidHistory');
               }
+              if (option.id === 2) {
+                navigation.navigate('GameResults');
+              }
             }}
           >
             <View style={styles.iconContainer}>

@@ -2,7 +2,6 @@ import { API_BASE_URL } from './config';
 
 export const loginUser = async (mobile, password) => {
     try {
-        console.log('Login Attempt for:', mobile);
 
         const response = await fetch(`${API_BASE_URL}/userLogin/login.php`, {
             method: 'POST',
@@ -16,8 +15,6 @@ export const loginUser = async (mobile, password) => {
         });
 
         const rawText = await response.text();
-        console.log('Login Raw Response:', rawText);
-
         try {
             const data = JSON.parse(rawText);
             return data;
@@ -60,7 +57,6 @@ export const registerUser = async (username, password, mobile) => {
 
 export const getWalletBalance = async (mobile, userId = null) => {
     try {
-        console.log('Fetching balance for:', { mobile, userId });
         const response = await fetch(`${API_BASE_URL}/userLogin/balance.php`, {
             method: 'POST',
             headers: {
@@ -73,7 +69,6 @@ export const getWalletBalance = async (mobile, userId = null) => {
         });
 
         const text = await response.text();
-        console.log('Balance API raw response:', text);
 
         const data = JSON.parse(text);
         return data;
@@ -95,11 +90,9 @@ export const getDateTime = async () => {
 };
 export const getMarkets = async () => {
     try {
-        console.log('Fetching Markets from:', `${API_BASE_URL}/website/Reguler/read/market.php`);
         const response = await fetch(`${API_BASE_URL}/website/Reguler/read/market.php`);
 
         const rawText = await response.text();
-        console.log('Markets Raw Response snippet:', rawText.substring(0, 200));
 
         try {
             const data = JSON.parse(rawText);
@@ -119,7 +112,6 @@ export const getMarkets = async () => {
 };
 export const getBetHistory = async (userId, firstDate, lastDate) => {
     try {
-        console.log('Fetching Bet History for:', { userId, firstDate, lastDate });
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/betHistory.php`, {
             method: 'POST',
             headers: {
@@ -133,7 +125,6 @@ export const getBetHistory = async (userId, firstDate, lastDate) => {
         });
 
         const text = await response.text();
-        console.log('Bet History API raw response snippet:', text.substring(0, 200));
 
         try {
             const data = JSON.parse(text);
@@ -152,9 +143,42 @@ export const getBetHistory = async (userId, firstDate, lastDate) => {
     }
 };
 
+export const bidhistory = async (user_id, firstdate, lastdate) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/betHistory.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": user_id,
+                "firstdate": firstdate,
+                "lastdate": lastdate
+            }),
+        });
+
+        const text = await response.text();
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Place Bet JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Place Bet JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
 export const getFundRequestHistory = async (userId) => {
     try {
-        console.log('Fetching Fund Request History for:', userId);
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/UserAddPointsRequests.php`, {
             method: 'POST',
             headers: {
@@ -166,7 +190,6 @@ export const getFundRequestHistory = async (userId) => {
         });
 
         const text = await response.text();
-        console.log('Fund Request API raw response snippet:', text.substring(0, 200));
 
         try {
             const data = JSON.parse(text);
@@ -188,7 +211,6 @@ export const getFundRequestHistory = async (userId) => {
 
 export const getWithdrawRequestHistory = async (userId) => {
     try {
-        console.log('Fetching Withdraw Request History for:', userId);
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/UserWithdrawPointsRequests.php`, {
             method: 'POST',
             headers: {
@@ -200,7 +222,6 @@ export const getWithdrawRequestHistory = async (userId) => {
         });
 
         const text = await response.text();
-        console.log('Withdraw Request API raw response snippet:', text.substring(0, 200));
 
         try {
             const data = JSON.parse(text);
@@ -220,7 +241,6 @@ export const getWithdrawRequestHistory = async (userId) => {
 };
 export const updateBankDetails = async (details) => {
     try {
-        console.log('Updating Bank Details for:', details.user_id);
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/paymentDetailesUpdate.php`, {
             method: 'POST',
             headers: {
@@ -242,7 +262,6 @@ export const updateBankDetails = async (details) => {
         });
 
         const text = await response.text();
-        console.log('Update Bank Details API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -263,7 +282,6 @@ export const updateBankDetails = async (details) => {
 
 export const getBankDetails = async (userId) => {
     try {
-        console.log('Fetching Bank Details for:', userId);
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/paymentDetailesUpdate.php`, {
             method: 'POST',
             headers: {
@@ -276,7 +294,6 @@ export const getBankDetails = async (userId) => {
         });
 
         const text = await response.text();
-        console.log('Get Bank Details API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -296,11 +313,9 @@ export const getBankDetails = async (userId) => {
 };
 export const getUserProfile = async (userId) => {
     try {
-        console.log('Fetching Profile for:', userId);
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/myProfile.php?user_id=${userId}`);
 
         const text = await response.text();
-        console.log('Profile API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -327,7 +342,6 @@ export const getUserProfile = async (userId) => {
 
 export const getSingleDigitGame = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
     try {
-        console.log('Placing Bet via Single Digit Game API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSingleAnk.php`, {
             method: 'POST',
             headers: {
@@ -345,7 +359,6 @@ export const getSingleDigitGame = async (UserId, Username, Numbers, Amounts, mar
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -367,7 +380,6 @@ export const getSingleDigitGame = async (UserId, Username, Numbers, Amounts, mar
 
 export const JodiGame = async (UserId, Username, Numbers, Amounts, market_name, market_id) => {
     try {
-        console.log('Placing Bet via Jodi Game API:', { UserId, Username, Numbers, Amounts, market_name, market_id });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertJodi.php`, {
             method: 'POST',
             headers: {
@@ -384,7 +396,6 @@ export const JodiGame = async (UserId, Username, Numbers, Amounts, market_name, 
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -406,7 +417,6 @@ export const JodiGame = async (UserId, Username, Numbers, Amounts, market_name, 
 
 export const SinglePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
     try {
-        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSinglePatti.php`, {
             method: 'POST',
             headers: {
@@ -424,7 +434,6 @@ export const SinglePatti = async (UserId, Username, Numbers, Amounts, market_nam
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -447,7 +456,6 @@ export const SinglePatti = async (UserId, Username, Numbers, Amounts, market_nam
 
 export const DoublePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
     try {
-        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertDoublePatti.php`, {
             method: 'POST',
             headers: {
@@ -465,7 +473,6 @@ export const DoublePatti = async (UserId, Username, Numbers, Amounts, market_nam
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -488,7 +495,6 @@ export const DoublePatti = async (UserId, Username, Numbers, Amounts, market_nam
 
 export const TriplePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
     try {
-        console.log('Placing Bet via Single Patti API:', { UserId, Username, Numbers, Amounts, market_name, market_id, session });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertTriplePatti.php`, {
             method: 'POST',
             headers: {
@@ -506,7 +512,6 @@ export const TriplePatti = async (UserId, Username, Numbers, Amounts, market_nam
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -528,7 +533,6 @@ export const TriplePatti = async (UserId, Username, Numbers, Amounts, market_nam
 
 export const spdptp = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
     try {
-        console.log('Placing Bet via SP_DP_TP API:', { UserId, Username, Bids, market_name, market_id, total_amount });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsert_SP_DP_TP.php`, {
             method: 'POST',
             headers: {
@@ -545,7 +549,6 @@ export const spdptp = async (UserId, Username, Bids, market_name, market_id, tot
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -568,7 +571,6 @@ export const spdptp = async (UserId, Username, Bids, market_name, market_id, tot
 
 export const placeSPMotorBet = async (UserId, Username, Bids, market_name, market_id, total_amount, pana_name) => {
     try {
-        console.log('Placing Bet via placeSPMotorBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, pana_name });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSP_Motor.php`, {
             method: 'POST',
             headers: {
@@ -586,7 +588,6 @@ export const placeSPMotorBet = async (UserId, Username, Bids, market_name, marke
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -608,7 +609,6 @@ export const placeSPMotorBet = async (UserId, Username, Bids, market_name, marke
 
 export const placeDPMotorBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
     try {
-        console.log('Placing Bet via placeSPMotorBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertDP_Motor.php`, {
             method: 'POST',
             headers: {
@@ -625,7 +625,6 @@ export const placeDPMotorBet = async (UserId, Username, Bids, market_name, marke
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -647,7 +646,6 @@ export const placeDPMotorBet = async (UserId, Username, Bids, market_name, marke
 
 export const placeOddEvenBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
     try {
-        console.log('Placing Bet via placeOddEvenBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertOddEven.php`, {
             method: 'POST',
             headers: {
@@ -664,7 +662,6 @@ export const placeOddEvenBet = async (UserId, Username, Bids, market_name, marke
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -686,7 +683,6 @@ export const placeOddEvenBet = async (UserId, Username, Bids, market_name, marke
 
 export const placeRedJodiBet = async (UserId, Username, Bids, market_name, market_id, total_amount) => {
     try {
-        console.log('Placing Bet via placeRedJodiBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertRedJodi.php`, {
             method: 'POST',
             headers: {
@@ -703,7 +699,6 @@ export const placeRedJodiBet = async (UserId, Username, Bids, market_name, marke
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -725,7 +720,6 @@ export const placeRedJodiBet = async (UserId, Username, Bids, market_name, marke
 
 export const placeHalfSangamABet = async (UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name) => {
     try {
-        console.log('Placing Bet via placeHalfSangamABet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertHalfSangamA.php`, {
             method: 'POST',
             headers: {
@@ -744,7 +738,6 @@ export const placeHalfSangamABet = async (UserId, Username, Bids, market_name, m
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -766,7 +759,6 @@ export const placeHalfSangamABet = async (UserId, Username, Bids, market_name, m
 
 export const placeHalfSangamBBet = async (UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name) => {
     try {
-        console.log('Placing Bet via placeHalfSangamBBet API (Revised):', { UserId, Username, Bids, market_name, market_id, total_amount, session, pana_name });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertHalfSangamB.php`, {
             method: 'POST',
             headers: {
@@ -785,7 +777,6 @@ export const placeHalfSangamBBet = async (UserId, Username, Bids, market_name, m
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -807,7 +798,6 @@ export const placeHalfSangamBBet = async (UserId, Username, Bids, market_name, m
 
 export const placeFullSangamBet = async (UserId, Username, Bids, market_name, market_id, total_amount, open_closed) => {
     try {
-        console.log('Placing Bet via placeFullSangamBet API:', { UserId, Username, Bids, market_name, market_id, total_amount, open_closed });
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertFullSangam.php`, {
             method: 'POST',
             headers: {
@@ -826,7 +816,6 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
         });
 
         const text = await response.text();
-        console.log('Place Bet API raw response:', text);
 
         try {
             const data = JSON.parse(text);
@@ -841,6 +830,107 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
         }
     } catch (error) {
         console.error('Place Bet API Error:', error);
+        throw error;
+    }
+};
+
+
+export const result = async (market_id, date) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/read/Results.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "market_id": market_id,
+                "date": date
+            }),
+        });
+
+        const text = await response.text();
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Result JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Result API Error:', error);
+        throw error;
+    }
+};
+
+
+export const addfund =  async (UserId, Username, total_amount) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/BalanceAdd.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "amount": total_amount
+            }),
+        });
+
+        const text = await response.text();
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Add Fund JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Add Fund JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Add Fund API Error:', error);
+        throw error;
+    }
+};
+
+export const withdrawfund =  async (UserId, Username, total_amount) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/BalanceWithdrawal.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": UserId,
+                "username": Username,
+                "request_amount": total_amount,
+                "request_payment_method": "phone_pay"
+            }),
+        });
+
+        const text = await response.text();
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Withdraw Fund JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Withdraw Fund JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Withdraw Fund API Error:', error);
         throw error;
     }
 };

@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getBetHistory } from '../../api/auth';
+import { bidhistory } from '../../api/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -70,7 +70,7 @@ export default function BidHistoryScreen({ navigation }) {
                 return;
             }
 
-            const response = await getBetHistory(userId, fromDate, toDate);
+            const response = await bidhistory(userId, fromDate, toDate);
             if (response && (response.status === true || response.status === 'true')) {
                 setAllBids(response.data || []);
                 setTotalCount(response.count || 0);
@@ -109,7 +109,7 @@ export default function BidHistoryScreen({ navigation }) {
         setLoading(true);
         try {
             const userId = await AsyncStorage.getItem('userId');
-            const response = await getBetHistory(userId, pickingFor === 'from' ? formattedDate : fromDate, pickingFor === 'to' ? formattedDate : toDate);
+            const response = await bidhistory(userId, pickingFor === 'from' ? formattedDate : fromDate, pickingFor === 'to' ? formattedDate : toDate);
             if (response && (response.status === true || response.status === 'true')) {
                 setAllBids(response.data || []);
                 setTotalCount(response.count || 0);
@@ -140,23 +140,45 @@ export default function BidHistoryScreen({ navigation }) {
     const renderBidItem = (item) => (
         <View key={item.id} style={styles.bidCard}>
             <View style={styles.bidHeader}>
-                <Text style={styles.gameName}>{item.game_name}</Text>
-                <Text style={styles.bidPoints}>{item.points} pts</Text>
+                <View>
+                    <Text style={styles.gameName}>{item.game_name}</Text>
+                    <Text style={styles.marketRole}>{item.bet_market_role}</Text>
+                </View>
+                <View style={styles.headerRightInfo}>
+                    <Text style={styles.bidPoints}>{item.points} pts</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: item.add_win === "1" ? '#4CAF50' : item.win_result ? '#F44336' : '#FFC107' }]}>
+                        <Text style={styles.statusText}>
+                            {item.add_win === "1" ? 'WON' : item.win_result ? 'LOST' : 'PENDING'}
+                        </Text>
+                    </View>
+                </View>
             </View>
             <View style={styles.bidDetails}>
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Pana:</Text>
+                    <Text style={styles.detailLabel}>Pana</Text>
                     <Text style={styles.detailValue}>{item.pana_name}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Number:</Text>
+                    <Text style={styles.detailLabel}>Number</Text>
                     <Text style={styles.detailValue}>{item.bid_number}</Text>
                 </View>
                 <View style={styles.detailRow}>
-                    <Text style={styles.detailLabel}>Time:</Text>
+                    <Text style={styles.detailLabel}>Session</Text>
+                    <Text style={styles.detailValue}>{item.session}</Text>
+                </View>
+                <View style={styles.detailRow}>
+                    <Text style={styles.detailLabel}>Time</Text>
                     <Text style={styles.detailValue}>{item.time12hr}</Text>
                 </View>
             </View>
+
+            {item.add_win === "1" && (
+                <View style={styles.winRow}>
+                    <Ionicons name="trophy" size={16} color="#FFD700" />
+                    <Text style={styles.winText}>Won: ₹{item.win_amt}</Text>
+                </View>
+            )}
+
         </View>
     );
 
@@ -426,9 +448,28 @@ const styles = StyleSheet.create({
         color: '#6B3A3A',
     },
     bidPoints: {
-        fontSize: 16,
+        fontSize: 18,
         fontFamily: 'Roboto_700Bold',
-        color: '#4CAF50',
+        color: '#2196F3',
+    },
+    marketRole: {
+        fontSize: 12,
+        color: '#666',
+        fontFamily: 'Poppins_400Regular',
+    },
+    headerRightInfo: {
+        alignItems: 'flex-end',
+    },
+    statusBadge: {
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 4,
+        marginTop: 4,
+    },
+    statusText: {
+        color: '#fff',
+        fontSize: 10,
+        fontFamily: 'Roboto_700Bold',
     },
     bidDetails: {
         flexDirection: 'row',
@@ -445,7 +486,39 @@ const styles = StyleSheet.create({
     detailValue: {
         fontSize: 13,
         color: '#000',
-        fontFamily: 'Poppins_500Medium',
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    winRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#e8f5e9',
+        padding: 8,
+        borderRadius: 6,
+        marginTop: 10,
+    },
+    winText: {
+        marginLeft: 5,
+        fontSize: 14,
+        color: '#2e7d32',
+        fontFamily: 'Roboto_700Bold',
+    },
+    footerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        marginTop: 10,
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#f0f0f0',
+    },
+    dateText: {
+        fontSize: 11,
+        color: '#999',
+        fontFamily: 'Poppins_400Regular',
+    },
+    barcodeText: {
+        fontSize: 11,
+        color: '#999',
+        fontFamily: 'Poppins_400Regular',
     },
     paginationFooter: {
         flexDirection: 'row',

@@ -49,6 +49,7 @@ import AddFundHistoryScreen from './screens/sidebar-items/AddFundHistoryScreen';
 import WithdrawFundHistoryScreen from './screens/sidebar-items/WithdrawFundHistoryScreen';
 import UpdateBankDetailsScreen from './screens/sidebar-items/UpdateBankDetailsScreen';
 import MyProfileScreen from './screens/sidebar-items/MyProfileScreen';
+import GameResults from './screens/sidebar-items/GameResults';
 
 const Stack = createStackNavigator();
 
@@ -154,6 +155,7 @@ export default function App() {
         <Stack.Screen name="DPMotorGame" component={DPMotorGame} />
         <Stack.Screen name="RedJodiGame" component={RedJodiGame} />
         <Stack.Screen name="OddEvenGame" component={OddEvenGame} />
+        <Stack.Screen name="GameResults" component={GameResults} />
 
         {/* Utility Screens */}
         <Stack.Screen name="AddFund" component={AddFundScreen} />
