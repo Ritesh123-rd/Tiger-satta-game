@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -30,6 +31,16 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
   const [submitting, setSubmitting] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
+
   // Fetch Wallet Balance
   const fetchWalletBalance = async () => {
     try {
@@ -54,9 +65,15 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
 
   const handleDigitPress = (digit) => {
     if (!points || parseInt(points) <= 0) {
-      Alert.alert('Error', 'Please enter valid points first');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter valid points first',
+        type: 'error'
+      });
       return;
     }
+
     setSelectedDigits(prev => {
       const newSelections = { ...prev };
       const currentPoints = parseInt(points) || 0;
@@ -74,14 +91,26 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
   const handleSubmit = async () => {
     const digits = Object.keys(selectedDigits);
     if (digits.length === 0) {
-      Alert.alert('Error', 'Please select at least one number');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please select at least one number',
+        type: 'error'
+      });
       return;
     }
+
     const totalPoints = calculateTotalPoints();
     if (totalPoints > balance) {
-      Alert.alert('Error', 'Insufficient balance');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Insufficient balance',
+        type: 'error'
+      });
       return;
     }
+
     // Show confirmation modal instead of direct submit
     setShowConfirmModal(true);
   };
@@ -109,22 +138,37 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
       const data = await response.json();
       if (data.status === 'success') {
         setShowConfirmModal(false); // Close modal
-        Alert.alert('Success', 'Bids placed successfully!', [
-          {
-            text: 'OK', onPress: () => {
-              setSelectedDigits({});
-              setPoints('');
-              fetchWalletBalance();
-              navigation.goBack();
-            }
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: 'Bids placed successfully!',
+          type: 'success',
+          onClose: () => {
+            setSelectedDigits({});
+            setPoints('');
+            fetchWalletBalance();
+            navigation.goBack();
           }
-        ]);
+        });
+
       } else {
-        Alert.alert('Error', data.message || 'Failed to place bids');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: data.message || 'Failed to place bids',
+          type: 'error'
+        });
       }
+
     } catch (error) {
-      Alert.alert('Error', 'Network request failed or Endpoint not found');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Network request failed or Endpoint not found',
+        type: 'error'
+      });
     } finally {
+
       setSubmitting(false);
     }
   };
@@ -261,7 +305,7 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
               <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Points</Text>
               <Text style={[styles.modalListHeaderText, { flex: 1 }]}>Type</Text>
             </View>
-            <ScrollView style={styles.modalList} contentContainerStyle={{ paddingBottom: 20 }}>
+            <ScrollView style={styles.modalList} contentContainerStyle={{ paddingBottom: 100 }}>
               {Object.keys(selectedDigits).map((digit) => (
                 <View key={digit} style={styles.modalListItem}>
                   <Text style={[styles.modalListItemText, { flex: 1 }]}>{digit}</Text>
@@ -297,9 +341,20 @@ const SingleDigitBulkGame = ({ navigation, route }) => {
         </View>
       </Modal>
 
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 };
+
 
 // Helper Component for Keypad Button
 const KeypadButton = ({ number, selected, val, onPress }) => (

@@ -17,8 +17,7 @@ import {
   Modal,
   ScrollView,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import CustomAlert from '../../components/CustomAlert';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -107,6 +106,16 @@ export default function DoublePanaBulkGame({ navigation, route }) {
   const [totalPoints, setTotalPoints] = useState(0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
+
   // Calculate totals when bids change
   useEffect(() => {
     let bidCount = bids.length;
@@ -117,7 +126,12 @@ export default function DoublePanaBulkGame({ navigation, route }) {
 
   const handleNumberPress = (num) => {
     if (!points || points === '' || parseInt(points) <= 0) {
-      Alert.alert('Error', 'Please enter points first');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter points first',
+        type: 'error'
+      });
       return;
     }
 
@@ -141,24 +155,29 @@ export default function DoublePanaBulkGame({ navigation, route }) {
 
   const handleSubmit = () => {
     if (bids.length === 0) {
-      Alert.alert('Error', 'Please add at least one bid');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please add at least one bid',
+        type: 'error'
+      });
       return;
     }
     setShowConfirmModal(true);
   };
 
   const finalSubmit = () => {
-    Alert.alert(
-      'Success',
-      `${totalBids} bids submitted for ${totalPoints} points!`,
-      [{
-        text: 'OK', onPress: () => {
-          setBids([]);
-          setPoints('');
-          setShowConfirmModal(false);
-        }
-      }]
-    );
+    setAlertConfig({
+      visible: true,
+      title: 'Success',
+      message: `${totalBids} bids submitted for ${totalPoints} points!`,
+      type: 'success',
+      onClose: () => {
+        setBids([]);
+        setPoints('');
+        setShowConfirmModal(false);
+      }
+    });
   };
 
   const renderBidItem = ({ item }) => (
@@ -390,9 +409,22 @@ export default function DoublePanaBulkGame({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
+
+
 
 const styles = StyleSheet.create({
   container: {

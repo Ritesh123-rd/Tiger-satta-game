@@ -17,7 +17,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect } from 'react';
 import { getWalletBalance, getFundRequestHistory, addfund } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Alert } from 'react-native';
+import CustomAlert from '../../components/CustomAlert';
+
 
 export default function AddFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
@@ -27,6 +28,15 @@ export default function AddFundScreen({ navigation }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+  });
+
 
   const fetchUserData = async () => {
     try {
@@ -82,14 +92,18 @@ export default function AddFundScreen({ navigation }) {
 
   const handleAddFund = async () => {
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter a valid amount.',
+        type: 'error'
+      });
       return;
     }
 
     setSubmitting(true);
     try {
       const response = await addfund(userData.id, userData.name, amount);
-      // More robust success check: status can be true, 'true', 1, '1' or message contains 'success'
       const isSuccess = response && (
         response.status === true ||
         response.status === 'true' ||
@@ -99,20 +113,35 @@ export default function AddFundScreen({ navigation }) {
       );
 
       if (isSuccess) {
-        Alert.alert('Success', response.message || 'Fund request submitted successfully!');
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: response.message || 'Fund request submitted successfully!',
+          type: 'success'
+        });
         setAmount('');
         fetchUserData(); // Refresh balance and history
       } else {
-        Alert.alert('Error', response.message || 'Failed to submit fund request. Please try again.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: response.message || 'Failed to submit fund request. Please try again.',
+          type: 'error'
+        });
       }
     } catch (error) {
-
       console.error('Add Fund Error:', error);
-      Alert.alert('Error', 'Something went wrong. Please check your connection.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Something went wrong. Please check your connection.',
+        type: 'error'
+      });
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -272,7 +301,16 @@ export default function AddFundScreen({ navigation }) {
         </View>
 
       </KeyboardAvoidingView>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+      />
     </View>
+
   );
 }
 

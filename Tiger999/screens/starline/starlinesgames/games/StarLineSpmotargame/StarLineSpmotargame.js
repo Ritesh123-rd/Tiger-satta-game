@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, placeSPMotorBet, getMarkets } from '../../../api/auth';
+import { getWalletBalance, starlinegetMarkets, StarlineSPMotor } from '../../../../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import CustomAlert from '../../../components/CustomAlert';
+import CustomAlert from '../../../../../components/CustomAlert';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -46,13 +46,13 @@ const MarqueeText = ({ text, style }) => {
     );
 };
 
-export default function SPMotorGame({ navigation, route }) {
+export default function StarlineSPMotorGame({ navigation, route }) {
     const insets = useSafeAreaInsets();
-    const { gameName, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'SP MOTOR' };
+    const { gameName, gameId, sessionTime, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'SP MOTOR' };
 
     const [balance, setBalance] = useState(0.0);
     const [bids, setBids] = useState([]);
-    const [currentMarketId, setCurrentMarketId] = useState(marketId);
+    const [currentMarketId, setCurrentMarketId] = useState(gameId || marketId || null);
 
     const fetchBalance = async () => {
         try {
@@ -70,13 +70,18 @@ export default function SPMotorGame({ navigation, route }) {
     };
 
     const fetchMarkets = async () => {
+        if (currentMarketId) return;
         try {
-            const response = await getMarkets();
+            const response = await starlinegetMarkets();
             if (response && (response.status === true || response.status === 'true')) {
-                const currentMarket = response.data.find(m => m.market_name === gameName);
+                const currentMarket = response.data.find(m => {
+                    const mName = (m.market_name || m.name || '').trim().toLowerCase();
+                    const target = gameName.trim().toLowerCase();
+                    return mName === target || mName.includes(target) || target.includes(mName);
+                });
                 if (currentMarket) {
                     setCurrentMarketId(currentMarket.id);
-                    console.log('Market fetched and updated for SPMotor:', currentMarket.id);
+                    console.log('SPMotor: Market fetched and updated:', currentMarket.id);
                 }
             }
         } catch (error) {
@@ -266,6 +271,17 @@ export default function SPMotorGame({ navigation, route }) {
                 return;
             }
 
+            if (!currentMarketId) {
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'Market ID not found. Please restart the app.',
+                    type: 'error'
+                });
+                setLoading(false);
+                return;
+            }
+
 
             // Format bids as required by the API: array of objects {pana, points, session}
             const formattedBids = bids.map(bid => ({
@@ -276,17 +292,24 @@ export default function SPMotorGame({ navigation, route }) {
 
             const totalAmount = getTotalPoints();
 
-            const response = await placeSPMotorBet(
+            console.log('SPMotor Submit Data:', JSON.stringify({
+                userId, username, bids: formattedBids, totalAmount,
+                market: marketName || gameName, marketId: currentMarketId,
+                session: selectedGameType, sessionTime
+            }));
+
+            const response = await StarlineSPMotor(
                 userId,
                 username,
                 formattedBids,
+                totalAmount,
                 marketName || gameName,
                 String(currentMarketId),
-                totalAmount,
-                "SP Motor" // Consistent with example name or can use originalDigits if needed
+                selectedGameType,
+                sessionTime || gameName
             );
 
-            if (response && (response.status === true || response.status === 'true')) {
+            if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 // Update balance and clear bids immediately
                 fetchBalance();
                 setBids([]);

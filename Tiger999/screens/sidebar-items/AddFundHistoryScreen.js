@@ -7,15 +7,25 @@ import {
     ScrollView,
     StatusBar,
     ActivityIndicator,
-    Alert
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFundRequestHistory } from '../../api/auth';
+import CustomAlert from '../../components/CustomAlert';
+
 
 export default function AddFundHistoryScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [history, setHistory] = useState([]);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+    });
+
 
     useEffect(() => {
         fetchHistory();
@@ -26,9 +36,15 @@ export default function AddFundHistoryScreen({ navigation }) {
         try {
             const userId = await AsyncStorage.getItem('userId');
             if (!userId) {
-                Alert.alert('Error', 'User ID not found');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID not found',
+                    type: 'error'
+                });
                 return;
             }
+
 
             const response = await getFundRequestHistory(userId);
             if (response && (response.status === true || response.status === 'true')) {
@@ -108,8 +124,17 @@ export default function AddFundHistoryScreen({ navigation }) {
                     </ScrollView>
                 )}
             </View>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
         </View>
     );
+
 }
 
 const styles = StyleSheet.create({

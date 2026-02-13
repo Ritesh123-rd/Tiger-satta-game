@@ -1,12 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, placeSPMotorBet, getMarkets } from '../../../api/auth';
+import { getWalletBalance, starlinegetMarkets, StarlineDpMotar } from '../../../../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import CustomAlert from '../../../components/CustomAlert';
-
+import CustomAlert from '../../../../../components/CustomAlert';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -46,13 +45,13 @@ const MarqueeText = ({ text, style }) => {
     );
 };
 
-export default function SPMotorGame({ navigation, route }) {
+export default function DPMotorGame({ navigation, route }) {
     const insets = useSafeAreaInsets();
-    const { gameName, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'SP MOTOR' };
+    const { gameName, gameId, sessionTime, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'DP MOTOR' };
 
     const [balance, setBalance] = useState(0.0);
     const [bids, setBids] = useState([]);
-    const [currentMarketId, setCurrentMarketId] = useState(marketId);
+    const [currentMarketId, setCurrentMarketId] = useState(gameId || marketId || null);
 
     const fetchBalance = async () => {
         try {
@@ -70,13 +69,18 @@ export default function SPMotorGame({ navigation, route }) {
     };
 
     const fetchMarkets = async () => {
+        if (currentMarketId) return;
         try {
-            const response = await getMarkets();
+            const response = await starlinegetMarkets();
             if (response && (response.status === true || response.status === 'true')) {
-                const currentMarket = response.data.find(m => m.market_name === gameName);
+                const currentMarket = response.data.find(m => {
+                    const mName = (m.market_name || m.name || '').trim().toLowerCase();
+                    const target = gameName.trim().toLowerCase();
+                    return mName === target || mName.includes(target) || target.includes(mName);
+                });
                 if (currentMarket) {
                     setCurrentMarketId(currentMarket.id);
-                    console.log('Market fetched and updated for SPMotor:', currentMarket.id);
+                    console.log('DPMotor: Market fetched and updated:', currentMarket.id);
                 }
             }
         } catch (error) {
@@ -102,6 +106,9 @@ export default function SPMotorGame({ navigation, route }) {
     const [digit, setDigit] = useState('');
     const [points, setPoints] = useState('');
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [tooltipMessage, setTooltipMessage] = useState('');
+    const [showTooltip, setShowTooltip] = useState(false);
+    const [tooltipTarget, setTooltipTarget] = useState('digit'); // 'digit' or 'points'
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -111,10 +118,6 @@ export default function SPMotorGame({ navigation, route }) {
         type: 'success',
         onClose: null
     });
-
-    const [tooltipMessage, setTooltipMessage] = useState('');
-    const [showTooltip, setShowTooltip] = useState(false);
-    const [tooltipTarget, setTooltipTarget] = useState('digit'); // 'digit' or 'points'
 
     const showTooltipMessage = (message, target = 'digit') => {
         setTooltipMessage(message);
@@ -130,50 +133,35 @@ export default function SPMotorGame({ navigation, route }) {
         return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
     };
 
-    // Generate all 3-digit combinations from the given digits
-    const generateCombinations = (digits) => {
-        const combinations = [];
-        // Sort digits to ensure Pana is always in ascending order (e.g., 123)
-        const digitArray = digits.split('').sort();
+    const handleDigitChange = (text) => {
+        const cleanText = text.replace(/[^0-9]/g, '');
+        const uniqueText = [...new Set(cleanText.split(''))].join('');
+        setDigit(uniqueText);
+    };
 
-        // Generate all 3-digit combinations (nC3)
-        for (let i = 0; i < digitArray.length - 2; i++) {
-            for (let j = i + 1; j < digitArray.length - 1; j++) {
-                for (let k = j + 1; k < digitArray.length; k++) {
-                    combinations.push(digitArray[i] + digitArray[j] + digitArray[k]);
+    const generateDPCombinations = (digits) => {
+        const uniqueDigits = digits.split('');
+        const combinations = [];
+
+        // Double Pana logic: [d1, d1, d2]
+        for (let i = 0; i < uniqueDigits.length; i++) {
+            for (let j = 0; j < uniqueDigits.length; j++) {
+                if (i !== j) {
+                    const d1 = uniqueDigits[i];
+                    const d2 = uniqueDigits[j];
+                    const p = [d1, d1, d2].sort().join('');
+                    if (!combinations.includes(p)) {
+                        combinations.push(p);
+                    }
                 }
             }
         }
-
-        return combinations;
-    };
-
-    // Handle digit input - prevent repeated digits
-    const handleDigitChange = (text) => {
-        // Only allow numeric input
-        const numericText = text.replace(/[^0-9]/g, '');
-
-        // Check for repeated digits
-        const digits = numericText.split('');
-        const uniqueDigits = new Set(digits);
-
-        // If there are repeated digits, don't update (prevent typing)
-        if (digits.length !== uniqueDigits.size) {
-            return; // Block the input
-        }
-
-        // Limit to 10 digits
-        if (numericText.length > 10) {
-            return;
-        }
-
-        setDigit(numericText);
+        return combinations.sort();
     };
 
     const handleAdd = () => {
-        // Validate digit - minimum 3 digits required (e.g., 123)
-        if (!digit || digit.length < 3) {
-            showTooltipMessage('Not Valid Pana', 'digit');
+        if (!digit || digit.length < 4) {
+            showTooltipMessage('Minimum 4 digits required', 'digit');
             return;
         }
 
@@ -182,14 +170,12 @@ export default function SPMotorGame({ navigation, route }) {
             return;
         }
 
-        // Validate points
         if (!points || parseInt(points) < 5) {
             showTooltipMessage('min amount 5', 'points');
             return;
         }
 
-        // Generate all combinations
-        const combinations = generateCombinations(digit);
+        const combinations = generateDPCombinations(digit);
 
         if (combinations.length === 0) {
             setAlertConfig({
@@ -201,8 +187,6 @@ export default function SPMotorGame({ navigation, route }) {
             return;
         }
 
-
-        // Create bids for all combinations
         const newBids = combinations.map((combo, index) => ({
             id: `${Date.now()}_${index}`,
             pana: combo,
@@ -212,23 +196,14 @@ export default function SPMotorGame({ navigation, route }) {
         }));
 
         setBids([...bids, ...newBids]);
-
-        // DON'T clear the inputs - keep them as is
-        // setDigit('');
-        // setPoints('');
     };
 
     const handleDeleteBid = (id) => {
         setBids(bids.filter(bid => bid.id !== id));
     };
 
-    const getTotalBids = () => {
-        return bids.length;
-    };
-
-    const getTotalPoints = () => {
-        return bids.reduce((sum, bid) => sum + bid.point, 0);
-    };
+    const getTotalBids = () => bids.length;
+    const getTotalPoints = () => bids.reduce((sum, bid) => sum + bid.point, 0);
 
     const handleSubmit = () => {
         if (bids.length === 0) {
@@ -240,8 +215,6 @@ export default function SPMotorGame({ navigation, route }) {
             });
             return;
         }
-
-
         setShowConfirmModal(true);
     };
 
@@ -255,39 +228,43 @@ export default function SPMotorGame({ navigation, route }) {
             const userId = await AsyncStorage.getItem('userId');
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
-            if (!userId) {
+            if (!userId || !currentMarketId) {
                 setAlertConfig({
                     visible: true,
                     title: 'Error',
-                    message: 'User ID not found. Please login again.',
+                    message: 'User ID or Market ID not found. Please login again or restart the app.',
                     type: 'error'
                 });
                 setLoading(false);
                 return;
             }
 
-
-            // Format bids as required by the API: array of objects {pana, points, session}
             const formattedBids = bids.map(bid => ({
                 pana: bid.pana,
                 points: bid.point,
-                session: selectedGameType // "OPEN" or "CLOSE"
+                session: selectedGameType
             }));
 
             const totalAmount = getTotalPoints();
 
-            const response = await placeSPMotorBet(
+            console.log('DPMotor Submit Data:', JSON.stringify({
+                userId, username, bids: formattedBids, totalAmount,
+                market: marketName || gameName, marketId: currentMarketId,
+                session: selectedGameType, sessionTime
+            }));
+
+            const response = await StarlineDpMotar(
                 userId,
                 username,
                 formattedBids,
+                totalAmount,
                 marketName || gameName,
                 String(currentMarketId),
-                totalAmount,
-                "SP Motor" // Consistent with example name or can use originalDigits if needed
+                selectedGameType,
+                sessionTime || gameName
             );
 
-            if (response && (response.status === true || response.status === 'true')) {
-                // Update balance and clear bids immediately
+            if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 fetchBalance();
                 setBids([]);
                 setDigit('');
@@ -307,7 +284,6 @@ export default function SPMotorGame({ navigation, route }) {
                     type: 'error'
                 });
             }
-
         } catch (error) {
             console.error('Error in handleConfirmSubmit:', error);
             setAlertConfig({
@@ -317,7 +293,6 @@ export default function SPMotorGame({ navigation, route }) {
                 type: 'error'
             });
         } finally {
-
             setLoading(false);
         }
     };
@@ -345,14 +320,13 @@ export default function SPMotorGame({ navigation, route }) {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
-                <MarqueeText text={`${gameName} - SP MOTOR`} style={styles.headerTitle} />
+                <MarqueeText text={`${gameName} - DP MOTOR`} style={styles.headerTitle} />
                 <View style={styles.balanceChip}>
                     <Ionicons name="wallet-outline" size={16} color="#fff" />
                     <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
-            {/* Static Content Container */}
             <View style={styles.content}>
                 <View style={styles.topRow}>
                     <View style={styles.datePickerBtn}>
@@ -422,7 +396,6 @@ export default function SPMotorGame({ navigation, route }) {
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
 
-                {/* Table Header - Static */}
                 <View style={styles.tableHeader}>
                     <Text style={[styles.headerCell, { flex: 1.2 }]}>Pana</Text>
                     <Text style={[styles.headerCell, { flex: 1 }]}>Point</Text>
@@ -430,7 +403,6 @@ export default function SPMotorGame({ navigation, route }) {
                     <Text style={[styles.headerCell, { flex: 0.8 }]}>Delete</Text>
                 </View>
 
-                {/* Bids List - Scrollable */}
                 <FlatList
                     data={bids}
                     renderItem={renderBidItem}
@@ -440,7 +412,6 @@ export default function SPMotorGame({ navigation, route }) {
                 />
             </View>
 
-            {/* Bottom Fixed Bar */}
             <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
                 <View style={styles.totalSection}>
                     <View style={styles.totalItem}>
@@ -457,7 +428,6 @@ export default function SPMotorGame({ navigation, route }) {
                 </TouchableOpacity>
             </View>
 
-            {/* Confirmation Modal */}
             <Modal visible={showConfirmModal} transparent={true} animationType="fade" onRequestClose={() => setShowConfirmModal(false)}>
                 <View style={styles.modalOverlay}>
                     <View style={styles.confirmModal}>
@@ -489,15 +459,17 @@ export default function SPMotorGame({ navigation, route }) {
                             <TouchableOpacity
                                 style={[styles.confirmButton, styles.confirmSubmitButton]}
                                 onPress={handleConfirmSubmit}
+                                disabled={loading}
                             >
-                                <Text style={styles.confirmSubmitButtonText}>Confirm</Text>
+                                <Text style={styles.confirmSubmitButtonText}>
+                                    {loading ? 'Processing...' : 'Confirm'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
                 </View>
             </Modal>
 
-            {/* Dropdown Modal */}
             <Modal visible={showDropdown} transparent={true} animationType="fade" onRequestClose={() => setShowDropdown(false)}>
                 <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowDropdown(false)}>
                     <View style={styles.modalContent}>
@@ -521,7 +493,6 @@ export default function SPMotorGame({ navigation, route }) {
                 </TouchableOpacity>
             </Modal>
 
-
             <CustomAlert
                 visible={alertConfig.visible}
                 title={alertConfig.title}
@@ -536,391 +507,63 @@ export default function SPMotorGame({ navigation, route }) {
     );
 }
 
-
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#F5EDE0'
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        backgroundColor: '#F5EDE0'
-    },
-    backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        borderWidth: 1,
-        borderColor: '#D0D0D0',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFF'
-    },
-    headerTitle: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#000',
-        textTransform: 'uppercase'
-    },
-    balanceChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#C36578',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        gap: 6,
-        flexShrink: 0
-    },
-    balanceText: {
-        color: '#fff',
-        fontSize: 14,
-        fontWeight: '700'
-    },
-    content: {
-        flex: 1,
-        paddingHorizontal: 16,
-        paddingTop: 16
-    },
-    topRow: {
-        flexDirection: 'row',
-        gap: 12,
-        marginBottom: 20
-    },
-    datePickerBtn: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 30,
-        gap: 8
-    },
-    dateText: {
-        fontSize: 14,
-        color: '#000',
-        fontWeight: '500'
-    },
-    dropdown: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: '#fff',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 30
-    },
-    dropdownText: {
-        fontSize: 14,
-        color: '#000',
-        fontWeight: '500'
-    },
-    inputGroup: {
-        marginBottom: 16
-    },
-    inputLabel: {
-        fontSize: 14,
-        color: '#000',
-        fontWeight: '500',
-        marginBottom: 8
-    },
-    textInput: {
-        backgroundColor: '#fff',
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        borderRadius: 12,
-        fontSize: 15,
-        color: '#000',
-        textAlign: 'center',
-        fontWeight: '500'
-    },
-    addButton: {
-        backgroundColor: '#C36578',
-        paddingVertical: 12,
-        borderRadius: 12,
-        alignItems: 'center',
-        marginBottom: 20,
-        marginTop: 4
-    },
-    addButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700'
-    },
-    tableHeader: {
-        flexDirection: 'row',
-        paddingVertical: 10,
-        borderBottomWidth: 2,
-        borderBottomColor: '#C36578',
-        marginBottom: 4
-    },
-    headerCell: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#C36578',
-        textAlign: 'center'
-    },
-    tableRow: {
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        paddingVertical: 12,
-        paddingHorizontal: 8,
-        marginBottom: 8,
-        borderRadius: 12,
-        alignItems: 'center',
-        elevation: 1,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2
-    },
-    tableCell: {
-        fontSize: 14,
-        color: '#000',
-        textAlign: 'center',
-        fontWeight: '500'
-    },
-    deleteCell: {
-        alignItems: 'center',
-        justifyContent: 'center'
-    },
-    deleteButton: {
-        backgroundColor: '#C36578',
-        width: 32,
-        height: 32,
-        borderRadius: 16,
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    bottomBar: {
-        flexDirection: 'row',
-        backgroundColor: '#F5EDE0',
-        paddingHorizontal: 16,
-        paddingVertical: 15,
-        borderTopWidth: 2,
-        borderTopColor: '#C36578',
-        alignItems: 'center',
-        gap: 12,
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-    },
-    totalSection: {
-        flexDirection: 'row',
-        flex: 1,
-        gap: 20
-    },
-    totalItem: {
-        alignItems: 'center',
-        flex: 1
-    },
-    totalLabel: {
-        fontSize: 14,
-        color: '#666',
-        marginBottom: 4,
-        fontWeight: '500'
-    },
-    totalValue: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: '#000'
-    },
-    submitButton: {
-        backgroundColor: '#C36578',
-        paddingVertical: 14,
-        paddingHorizontal: 32,
-        borderRadius: 12,
-        alignItems: 'center',
-        minWidth: 140
-    },
-    submitButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700',
-        letterSpacing: 0.5
-    },
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center'
-    },
-    modalContent: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        paddingVertical: 24,
-        paddingHorizontal: 20,
-        width: SCREEN_WIDTH * 0.8,
-        maxWidth: 320
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: '700',
-        color: '#333',
-        textAlign: 'center',
-        marginBottom: 20
-    },
-    modalOption: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 16,
-        paddingHorizontal: 20,
-        borderRadius: 12,
-        marginBottom: 12,
-        backgroundColor: '#F5EDE0',
-        borderWidth: 2,
-        borderColor: '#E8E8E8'
-    },
-    modalOptionSelected: {
-        backgroundColor: '#E8F5E9',
-        borderColor: '#2E4A3E'
-    },
-    modalOptionText: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#333'
-    },
-    modalOptionTextSelected: {
-        color: '#2E4A3E'
-    },
-    confirmModal: {
-        backgroundColor: '#fff',
-        borderRadius: 20,
-        padding: 20,
-        width: SCREEN_WIDTH * 0.9,
-        maxHeight: SCREEN_HEIGHT * 0.7,
-    },
-    confirmTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        color: '#333',
-        textAlign: 'center',
-        marginBottom: 8,
-    },
-    confirmSubtitle: {
-        fontSize: 14,
-        color: '#666',
-        textAlign: 'center',
-        marginBottom: 16,
-        fontWeight: '500',
-    },
-    confirmList: {
-        maxHeight: SCREEN_HEIGHT * 0.4,
-        marginBottom: 16,
-    },
-    confirmTableHeader: {
-        flexDirection: 'row',
-        paddingVertical: 12,
-        borderBottomWidth: 2,
-        borderBottomColor: '#C36578',
-        marginBottom: 8,
-    },
-    confirmHeaderText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#C36578',
-        textAlign: 'center',
-    },
-    confirmRow: {
-        flexDirection: 'row',
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#E8E8E8',
-    },
-    confirmCell: {
-        fontSize: 14,
-        color: '#000',
-        textAlign: 'center',
-        fontWeight: '500',
-    },
-    confirmButtons: {
-        flexDirection: 'row',
-        gap: 12,
-    },
-    confirmButton: {
-        flex: 1,
-        paddingVertical: 14,
-        borderRadius: 12,
-        alignItems: 'center',
-    },
-    cancelButton: {
-        backgroundColor: '#E8E8E8',
-    },
-    cancelButtonText: {
-        color: '#333',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    confirmSubmitButton: {
-        backgroundColor: '#C36578',
-    },
-    confirmSubmitButtonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: '700',
-    },
-    inputWrapper: {
-        position: 'relative',
-        width: '100%',
-    },
-    errorIcon: {
-        position: 'absolute',
-        right: 15,
-        top: '50%',
-        marginTop: -9,
-    },
-    tooltip: {
-        position: 'absolute',
-        top: -45,
-        right: 0,
-        zIndex: 1000,
-        alignItems: 'flex-end',
-    },
-    tooltipBubble: {
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        paddingVertical: 8,
-        paddingHorizontal: 12,
-        flexDirection: 'row',
-        alignItems: 'center',
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        borderWidth: 1,
-        borderColor: '#E8E8E8',
-    },
-    tooltipIcon: {
-        marginRight: 6,
-        color: '#000',
-    },
-    tooltipText: {
-        color: '#000',
-        fontSize: 12,
-        fontWeight: '600',
-    },
-    tooltipArrow: {
-        width: 0,
-        height: 0,
-        backgroundColor: 'transparent',
-        borderStyle: 'solid',
-        borderLeftWidth: 8,
-        borderRightWidth: 8,
-        borderBottomWidth: 10,
-        borderLeftColor: 'transparent',
-        borderRightColor: 'transparent',
-        borderBottomColor: '#fff',
-        transform: [{ rotate: '180deg' }],
-        marginRight: 15,
-        marginTop: -1,
-    },
+    container: { flex: 1, backgroundColor: '#F5EDE0' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F5EDE0' },
+    backButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
+    headerTitle: { fontSize: 16, fontWeight: '700', color: '#000', textTransform: 'uppercase' },
+    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6, flexShrink: 0 },
+    balanceText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+    content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+    topRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
+    datePickerBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, gap: 8 },
+    dateText: { fontSize: 14, color: '#000', fontWeight: '500' },
+    dropdown: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30 },
+    dropdownText: { fontSize: 14, color: '#000', fontWeight: '500' },
+    inputGroup: { marginBottom: 16 },
+    inputLabel: { fontSize: 14, color: '#000', fontWeight: '500', marginBottom: 8 },
+    inputWrapper: { position: 'relative' },
+    textInput: { backgroundColor: '#fff', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, fontSize: 15, color: '#000', textAlign: 'center', fontWeight: '500' },
+    addButton: { backgroundColor: '#C36578', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginBottom: 20, marginTop: 4 },
+    addButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    tableHeader: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 2, borderBottomColor: '#C36578', marginBottom: 4 },
+    headerCell: { fontSize: 14, fontWeight: '600', color: '#C36578', textAlign: 'center' },
+    tableRow: { flexDirection: 'row', backgroundColor: '#fff', paddingVertical: 12, paddingHorizontal: 8, marginBottom: 8, borderRadius: 12, alignItems: 'center', elevation: 1, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2 },
+    tableCell: { fontSize: 14, color: '#000', textAlign: 'center', fontWeight: '500' },
+    deleteCell: { alignItems: 'center', justifyContent: 'center' },
+    deleteButton: { backgroundColor: '#C36578', width: 32, height: 32, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
+    bottomBar: { flexDirection: 'row', backgroundColor: '#F5EDE0', paddingHorizontal: 16, paddingVertical: 15, borderTopWidth: 2, borderTopColor: '#C36578', alignItems: 'center', gap: 12, position: 'absolute', bottom: 0, left: 0, right: 0 },
+    totalSection: { flexDirection: 'row', flex: 1, gap: 20 },
+    totalItem: { alignItems: 'center', flex: 1 },
+    totalLabel: { fontSize: 14, color: '#666', marginBottom: 4, fontWeight: '500' },
+    totalValue: { fontSize: 22, fontWeight: '700', color: '#000' },
+    submitButton: { backgroundColor: '#C36578', paddingVertical: 14, paddingHorizontal: 32, borderRadius: 12, alignItems: 'center', minWidth: 140 },
+    submitButtonText: { color: '#fff', fontSize: 16, fontWeight: '700', letterSpacing: 0.5 },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'center', alignItems: 'center' },
+    confirmModal: { backgroundColor: '#fff', borderRadius: 20, padding: 20, width: SCREEN_WIDTH * 0.9, maxHeight: SCREEN_HEIGHT * 0.7 },
+    confirmTitle: { fontSize: 20, fontWeight: '700', color: '#333', textAlign: 'center', marginBottom: 8 },
+    confirmSubtitle: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 16, fontWeight: '500' },
+    confirmList: { maxHeight: SCREEN_HEIGHT * 0.4, marginBottom: 16 },
+    confirmTableHeader: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: '#C36578', marginBottom: 8 },
+    confirmHeaderText: { fontSize: 14, fontWeight: '600', color: '#C36578', textAlign: 'center' },
+    confirmRow: { flexDirection: 'row', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E8E8E8' },
+    confirmCell: { fontSize: 14, color: '#000', textAlign: 'center', fontWeight: '500' },
+    confirmButtons: { flexDirection: 'row', gap: 12 },
+    confirmButton: { flex: 1, paddingVertical: 14, borderRadius: 12, alignItems: 'center' },
+    cancelButton: { backgroundColor: '#E8E8E8' },
+    cancelButtonText: { color: '#666', fontSize: 16, fontWeight: '600' },
+    confirmSubmitButton: { backgroundColor: '#C36578' },
+    confirmSubmitButtonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+    modalContent: { backgroundColor: '#fff', borderRadius: 20, paddingVertical: 24, paddingHorizontal: 20, width: SCREEN_WIDTH * 0.8, maxWidth: 320 },
+    modalTitle: { fontSize: 18, fontWeight: '700', color: '#333', textAlign: 'center', marginBottom: 20 },
+    modalOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 20, borderRadius: 12, marginBottom: 12, backgroundColor: '#F5EDE0', borderWidth: 2, borderColor: '#E8E8E8' },
+    modalOptionSelected: { backgroundColor: '#E8F5E9', borderColor: '#2E4A3E' },
+    modalOptionText: { fontSize: 16, fontWeight: '600', color: '#333' },
+    modalOptionTextSelected: { color: '#2E4A3E' },
+    tooltip: { position: 'absolute', top: -45, left: 0, right: 0, alignItems: 'center', zIndex: 100 },
+    tooltipBubble: { backgroundColor: '#333', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, gap: 6 },
+    tooltipIcon: { marginTop: 1 },
+    tooltipText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+    tooltipArrow: { width: 0, height: 0, borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 6, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: '#333' },
+    errorIcon: { position: 'absolute', right: 12, top: 14 }
 });

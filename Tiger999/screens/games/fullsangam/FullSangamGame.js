@@ -5,6 +5,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -57,6 +59,16 @@ export default function FullSangamGame({ navigation, route }) {
     const [bids, setBids] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
 
     const fetchBalance = async () => {
         try {
@@ -113,17 +125,35 @@ export default function FullSangamGame({ navigation, route }) {
 
     const handleAddBid = () => {
         if (!openPana || openPana.length !== 3) {
-            Alert.alert('Error', 'Please enter valid Open Pana (3 digits)');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter valid Open Pana (3 digits)',
+                type: 'error'
+            });
             return;
         }
+
         if (!closePana || closePana.length !== 3) {
-            Alert.alert('Error', 'Please enter valid Close Pana (3 digits)');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter valid Close Pana (3 digits)',
+                type: 'error'
+            });
             return;
         }
+
         if (!points || parseInt(points) <= 0) {
-            Alert.alert('Error', 'Please enter valid points');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter valid points',
+                type: 'error'
+            });
             return;
         }
+
 
         const newBid = {
             id: Date.now().toString(),
@@ -150,13 +180,25 @@ export default function FullSangamGame({ navigation, route }) {
 
     const handleSubmit = () => {
         if (bids.length === 0) {
-            Alert.alert('Error', 'Please add at least one bid');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please add at least one bid',
+                type: 'error'
+            });
             return;
         }
+
         if (!currentMarketId) {
-            Alert.alert('Error', 'Market ID missing. Please go back and try again.');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Market ID missing. Please go back and try again.',
+                type: 'error'
+            });
             return;
         }
+
         setShowConfirmModal(true);
     };
 
@@ -169,10 +211,16 @@ export default function FullSangamGame({ navigation, route }) {
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
             if (!userId) {
-                Alert.alert('Error', 'User ID not found. Please login again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID not found. Please login again.',
+                    type: 'error'
+                });
                 setLoading(false);
                 return;
             }
+
 
             // Prepare formatted bids according to user's JSON example
             const formattedBids = bids.map(bid => ({
@@ -196,14 +244,31 @@ export default function FullSangamGame({ navigation, route }) {
             if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 fetchBalance();
                 setBids([]);
-                Alert.alert('Success', `${totalBidsCount} bids placed successfully!`, [{ text: 'OK' }]);
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: `${totalBidsCount} bids placed successfully!`,
+                    type: 'success'
+                });
             } else {
-                Alert.alert('Error', response?.message || 'Failed to place bets. Please try again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: response?.message || 'Failed to place bets. Please try again.',
+                    type: 'error'
+                });
             }
+
         } catch (error) {
             console.error('Error in handleConfirmSubmit:', error);
-            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'An unexpected error occurred. Please try again.',
+                type: 'error'
+            });
         } finally {
+
             setLoading(false);
         }
     };
@@ -376,9 +441,21 @@ export default function FullSangamGame({ navigation, route }) {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5EDE0' },

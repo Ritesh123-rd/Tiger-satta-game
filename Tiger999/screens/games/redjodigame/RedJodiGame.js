@@ -5,6 +5,8 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -52,6 +54,16 @@ export default function RedJodiGame({ navigation, route }) {
     const [currentMarketId, setCurrentMarketId] = useState(marketId);
     const [loading, setLoading] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
     const [showDropdown, setShowDropdown] = useState(false);
     const [jodiPoints, setJodiPoints] = useState({});
 
@@ -130,14 +142,26 @@ export default function RedJodiGame({ navigation, route }) {
 
     const handleSubmit = () => {
         if (totalBids === 0) {
-            Alert.alert('Error', 'Please enter points for at least one jodi');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter points for at least one jodi',
+                type: 'error'
+            });
             return;
         }
 
+
         if (!currentMarketId) {
-            Alert.alert('Error', 'Market ID missing. Please go back and try again.');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Market ID missing. Please go back and try again.',
+                type: 'error'
+            });
             return;
         }
+
 
         setShowConfirmModal(true);
     };
@@ -151,10 +175,16 @@ export default function RedJodiGame({ navigation, route }) {
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
             if (!userId) {
-                Alert.alert('Error', 'User ID not found. Please login again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID not found. Please login again.',
+                    type: 'error'
+                });
                 setLoading(false);
                 return;
             }
+
 
             const validBets = getValidBets();
             // Format bids: include 'type' as it might be required for validation
@@ -188,14 +218,31 @@ export default function RedJodiGame({ navigation, route }) {
             if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 fetchBalance();
                 setJodiPoints({});
-                Alert.alert('Success', `${totalBids} bets placed successfully!`, [{ text: 'OK' }]);
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: `${totalBids} bets placed successfully!`,
+                    type: 'success'
+                });
             } else {
-                Alert.alert('Error', response?.message || 'Validation error from server. Please try again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: response?.message || 'Validation error from server. Please try again.',
+                    type: 'error'
+                });
             }
+
         } catch (error) {
             console.error('Error in handleConfirmSubmit:', error);
-            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'An unexpected error occurred. Please try again.',
+                type: 'error'
+            });
         } finally {
+
             setLoading(false);
         }
     };
@@ -362,9 +409,22 @@ export default function RedJodiGame({ navigation, route }) {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5EDE0' },

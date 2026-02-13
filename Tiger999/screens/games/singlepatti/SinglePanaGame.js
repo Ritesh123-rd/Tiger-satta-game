@@ -16,6 +16,7 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -78,6 +79,15 @@ export default function SinglePanaGame({ navigation, route }) {
   // Special Mode State
   const [specialModePoints, setSpecialModePoints] = useState({}); // { pana: points }
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
 
   // Generate Single Panas grouped by Digit
   const singlePanas = useMemo(() => {
@@ -326,7 +336,12 @@ export default function SinglePanaGame({ navigation, route }) {
     }
 
     if (finalBids.length === 0) {
-      alert("Please add some bids first.");
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please add some bids first.',
+        type: 'error'
+      });
       return;
     }
 
@@ -339,7 +354,12 @@ export default function SinglePanaGame({ navigation, route }) {
       const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
       if (!userId || !marketId) {
-        alert('User ID or Market ID missing. Please restart app.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'User ID or Market ID missing. Please restart app.',
+          type: 'error'
+        });
         return;
       }
 
@@ -371,12 +391,22 @@ export default function SinglePanaGame({ navigation, route }) {
         if (response && response.status === 'success') {
           successCount++;
         } else {
-          alert(`Failed to place ${type} bets: ${response?.message || 'Unknown error'}`);
+          setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: `Failed to place ${type} bets: ${response?.message || 'Unknown error'}`,
+            type: 'error'
+          });
         }
       }
 
       if (successCount === totalTypes) {
-        alert('Bids Submitted Successfully!');
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: 'Bids Submitted Successfully!',
+          type: 'success'
+        });
         setBids([]);
         setTotalBids(0);
         setTotalPoints(0);
@@ -386,7 +416,12 @@ export default function SinglePanaGame({ navigation, route }) {
 
     } catch (error) {
       console.error("Error submitting bids:", error);
-      alert("Network request failed");
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Network request failed',
+        type: 'error'
+      });
     }
   };
 
@@ -405,7 +440,7 @@ export default function SinglePanaGame({ navigation, route }) {
         </View>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.modeContainer}>
           <TouchableOpacity
             style={[styles.modeButton, mode === 'easy' && styles.modeButtonActive]}
@@ -636,6 +671,17 @@ export default function SinglePanaGame({ navigation, route }) {
           <Text style={styles.submitButtonText}>Submit</Text>
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View >
   );
 }

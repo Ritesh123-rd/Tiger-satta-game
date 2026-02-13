@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, getSingleDigitGame, getMarkets } from '../../../api/auth';
+import { getWalletBalance, starlinegetMarkets, starlineSingleDigit } from '../../../../../api/auth';
 import {
   View,
   Text,
@@ -16,7 +16,7 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import CustomAlert from '../../../components/CustomAlert';
+import CustomAlert from '../../../../../components/CustomAlert';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -56,10 +56,10 @@ const MarqueeText = ({ text, style }) => {
 };
 
 
-export default function SingleDigitGame({ navigation, route }) {
+export default function StarLineSingleDigitGame({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { gameName, gameCode, isOpenAvailable = true, isCloseAvailable = true } = route.params;
-  const [marketId, setMarketId] = useState(null);
+  const { gameName, gameCode, gameId, sessionTime, isOpenAvailable = true, isCloseAvailable = true } = route.params || {};
+  const [marketId, setMarketId] = useState(gameId || null);
   const [mode, setMode] = useState('easy'); // 'easy' or 'special'
 
   // Filter game options based on availability
@@ -106,19 +106,36 @@ export default function SingleDigitGame({ navigation, route }) {
   };
 
   const fetchMarketId = async () => {
+    if (marketId) return;
     try {
-      const response = await getMarkets();
+      console.log('SingleDigit Game: Fetching markets for gameName:', gameName);
+      const response = await starlinegetMarkets();
       if (response && response.status === true) {
-        const currentMarket = response.data.find(m => m.market_name === gameName);
+        console.log('SingleDigit Game: Found', response.data?.length, 'markets');
+
+        // Log the first few markets to see structure
+        if (response.data && response.data.length > 0) {
+          console.log('SingleDigit Game: Sample market data:', JSON.stringify(response.data[0]));
+        }
+
+        // Search by market_name or name or end_time (sometimes used as name)
+        const currentMarket = response.data.find(m => {
+          const mName = (m.market_name || m.name || '').trim().toLowerCase();
+          const target = gameName.trim().toLowerCase();
+          return mName === target || mName.includes(target) || target.includes(mName);
+        });
+
         if (currentMarket) {
           setMarketId(currentMarket.id);
-          console.log('Market ID found:', currentMarket.id);
+          console.log('SingleDigit Game: Market ID found via robust search:', currentMarket.id, 'for name:', currentMarket.market_name);
         } else {
-          console.warn('Market not found for gameName:', gameName);
+          console.warn('SingleDigit Game: Market not found for gameName:', gameName);
+          // Log all names for debugging
+          console.log('SingleDigit Game: Available market names:', response.data.map(m => m.market_name || m.name).join(', '));
         }
       }
     } catch (error) {
-      console.error('Error fetching markets:', error);
+      console.error('SingleDigit Game: Error fetching markets:', error);
     }
   };
 
@@ -202,60 +219,110 @@ export default function SingleDigitGame({ navigation, route }) {
   const finalSubmit = async () => {
     setShowConfirmModal(false);
     try {
+      console.log('SingleDigitGame: finalSubmit called. marketId:', marketId);
       const userId = await AsyncStorage.getItem('userId');
-      const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile'); // Fallback to mobile if name missing
+      const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
-      if (!userId || !marketId) {
+      if (!userId) {
         setAlertConfig({
           visible: true,
           title: 'Error',
-          message: 'User ID or Market ID missing. Please restart app.',
+          message: 'User ID missing. Please relogin.',
           type: 'error'
         });
         return;
       }
 
+      if (!marketId) {
+        console.log('SingleDigitGame: marketId missing, attempting one final lookup...');
+        // Try to fetch it again as a last resort
+        const markets = await starlinegetMarkets();
+        if (markets && markets.data) {
+          const target = gameName.trim().toLowerCase();
+          const currentMarket = markets.data.find(m => {
+            const mName = (m.market_name || m.name || '').trim().toLowerCase();
+            return mName === target || mName.includes(target) || target.includes(mName);
+          });
+          if (currentMarket) {
+            console.log('SingleDigitGame: Last resort lookup successful. ID:', currentMarket.id);
+            setMarketId(currentMarket.id);
+            // Continue with this ID
+            await submitWithId(userId, username, currentMarket.id);
+            return;
+          }
+        }
 
-      const numbers = bids.map(b => b.ank);
-      const amounts = bids.map(b => parseInt(b.point));
-      const session = selectedGame; // 'OPEN' or 'CLOSE'
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'Market ID missing. Please go back and try again.',
+          type: 'error'
+        });
+        return;
+      }
 
-      console.log('Submitting Bid:', { userId, username, numbers, amounts, gameName, marketId, session });
+      await submitWithId(userId, username, marketId);
+    } catch (error) {
+      console.error('Bid Submission Error:', error);
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Network request failed: ' + error.message,
+        type: 'error'
+      });
+    }
+  };
 
-      const response = await getSingleDigitGame(userId, username, numbers, amounts, gameName, String(marketId), session);
+  const submitWithId = async (userId, username, currentMarketId) => {
+    try {
+      const numbers = bids.map(b => String(b.ank));
+      const amounts = bids.map(b => String(b.point));
 
-      if (response && response.status === 'success') {
+      console.log('SingleDigitGame: Submitting bids to starlineSingleDigit. Payload:', {
+        userId, username, numbers, amounts, gameName, currentMarketId, sessionTime
+      });
+      const response = await starlineSingleDigit(
+        userId,
+        username,
+        numbers,
+        amounts,
+        gameName,
+        String(currentMarketId),
+        "OPEN",
+        sessionTime || gameName // Fallback to gameName if sessionTime missing
+      );
+
+      console.log('SingleDigitGame: API Response:', JSON.stringify(response));
+
+      if (response && (response.status === 'success' || response.status === true || response.status === 'true')) {
         setAlertConfig({
           visible: true,
           title: 'Success',
-          message: 'Bids placed successfully!',
+          message: response.message || 'Bids placed successfully!',
           type: 'success'
         });
         setBids([]);
         setTotalBids(0);
         setTotalPoints(0);
         setSpecialBids(Array(10).fill(''));
-        fetchBalance(); // Refresh balance
+        fetchBalance();
       } else {
         setAlertConfig({
           visible: true,
           title: 'Error',
-          message: 'Failed to place bid: ' + (response?.message || 'Unknown error'),
+          message: response?.message || 'Failed to place bids.',
           type: 'error'
         });
       }
-
-
     } catch (error) {
       console.error('Bid Submission Error:', error);
       setAlertConfig({
         visible: true,
         title: 'Error',
-        message: 'An error occurred while placing the bid.',
+        message: 'Network request failed',
         type: 'error'
       });
     }
-
   };
 
   const displayTotalBids = bids.length + (mode === 'special' ? specialBids.filter(b => b !== '').length : 0);

@@ -17,6 +17,8 @@ import {
   Easing,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -118,6 +120,16 @@ export default function TriplePanaGame({ navigation, route }) {
   const [panaInputs, setPanaInputs] = useState({});
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bids, setBids] = useState([]);
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
   const [totalBids, setTotalBids] = useState(0);
   const [totalPoints, setTotalPoints] = useState(0);
 
@@ -154,9 +166,15 @@ export default function TriplePanaGame({ navigation, route }) {
     });
 
     if (newBids.length === 0) {
-      Alert.alert('Error', 'Please enter points for at least one pana');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter points for at least one pana',
+        type: 'error'
+      });
       return;
     }
+
 
     const calculatedTotalPoints = newBids.reduce((sum, bid) => sum + parseInt(bid.point), 0);
     setBids(newBids);
@@ -171,9 +189,15 @@ export default function TriplePanaGame({ navigation, route }) {
       const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
       if (!userId || !marketId) {
-        Alert.alert('Error', 'User ID or Market ID missing. Please restart app.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'User ID or Market ID missing. Please restart app.',
+          type: 'error'
+        });
         return;
       }
+
 
       setShowConfirmModal(false);
 
@@ -203,30 +227,43 @@ export default function TriplePanaGame({ navigation, route }) {
         if (response && response.status === 'success') {
           successCount++;
         } else {
-          Alert.alert('Error', `Failed to place ${session} bets: ${response?.message || 'Unknown error'}`);
+          setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: `Failed to place ${session} bets: ${response?.message || 'Unknown error'}`,
+            type: 'error'
+          });
         }
+
       }
 
       if (successCount === totalTypes) {
-        Alert.alert(
-          'Success',
-          'Bids Submitted Successfully!',
-          [{
-            text: 'OK', onPress: () => {
-              setPanaInputs({});
-              setBids([]);
-              setTotalBids(0);
-              setTotalPoints(0);
-              fetchBalance();
-            }
-          }]
-        );
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: 'Bids Submitted Successfully!',
+          type: 'success',
+          onClose: () => {
+            setPanaInputs({});
+            setBids([]);
+            setTotalBids(0);
+            setTotalPoints(0);
+            fetchBalance();
+          }
+        });
       }
+
 
     } catch (error) {
       console.error("Error submitting bids:", error);
-      Alert.alert('Error', "Network request failed");
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: "Network request failed",
+        type: 'error'
+      });
     }
+
   };
 
   return (
@@ -250,7 +287,7 @@ export default function TriplePanaGame({ navigation, route }) {
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* Date and Game Type Row */}
         <View style={styles.topRow}>
           <View style={styles.datePickerBtn}>
@@ -382,9 +419,21 @@ export default function TriplePanaGame({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

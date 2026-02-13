@@ -18,7 +18,7 @@ import {
   Modal,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -95,6 +95,16 @@ export default function DoublePanaGame({ navigation, route }) {
   const [panaSuggestions, setPanaSuggestions] = useState([]);
   const [balance, setBalance] = useState(0.0);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
 
   const fetchBalance = async () => {
     try {
@@ -188,16 +198,31 @@ export default function DoublePanaGame({ navigation, route }) {
   // Handle Add Bid in Easy Mode
   const handleAddBid = () => {
     if (!panaInput || panaInput.length !== 3) {
-      Alert.alert('Error', 'Please enter a valid 3-digit pana');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter a valid 3-digit pana',
+        type: 'error'
+      });
       return;
     }
     // Check for palindrome numbers
     if (isPalindrome(panaInput)) {
-      Alert.alert('Error', 'Palindrome numbers are not allowed');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Palindrome numbers are not allowed',
+        type: 'error'
+      });
       return;
     }
     if (!points || parseInt(points) <= 0) {
-      Alert.alert('Error', 'Please enter valid points');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter valid points',
+        type: 'error'
+      });
       return;
     }
 
@@ -237,7 +262,12 @@ export default function DoublePanaGame({ navigation, route }) {
     });
 
     if (newBids.length === 0) {
-      Alert.alert('Error', 'Please enter points for at least one pana');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter points for at least one pana',
+        type: 'error'
+      });
       return;
     }
 
@@ -251,7 +281,12 @@ export default function DoublePanaGame({ navigation, route }) {
 
   const handleSubmit = () => {
     if (bids.length === 0) {
-      Alert.alert('Error', 'Please add at least one bid');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please add at least one bid',
+        type: 'error'
+      });
       return;
     }
     setShowConfirmModal(true);
@@ -263,7 +298,12 @@ export default function DoublePanaGame({ navigation, route }) {
       const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
       if (!userId || !marketId) {
-        Alert.alert('Error', 'User ID or Market ID missing. Please restart app.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'User ID or Market ID missing. Please restart app.',
+          type: 'error'
+        });
         return;
       }
 
@@ -308,29 +348,39 @@ export default function DoublePanaGame({ navigation, route }) {
         if (response && response.status === 'success') {
           successCount++;
         } else {
-          Alert.alert('Error', `Failed to place ${session} bets: ${response?.message || 'Unknown error'}`);
+          setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: `Failed to place ${session} bets: ${response?.message || 'Unknown error'}`,
+            type: 'error'
+          });
         }
       }
 
       if (successCount === totalTypes) {
-        Alert.alert(
-          'Success',
-          'Bids Submitted Successfully!',
-          [{
-            text: 'OK', onPress: () => {
-              setBids([]);
-              setPoints('');
-              setPanaInput('');
-              setSpecialModeInputs({});
-              fetchBalance();
-            }
-          }]
-        );
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: 'Bids Submitted Successfully!',
+          type: 'success',
+          onClose: () => {
+            setBids([]);
+            setPoints('');
+            setPanaInput('');
+            setSpecialModeInputs({});
+            fetchBalance();
+          }
+        });
       }
 
     } catch (error) {
       console.error("Error submitting bids:", error);
-      Alert.alert('Error', "Network request failed");
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Network request failed',
+        type: 'error'
+      });
     }
   };
 
@@ -658,9 +708,21 @@ export default function DoublePanaGame({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

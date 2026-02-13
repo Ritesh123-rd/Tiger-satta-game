@@ -10,6 +10,8 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../components/CustomAlert';
+
 
 import logo from '../assets/logo/logo.png';
 import { registerUser } from '../api/auth';
@@ -20,6 +22,15 @@ export default function RegisterScreen({ navigation }) {
   const [password, setPassword] = useState('');
 
   const [isLoading, setIsLoading] = useState(false);
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+  });
+
 
   const handleRegister = async () => {
     if (phone && username && password) {
@@ -49,19 +60,42 @@ export default function RegisterScreen({ navigation }) {
             console.error('Failed to save credentials', e);
           }
 
-          alert('Registration Successful! Please Login.');
-          navigation.replace('Login');
+          setAlertConfig({
+            visible: true,
+            title: 'Success',
+            message: 'Registration Successful! Please Login.',
+            type: 'success'
+          });
+
         } else {
-          alert(response.message || 'Registration failed');
+          setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: response.message || 'Registration failed',
+            type: 'error'
+          });
         }
+
       } catch (error) {
-        alert('Registration Error: ' + error.message);
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'Registration Error: ' + error.message,
+          type: 'error'
+        });
       } finally {
+
         setIsLoading(false);
       }
     } else {
-      alert('Please fill all fields');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please fill all fields',
+        type: 'error'
+      });
     }
+
   };
 
   return (
@@ -144,8 +178,22 @@ export default function RegisterScreen({ navigation }) {
           <Text style={styles.backText}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.title === 'Success') {
+            navigation.replace('Login');
+          }
+        }}
+      />
     </View>
   );
+
 }
 
 const styles = StyleSheet.create({

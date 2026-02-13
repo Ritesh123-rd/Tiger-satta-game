@@ -4,7 +4,8 @@ import { getWalletBalance } from '../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -32,6 +33,16 @@ export default function TwoDigitPanaGame({ navigation, route }) {
   const [balance, setBalance] = useState(0.0);
   const [bids, setBids] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
 
   const fetchBalance = async () => {
     try {
@@ -120,9 +131,15 @@ export default function TwoDigitPanaGame({ navigation, route }) {
 
   const handleAdd = () => {
     if (!pana || pana.length !== 2) {
-      Alert.alert('Error', 'Please enter valid 2-digit pana');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter valid 2-digit pana',
+        type: 'error'
+      });
       return;
     }
+
 
     if (!points || parseInt(points) < 5) {
       setShowTooltip(true);
@@ -179,24 +196,32 @@ export default function TwoDigitPanaGame({ navigation, route }) {
 
   const handleSubmit = () => {
     if (bids.length === 0) {
-      Alert.alert('Error', 'Please add at least one bid');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please add at least one bid',
+        type: 'error'
+      });
       return;
     }
+
     setShowConfirmModal(true);
   };
 
   const handleConfirmSubmit = () => {
     setShowConfirmModal(false);
-    Alert.alert('Success', `${bids.length} bids placed successfully!`, [
-      {
-        text: 'OK',
-        onPress: () => {
-          setBids([]);
-          setPana('');
-          setPoints('');
-        }
+    setAlertConfig({
+      visible: true,
+      title: 'Success',
+      message: `${bids.length} bids placed successfully!`,
+      type: 'success',
+      onClose: () => {
+        setBids([]);
+        setPana('');
+        setPoints('');
       }
-    ]);
+    });
+
   };
 
   return (
@@ -413,9 +438,21 @@ export default function TwoDigitPanaGame({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5EDE0' },

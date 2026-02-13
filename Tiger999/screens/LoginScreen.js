@@ -11,6 +11,8 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../components/CustomAlert';
+
 
 import logo from '../assets/logo/logo.png';
 import { loginUser } from '../api/auth';
@@ -21,6 +23,15 @@ export default function LoginScreen({ navigation }) {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+  });
+
+
   const handleLogin = async () => {
     if (phoneNumber.length === 10 && password.length > 0) {
       setIsLoading(true);
@@ -30,7 +41,13 @@ export default function LoginScreen({ navigation }) {
         console.log('Login API Response:', response);
 
         if (response && (response.status === true || response.status === 'true')) {
-          alert('Login Successful!');
+          setAlertConfig({
+            visible: true,
+            title: 'Login Successful',
+            message: 'Welcome back!',
+            type: 'success'
+          });
+
 
           // Save user info from response
           await AsyncStorage.setItem('userMobile', phoneNumber);
@@ -49,11 +66,22 @@ export default function LoginScreen({ navigation }) {
           const storedPassword = await AsyncStorage.getItem('userPassword');
 
           if (storedMobile === phoneNumber && storedPassword === password) {
-            alert('Login Successful! (Local Check)');
+            setAlertConfig({
+              visible: true,
+              title: 'Login Successful',
+              message: 'Logged in using local credentials.',
+              type: 'success'
+            });
             navigation.replace('Home');
           } else {
-            alert(response.message || 'Invalid Mobile or Password');
+            setAlertConfig({
+              visible: true,
+              title: 'Login Failed',
+              message: response.message || 'Invalid Mobile or Password',
+              type: 'error'
+            });
           }
+
         }
       } catch (error) {
         console.error('Login Error:', error);
@@ -61,17 +89,34 @@ export default function LoginScreen({ navigation }) {
         const storedMobile = await AsyncStorage.getItem('userMobile');
         const storedPassword = await AsyncStorage.getItem('userPassword');
         if (storedMobile === phoneNumber && storedPassword === password) {
-          alert('Login Successful! (Offline/Local)');
+          setAlertConfig({
+            visible: true,
+            title: 'Login Successful',
+            message: 'Logged in offline.',
+            type: 'success'
+          });
           navigation.replace('Home');
         } else {
-          alert('Login Error: ' + error.message);
+          setAlertConfig({
+            visible: true,
+            title: 'Error',
+            message: 'Login Error: ' + error.message,
+            type: 'error'
+          });
         }
+
       } finally {
         setIsLoading(false);
       }
     } else {
-      alert('Please enter a valid 10-digit phone number and password');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter a valid 10-digit phone number and password',
+        type: 'error'
+      });
     }
+
   };
 
   const makeCall = () => {
@@ -159,9 +204,24 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </View>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          // If login was successful, we might want to navigate after alert closes
+          if (alertConfig.title === 'Login Successful') {
+            navigation.replace('Home');
+          }
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

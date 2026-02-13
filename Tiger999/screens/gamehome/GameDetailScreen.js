@@ -23,8 +23,8 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             <View style={[styles.dot, { width: 14, height: 14, borderRadius: 7 }]} />
           </View>
         );
-      
-      case 'jodi':  
+
+      case 'jodi':
         // Two dots  F
         return (
           <View style={[styles.iconInner, { flexDirection: 'row', gap: 6 }]}>
@@ -32,7 +32,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             <View style={[styles.dot, { width: 12, height: 12, borderRadius: 6 }]} />
           </View>
         );
-     
+
       case 'single-pana':
         // Card with plus  F
         return (
@@ -42,7 +42,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-     
+
       case 'double-pana':
         // Two cards overlapping  F
         return (
@@ -51,7 +51,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             <View style={styles.cardPlain} />
           </View>
         );
-      
+
       case 'triple-pana':
         // Asterisk/star  F
         return (
@@ -81,7 +81,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-     
+
       case 'sp-dp-tp':
         // Connected squares  F
         return (
@@ -95,7 +95,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-   
+
       case 'sp-motor':
         // Circular arrows  F
         return (
@@ -114,7 +114,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
             </View>
           </View>
         );
-      
+
       case 'red-jodi':
         // Two dots horizontal   F
         return (
@@ -150,7 +150,7 @@ const CircleIcon = ({ iconType, size = 30 }) => {
 };
 
 export default function GameDetailScreen({ navigation, route }) {
-  const { gameName, gameCode, isOpenAvailable, isCloseAvailable } = route.params;
+  const { gameName, gameCode, isOpenAvailable, isCloseAvailable, marketType } = route.params;
 
   const gameTypes = [
     { id: 1, name: 'Single Digit', iconType: 'single-digit', screen: 'SingleDigitGame' },

@@ -3,6 +3,8 @@ import {
     View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal, FlatList
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -24,6 +26,16 @@ const JodiGame = ({ navigation, route }) => {
     const [currentDate, setCurrentDate] = useState('');
     const [marketId, setMarketId] = useState(gameId || null);
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
+
     // Easy Mode State
     const [easyJodi, setEasyJodi] = useState('');
     const [easyPoints, setEasyPoints] = useState('');
@@ -35,11 +47,15 @@ const JodiGame = ({ navigation, route }) => {
 
     useEffect(() => {
         if (isOpenAvailable === false) {
-            Alert.alert("Market Closed",
-                "Jodi game ke liye open time samapt ho chuka hai.",
-                [{ text: "OK", onPress: () => navigation.navigate('Home') }]
-            );
+            setAlertConfig({
+                visible: true,
+                title: 'Market Closed',
+                message: 'Jodi game ke liye open time samapt ho chuka hai.',
+                type: 'warning',
+                onClose: () => navigation.navigate('Home')
+            });
         }
+
     }, [isOpenAvailable]);
 
     useEffect(() => {
@@ -90,13 +106,25 @@ const JodiGame = ({ navigation, route }) => {
     // --- Handlers for Easy Mode ---
     const handleAddEasyBid = () => {
         if (!easyJodi || easyJodi.length !== 2) {
-            Alert.alert('Error', 'Please enter a valid 2-digit Jodi');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter a valid 2-digit Jodi',
+                type: 'error'
+            });
             return;
         }
+
         if (!easyPoints || parseInt(easyPoints) <= 0) {
-            Alert.alert('Error', 'Please enter valid points');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter valid points',
+                type: 'error'
+            });
             return;
         }
+
         const newBid = {
             id: Date.now().toString() + Math.random().toString(),
             jodi: easyJodi,
@@ -143,13 +171,25 @@ const JodiGame = ({ navigation, route }) => {
         const totalCount = calculateTotalBids();
 
         if (totalCount === 0) {
-            Alert.alert('Error', 'Please add at least one bid');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please add at least one bid',
+                type: 'error'
+            });
             return;
         }
+
         if (totalPoints > balance) {
-            Alert.alert('Error', 'Insufficient balance');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Insufficient balance',
+                type: 'error'
+            });
             return;
         }
+
         setShowConfirmModal(true);
     };
 
@@ -161,10 +201,16 @@ const JodiGame = ({ navigation, route }) => {
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
             if (!userId || !marketId) {
-                Alert.alert('Error', 'User ID or Market ID missing. Please restart app.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID or Market ID missing. Please restart app.',
+                    type: 'error'
+                });
                 setSubmitting(false);
                 return;
             }
+
 
             let bidsPayload = [];
 
@@ -186,24 +232,38 @@ const JodiGame = ({ navigation, route }) => {
             const response = await PlaceJodiBet(userId, username, numbers, amounts, gameName, String(marketId));
 
             if (response && response.status === 'success') {
-                Alert.alert('Success', 'Bids placed successfully!', [
-                    {
-                        text: 'OK', onPress: () => {
-                            setEasyBids([]);
-                            setSpecialBids({});
-                            setEasyJodi('');
-                            setEasyPoints('');
-                            fetchWalletBalance();
-                        }
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: 'Bids placed successfully!',
+                    type: 'success',
+                    onClose: () => {
+                        setEasyBids([]);
+                        setSpecialBids({});
+                        setEasyJodi('');
+                        setEasyPoints('');
+                        fetchWalletBalance();
                     }
-                ]);
+                });
             } else {
-                Alert.alert('Error', response?.message || 'Failed to place bids');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: response?.message || 'Failed to place bids',
+                    type: 'error'
+                });
             }
+
         } catch (error) {
             console.error('Jodi Bid Error:', error);
-            Alert.alert('Error', 'Network request failed');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Network request failed',
+                type: 'error'
+            });
         } finally {
+
             setSubmitting(false);
         }
     };
@@ -416,9 +476,20 @@ const JodiGame = ({ navigation, route }) => {
                 </View>
             </Modal>
 
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 };
+
 
 const styles = StyleSheet.create({
     container: {

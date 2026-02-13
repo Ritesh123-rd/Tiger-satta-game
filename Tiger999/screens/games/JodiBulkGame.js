@@ -7,6 +7,8 @@ import {
     View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, Alert, StatusBar, Animated, Easing, Dimensions, Modal, ActivityIndicator, ScrollView
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -47,6 +49,16 @@ export default function JodiBulkGame({ navigation, route }) {
     const [submitting, setSubmitting] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
+
     const fetchBalance = async () => {
         try {
             const mobile = await AsyncStorage.getItem('userMobile');
@@ -75,13 +87,25 @@ export default function JodiBulkGame({ navigation, route }) {
 
     const handleAddBid = () => {
         if (!points || parseInt(points) <= 0) {
-            Alert.alert('Error', 'Please enter valid points');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter valid points',
+                type: 'error'
+            });
             return;
         }
+
         if (!jodiDigit || jodiDigit.length !== 2) {
-            Alert.alert('Error', 'Please enter a valid 2-digit Jodi');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter a valid 2-digit Jodi',
+                type: 'error'
+            });
             return;
         }
+
 
         const newBid = {
             id: Date.now().toString() + Math.random().toString(),
@@ -100,8 +124,25 @@ export default function JodiBulkGame({ navigation, route }) {
     const handleDeleteBid = (bidId) => setBids(prev => prev.filter(bid => bid.id !== bidId));
 
     const handleSubmit = () => {
-        if (bids.length === 0) { Alert.alert('Error', 'Please add at least one bid'); return; }
-        if (totalPoints > balance) { Alert.alert('Error', 'Insufficient balance'); return; }
+        if (bids.length === 0) {
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please add at least one bid',
+                type: 'error'
+            });
+            return;
+        }
+        if (totalPoints > balance) {
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Insufficient balance',
+                type: 'error'
+            });
+            return;
+        }
+
         setShowConfirmModal(true);
     };
 
@@ -129,21 +170,38 @@ export default function JodiBulkGame({ navigation, route }) {
             const data = await response.json();
             if (data.status === 'success') {
                 setShowConfirmModal(false);
-                Alert.alert('Success', 'Bids placed successfully!', [{
-                    text: 'OK', onPress: () => {
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: 'Bids placed successfully!',
+                    type: 'success',
+                    onClose: () => {
                         setBids([]);
                         setPoints('');
                         setJodiDigit('');
-                        fetchWalletBalance();
+                        fetchBalance();
                         navigation.goBack();
                     }
-                }]);
+                });
+
             } else {
-                Alert.alert('Error', data.message || 'Failed to place bids');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: data.message || 'Failed to place bids',
+                    type: 'error'
+                });
             }
+
         } catch (error) {
-            Alert.alert('Error', 'Network request failed');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Network request failed',
+                type: 'error'
+            });
         } finally {
+
             setSubmitting(false);
         }
     };
@@ -199,10 +257,16 @@ export default function JodiBulkGame({ navigation, route }) {
                             setJodiDigit(text);
                             if (text.length === 2) {
                                 if (!points || parseInt(points) <= 0) {
-                                    Alert.alert('Error', 'Please enter valid points first');
+                                    setAlertConfig({
+                                        visible: true,
+                                        title: 'Error',
+                                        message: 'Please enter valid points first',
+                                        type: 'error'
+                                    });
                                     setJodiDigit('');
                                     return;
                                 }
+
 
                                 const newBid = {
                                     id: Date.now().toString() + Math.random().toString(),
@@ -238,7 +302,7 @@ export default function JodiBulkGame({ navigation, route }) {
                     keyExtractor={item => item.id}
                     style={styles.bidsList}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 20 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             </View>
 
@@ -284,9 +348,20 @@ export default function JodiBulkGame({ navigation, route }) {
                     </View>
                 </View>
             </Modal>
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5EDE0' },

@@ -16,7 +16,8 @@ import {
     Dimensions,
     Modal,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -104,6 +105,16 @@ export default function SinglePanaBulkGame({ navigation, route }) {
     const [points, setPoints] = useState('');
     const [bids, setBids] = useState([]);
     const [totalBids, setTotalBids] = useState(0);
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
     const [totalPoints, setTotalPoints] = useState(0);
 
     // Calculate totals when bids change
@@ -116,9 +127,15 @@ export default function SinglePanaBulkGame({ navigation, route }) {
 
     const handleNumberPress = (num) => {
         if (!points || points === '' || parseInt(points) <= 0) {
-            Alert.alert('Error', 'Please enter points first');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please enter points first',
+                type: 'error'
+            });
             return;
         }
+
 
         // Get all single pana numbers for this digit
         const panaNumbers = SINGLE_PANA_NUMBERS[num];
@@ -140,19 +157,26 @@ export default function SinglePanaBulkGame({ navigation, route }) {
 
     const handleSubmit = () => {
         if (bids.length === 0) {
-            Alert.alert('Error', 'Please add at least one bid');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please add at least one bid',
+                type: 'error'
+            });
             return;
         }
-        Alert.alert(
-            'Success',
-            `${totalBids} bids submitted for ${totalPoints} points!`,
-            [{
-                text: 'OK', onPress: () => {
-                    setBids([]);
-                    setPoints('');
-                }
-            }]
-        );
+
+        setAlertConfig({
+            visible: true,
+            title: 'Success',
+            message: `${totalBids} bids submitted for ${totalPoints} points!`,
+            type: 'success',
+            onClose: () => {
+                setBids([]);
+                setPoints('');
+            }
+        });
+
     };
 
     const renderBidItem = ({ item }) => (
@@ -336,9 +360,21 @@ export default function SinglePanaBulkGame({ navigation, route }) {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }
+
 
 const styles = StyleSheet.create({
     container: {

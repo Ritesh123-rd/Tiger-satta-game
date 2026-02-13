@@ -6,11 +6,10 @@ import {
     TouchableOpacity,
     TextInput,
     ScrollView,
-    StatusBar,
-    Alert,
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    StatusBar,
     Keyboard,
     TouchableWithoutFeedback,
 } from 'react-native';
@@ -18,6 +17,8 @@ import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-ico
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateBankDetails, getBankDetails } from '../../api/auth';
 import { useFocusEffect } from '@react-navigation/native';
+import CustomAlert from '../../components/CustomAlert';
+
 
 const InputField = ({ icon, placeholder, value, onChangeText, keyboardType = 'default', iconType = 'Ionicons' }) => (
     <View style={styles.inputContainer}>
@@ -61,6 +62,15 @@ export default function UpdateBankDetailsScreen({ navigation }) {
     const [initialLoading, setInitialLoading] = useState(true);
     const [userId, setUserId] = useState('');
     const [username, setUsername] = useState('');
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+    });
+
 
     const fetchBankAndUserData = async (isInitial = false) => {
         const storedUserId = await AsyncStorage.getItem('userId');
@@ -120,8 +130,14 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                 // Don't alert if we already have cached data to avoid annoyance
                 const hasCache = await AsyncStorage.getItem(`bankDetails_${storedUserId}`);
                 if (!hasCache) {
-                    Alert.alert('Notice', 'Using offline details. Please check connection.');
+                    setAlertConfig({
+                        visible: true,
+                        title: 'Notice',
+                        message: 'Using offline details. Please check connection.',
+                        type: 'info'
+                    });
                 }
+
             } finally {
                 setInitialLoading(false);
                 setLoading(false);
@@ -139,9 +155,15 @@ export default function UpdateBankDetailsScreen({ navigation }) {
 
     const handleSave = async () => {
         if (!bankName || !holderName || !accountNumber || !ifsc) {
-            Alert.alert('Error', 'Please fill all mandatory bank details (Bank Name, Holder Name, Account Number, IFSC)');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please fill all mandatory bank details (Bank Name, Holder Name, Account Number, IFSC)',
+                type: 'error'
+            });
             return;
         }
+
 
         setLoading(true);
         try {
@@ -163,16 +185,34 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                 // Save to Local Cache immediately on success
                 await AsyncStorage.setItem(`bankDetails_${userId}`, JSON.stringify(details));
 
-                Alert.alert('Success', response.message || 'Bank details updated successfully');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: response.message || 'Bank details updated successfully',
+                    type: 'success'
+                });
                 // stay on screen and refresh from server to ensure visibility
+
                 fetchBankAndUserData(false);
             } else {
-                Alert.alert('Error', response.message || 'Failed to update bank details');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: response.message || 'Failed to update bank details',
+                    type: 'error'
+                });
             }
+
         } catch (error) {
             console.error('Update Bank Details Error:', error);
-            Alert.alert('Error', 'An error occurred while updating details');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'An error occurred while updating details',
+                type: 'error'
+            });
         } finally {
+
             setLoading(false);
         }
     };
@@ -279,9 +319,19 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                     </ScrollView>
                 )}
             </View>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
         </KeyboardAvoidingView>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

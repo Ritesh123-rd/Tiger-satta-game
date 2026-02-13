@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 
 export default function ChangePasswordScreen({ navigation }) {
     const [currentPassword, setCurrentPassword] = useState('');
@@ -11,32 +13,65 @@ export default function ChangePasswordScreen({ navigation }) {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
+
     const handleChangePassword = () => {
         // Validation
         if (!currentPassword || !newPassword || !confirmPassword) {
-            Alert.alert('Error', 'Please fill all fields');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please fill all fields',
+                type: 'error'
+            });
             return;
         }
+
 
         if (newPassword.length < 6) {
-            Alert.alert('Error', 'New password must be at least 6 characters');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'New password must be at least 6 characters',
+                type: 'error'
+            });
             return;
         }
 
+
         if (newPassword !== confirmPassword) {
-            Alert.alert('Error', 'New password and confirm password do not match');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'New password and confirm password do not match',
+                type: 'error'
+            });
             return;
         }
+
 
         setLoading(true);
 
         // Simulate API call
         setTimeout(() => {
             setLoading(false);
-            Alert.alert('Success', 'Password changed successfully', [
-                { text: 'OK', onPress: () => navigation.goBack() }
-            ]);
+            setAlertConfig({
+                visible: true,
+                title: 'Success',
+                message: 'Password changed successfully',
+                type: 'success',
+                onClose: () => navigation.goBack()
+            });
         }, 1500);
+
     };
 
     return (
@@ -131,9 +166,22 @@ export default function ChangePasswordScreen({ navigation }) {
                     <Text style={styles.requirementText}>• Mix of letters and numbers recommended</Text>
                 </View>
             </View>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }
+
+
 
 const styles = StyleSheet.create({
     container: {

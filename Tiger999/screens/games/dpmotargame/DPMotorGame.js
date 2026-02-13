@@ -5,6 +5,7 @@ import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -104,6 +105,15 @@ export default function DPMotorGame({ navigation, route }) {
     const [showTooltip, setShowTooltip] = useState(false);
     const [tooltipTarget, setTooltipTarget] = useState('digit'); // 'digit' or 'points'
 
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+        onClose: null
+    });
+
     const showTooltipMessage = (message, target = 'digit') => {
         setTooltipMessage(message);
         setTooltipTarget(target);
@@ -163,7 +173,12 @@ export default function DPMotorGame({ navigation, route }) {
         const combinations = generateDPCombinations(digit);
 
         if (combinations.length === 0) {
-            Alert.alert('Error', 'Could not generate combinations');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Could not generate combinations',
+                type: 'error'
+            });
             return;
         }
 
@@ -187,7 +202,12 @@ export default function DPMotorGame({ navigation, route }) {
 
     const handleSubmit = () => {
         if (bids.length === 0) {
-            Alert.alert('Error', 'Please add at least one bid');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Please add at least one bid',
+                type: 'error'
+            });
             return;
         }
         setShowConfirmModal(true);
@@ -204,7 +224,12 @@ export default function DPMotorGame({ navigation, route }) {
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
             if (!userId) {
-                Alert.alert('Error', 'User ID not found. Please login again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID not found. Please login again.',
+                    type: 'error'
+                });
                 setLoading(false);
                 return;
             }
@@ -232,17 +257,28 @@ export default function DPMotorGame({ navigation, route }) {
                 setDigit('');
                 setPoints('');
 
-                Alert.alert(
-                    'Success',
-                    `${bids.length} bids placed successfully!`,
-                    [{ text: 'OK' }]
-                );
+                setAlertConfig({
+                    visible: true,
+                    title: 'Success',
+                    message: `${bids.length} bids placed successfully!`,
+                    type: 'success'
+                });
             } else {
-                Alert.alert('Error', response?.message || 'Failed to place bids. Please try again.');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: response?.message || 'Failed to place bids. Please try again.',
+                    type: 'error'
+                });
             }
         } catch (error) {
             console.error('Error in handleConfirmSubmit:', error);
-            Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'An unexpected error occurred. Please try again.',
+                type: 'error'
+            });
         } finally {
             setLoading(false);
         }
@@ -359,7 +395,7 @@ export default function DPMotorGame({ navigation, route }) {
                     renderItem={renderBidItem}
                     keyExtractor={item => item.id}
                     showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 20 }}
+                    contentContainerStyle={{ paddingBottom: 100 }}
                 />
             </View>
 
@@ -443,6 +479,17 @@ export default function DPMotorGame({ navigation, route }) {
                     </View>
                 </TouchableOpacity>
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => {
+                    setAlertConfig({ ...alertConfig, visible: false });
+                    if (alertConfig.onClose) alertConfig.onClose();
+                }}
+            />
         </View>
     );
 }

@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { getWalletBalance, getWithdrawRequestHistory, withdrawfund } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { Alert } from 'react-native';
+import CustomAlert from '../../components/CustomAlert';
+
 
 export default function WithdrawFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
@@ -15,6 +16,18 @@ export default function WithdrawFundScreen({ navigation }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [selectedMethod, setSelectedMethod] = useState('phone_pay'); // Default method
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+
+
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+  });
+
 
   const fetchUserData = async () => {
     try {
@@ -54,26 +67,41 @@ export default function WithdrawFundScreen({ navigation }) {
 
   const handleWithdrawRequest = async () => {
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-      Alert.alert('Error', 'Please enter a valid amount.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter a valid amount.',
+        type: 'error'
+      });
       return;
     }
 
     const withdrawAmt = parseFloat(amount);
     if (withdrawAmt < 1000) {
-      Alert.alert('Error', 'Minimum withdrawal amount is ₹ 1000.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Minimum withdrawal amount is ₹ 1000.',
+        type: 'error'
+      });
       return;
     }
 
     if (withdrawAmt > balance) {
-      Alert.alert('Error', 'Insufficient balance for withdrawal.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Insufficient balance for withdrawal.',
+        type: 'error'
+      });
       return;
     }
 
     setSubmitting(true);
     try {
-      const response = await withdrawfund(userData.id, userData.name, amount);
+      const response = await withdrawfund(userData.id, userData.name, amount, selectedMethod);
 
-      // Success check matches AddFund screen logic for consistency
+
       const isSuccess = response && (
         response.status === true ||
         response.status === 'true' ||
@@ -84,19 +112,35 @@ export default function WithdrawFundScreen({ navigation }) {
       );
 
       if (isSuccess) {
-        Alert.alert('Success', response.message || 'Withdrawal request submitted successfully!');
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: response.message || 'Withdrawal request submitted successfully!',
+          type: 'success'
+        });
         setAmount('');
         fetchUserData(); // Refresh balance and history
       } else {
-        Alert.alert('Error', response.message || 'Failed to submit withdrawal request. Please try again.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: response.message || 'Failed to submit withdrawal request. Please try again.',
+          type: 'error'
+        });
       }
     } catch (error) {
       console.error('Withdraw Fund Error:', error);
-      Alert.alert('Error', 'Something went wrong. Please check your connection.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Something went wrong. Please check your connection.',
+        type: 'error'
+      });
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <View style={styles.container}>
@@ -148,6 +192,28 @@ export default function WithdrawFundScreen({ navigation }) {
               onChangeText={setAmount}
             />
           </View>
+
+          {/* Payment Method Selector */}
+          <Text style={styles.sectionLabel}>Select Payout Method</Text>
+          <TouchableOpacity
+            style={styles.methodSelector}
+            onPress={() => setShowPaymentModal(true)}
+          >
+            <View style={styles.methodInfo}>
+              {selectedMethod === 'phone_pay' && <Ionicons name="phone-portrait-outline" size={24} color="#C27183" />}
+              {selectedMethod === 'paytm' && <MaterialCommunityIcons name="wallet-outline" size={24} color="#C27183" />}
+              {selectedMethod === 'google_pay' && <Ionicons name="logo-google" size={24} color="#C27183" />}
+              {selectedMethod === 'upi' && <MaterialCommunityIcons name="integrated-circuit-chip" size={24} color="#C27183" />}
+              <Text style={styles.methodText}>
+                {selectedMethod === 'phone_pay' && 'PhonePe'}
+                {selectedMethod === 'paytm' && 'Paytm'}
+                {selectedMethod === 'google_pay' && 'Google Pay'}
+                {selectedMethod === 'upi' && 'Other UPI'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#999" />
+          </TouchableOpacity>
+
 
           {/* History Section */}
           <View style={styles.historySection}>
@@ -256,7 +322,78 @@ export default function WithdrawFundScreen({ navigation }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+      />
+
+      {/* Payment Method Modal */}
+      <Modal
+        visible={showPaymentModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowPaymentModal(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPaymentModal(false)}
+        >
+          <View style={styles.bottomModalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderText}>Choose Payment Method</Text>
+              <TouchableOpacity onPress={() => setShowPaymentModal(false)}>
+                <Ionicons name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.modalContent}>
+              {[
+                { id: 'phone_pay', label: 'PhonePe', icon: 'phone-portrait-outline', type: 'Ionicons' },
+                { id: 'paytm', label: 'Paytm', icon: 'wallet-outline', type: 'MaterialCommunityIcons' },
+                { id: 'google_pay', label: 'Google Pay', icon: 'logo-google', type: 'Ionicons' },
+                { id: 'upi', label: 'Other UPI', icon: 'integrated-circuit-chip', type: 'MaterialCommunityIcons' },
+              ].map((method) => (
+                <TouchableOpacity
+                  key={method.id}
+                  style={[
+                    styles.methodOption,
+                    selectedMethod === method.id && styles.selectedOption
+                  ]}
+                  onPress={() => {
+                    setSelectedMethod(method.id);
+                    setShowPaymentModal(false);
+                  }}
+                >
+                  <View style={styles.optionLeft}>
+                    {method.type === 'Ionicons' ? (
+                      <Ionicons name={method.icon} size={24} color={selectedMethod === method.id ? '#C27183' : '#666'} />
+                    ) : (
+                      <MaterialCommunityIcons name={method.icon} size={24} color={selectedMethod === method.id ? '#C27183' : '#666'} />
+                    )}
+                    <Text style={[
+                      styles.optionText,
+                      selectedMethod === method.id && styles.selectedOptionText
+                    ]}>
+                      {method.label}
+                    </Text>
+                  </View>
+                  {selectedMethod === method.id && (
+                    <Ionicons name="checkmark-circle" size={24} color="#C27183" />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
     </View>
+
   );
 }
 
@@ -358,7 +495,39 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#C27183',
   },
+  sectionLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 20,
+    marginBottom: 10,
+    fontFamily: 'RaleighStdDemi',
+  },
+  methodSelector: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    borderWidth: 1,
+    borderColor: '#E0D5C5',
+    marginBottom: 10,
+  },
+  methodInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  methodText: {
+    fontSize: 16,
+    color: '#000',
+    fontFamily: 'RaleighStdDemi',
+    fontWeight: '600',
+  },
   inputIconContainer: {
+
     width: 45,
     height: 45,
     borderRadius: 25,
@@ -470,7 +639,43 @@ const styles = StyleSheet.create({
     maxHeight: '80%',
     overflow: 'hidden',
   },
+  bottomModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    width: '100%',
+    position: 'absolute',
+    bottom: 0,
+    paddingBottom: 40,
+  },
+  methodOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 18,
+    paddingHorizontal: 25,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  selectedOption: {
+    backgroundColor: '#fff5f7',
+  },
+  optionLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 15,
+  },
+  optionText: {
+    fontSize: 16,
+    color: '#333',
+    fontFamily: 'RaleighStdDemi',
+  },
+  selectedOptionText: {
+    color: '#C27183',
+    fontWeight: 'bold',
+  },
   modalHeader: {
+
     backgroundColor: '#C27183',
     paddingVertical: 15,
     alignItems: 'center',

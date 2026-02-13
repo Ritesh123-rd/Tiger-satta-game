@@ -26,7 +26,25 @@ import RedJodiGame from './screens/games/redjodigame/RedJodiGame';
 import OddEvenGame from './screens/games/oddeven/OddEvenGame';
 import FullSangamGame from './screens/games/fullsangam/FullSangamGame';
 
-// Utility Screens
+
+
+//startline games import 
+import PSStarlineScreen from './screens/starline/PSStarlineScreen';
+import StarlineGameDetailScreen from './screens/starline/StarlineGameDetailScreen';
+import StarLineSingleDigitGame from './screens/starline/starlinesgames/games/StarLineSingleank/StarLineSingleDigitGame';
+import StarLineSinglePanaGame from './screens/starline/starlinesgames/games/StarLinesinglepatti/StarLineSinglePanaGame';
+import StarlineDoublePanaGame from './screens/starline/starlinesgames/games/StarLineDoublePatti/StarLineDoublePatti';
+import StarlineTriplePanaGame from './screens/starline/starlinesgames/games/StarLineTripplePanaGame/StarLineTripplePanaGame';
+import StarlineSPDPTPGame from './screens/starline/starlinesgames/games/StarLineSPDPTPGame/StarLinespdptp';
+import StarlineSPMotorGame from './screens/starline/starlinesgames/games/StarLineSpmotargame/StarLineSpmotargame';
+import StarLineDPMotorGame from './screens/starline/starlinesgames/games/StarlineDPmotar/StarlineDPmotar';
+import StarlineEvenOddGame from './screens/starline/starlinesgames/games/StarlineEvenOdd/StarLineEvenOdd';
+
+
+//js jackpot Screen
+
+
+// Utility Screens  
 import MyBidsScreen from './screens/sidebar-items/MyBidsScreen';
 import PassbookScreen from './screens/sidebar-items/PassbookScreen';
 import FundsScreen from './screens/sidebar-items/FundsScreen';
@@ -36,7 +54,6 @@ import GameRateScreen from './screens/sidebar-items/GameRateScreen';
 import TimeTableScreen from './screens/sidebar-items/TimeTableScreen';
 import UpdatePasswordScreen from './screens/sidebar-items/UpdatePasswordScreen';
 import TransactionHistoryScreen from './screens/sidebar-items/TransactionHistoryScreen';
-import PSStarlineScreen from './screens/sidebar-items/PSStarlineScreen';
 import PSJackpotScreen from './screens/sidebar-items/PSJackpotScreen';
 import AddFundScreen from './screens/sidebar-items/AddFundScreen';
 import WithdrawFundScreen from './screens/sidebar-items/WithdrawFundScreen';
@@ -157,6 +174,7 @@ export default function App() {
         <Stack.Screen name="OddEvenGame" component={OddEvenGame} />
         <Stack.Screen name="GameResults" component={GameResults} />
 
+
         {/* Utility Screens */}
         <Stack.Screen name="AddFund" component={AddFundScreen} />
         <Stack.Screen name="WithdrawFund" component={WithdrawFundScreen} />
@@ -167,6 +185,22 @@ export default function App() {
         <Stack.Screen name="GameRate" component={GameRateScreen} />
         <Stack.Screen name="TimeTable" component={TimeTableScreen} />
         <Stack.Screen name="PSStarline" component={PSStarlineScreen} />
+        <Stack.Screen name="StarlineGameDetail" component={StarlineGameDetailScreen} />
+
+
+        {/* Starline Game Screens */}
+        <Stack.Screen name="StarLineSingleDigitGame" component={StarLineSingleDigitGame} />
+        <Stack.Screen name="StarLineSinglePanaGame" component={StarLineSinglePanaGame} />
+        <Stack.Screen name="StarlineDoublePanaGame" component={StarlineDoublePanaGame} />
+        <Stack.Screen name="StarlineTriplePanaGame" component={StarlineTriplePanaGame} />
+        <Stack.Screen name="StarlineSPDPTPGame" component={StarlineSPDPTPGame} />
+        <Stack.Screen name="StarlineSPMotorGame" component={StarlineSPMotorGame} />
+        <Stack.Screen name="StarLineDPMotorGame" component={StarLineDPMotorGame} />
+        <Stack.Screen name="StarlineEvenOddGame" component={StarlineEvenOddGame} />
+
+
+        {/* js jackpot screen */}
+
         <Stack.Screen name="PSJackpot" component={PSJackpotScreen} />
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />

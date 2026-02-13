@@ -9,12 +9,13 @@ import {
     Dimensions,
     ActivityIndicator,
     Image,
-    Alert,
     Modal
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { bidhistory } from '../../api/auth';
+import CustomAlert from '../../components/CustomAlert';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -39,6 +40,15 @@ export default function BidHistoryScreen({ navigation }) {
     const [fromDate, setFromDate] = useState(getTodayDate());
     const [toDate, setToDate] = useState(getTodayDate());
     const itemsPerPage = 10;
+
+    // Custom Alert State
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: '',
+        message: '',
+        type: 'success',
+    });
+
 
     // Date Picker Modal State
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -66,9 +76,15 @@ export default function BidHistoryScreen({ navigation }) {
         try {
             const userId = await AsyncStorage.getItem('userId');
             if (!userId) {
-                Alert.alert('Error', 'User ID not found');
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'User ID not found',
+                    type: 'error'
+                });
                 return;
             }
+
 
             const response = await bidhistory(userId, fromDate, toDate);
             if (response && (response.status === true || response.status === 'true')) {
@@ -322,8 +338,17 @@ export default function BidHistoryScreen({ navigation }) {
                     </View>
                 </View>
             </Modal>
+
+            <CustomAlert
+                visible={alertConfig.visible}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+            />
         </View>
     );
+
 }
 
 const styles = StyleSheet.create({

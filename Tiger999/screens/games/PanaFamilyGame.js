@@ -4,7 +4,8 @@ import { getWalletBalance } from '../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../components/CustomAlert';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -68,15 +69,52 @@ export default function PanaFamilyGame({ navigation, route }) {
   const [bids, setBids] = useState([]);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
+
   const getCurrentDate = () => {
     const date = new Date();
     return `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
   };
 
   const addBid = () => {
-    if (!digit || digit.length !== 3) { Alert.alert('Error', 'Please enter valid 3-digit pana'); return; }
-    if (!points || parseInt(points) <= 0) { Alert.alert('Error', 'Please enter valid points'); return; }
-    if (parseInt(points) < 10) { Alert.alert('Error', 'Minimum points should be 10'); return; }
+    if (!digit || digit.length !== 3) {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter valid 3-digit pana',
+        type: 'error'
+      });
+      return;
+    }
+
+    if (!points || parseInt(points) <= 0) {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter valid points',
+        type: 'error'
+      });
+      return;
+    }
+
+    if (parseInt(points) < 10) {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Minimum points should be 10',
+        type: 'error'
+      });
+      return;
+    }
+
 
     const digitCuts = { '1': '6', '2': '7', '3': '8', '4': '9', '5': '0', '6': '1', '7': '2', '8': '3', '9': '4', '0': '5' };
     const getFamily = (p) => {
@@ -114,13 +152,17 @@ export default function PanaFamilyGame({ navigation, route }) {
 
   const finalSubmit = () => {
     // Implement final submission logic here
-    Alert.alert('Success', 'All bids submitted successfully!', [{
-      text: 'OK',
-      onPress: () => {
+    setAlertConfig({
+      visible: true,
+      title: 'Success',
+      message: 'All bids submitted successfully!',
+      type: 'success',
+      onClose: () => {
         setBids([]);
         setShowSubmitModal(false);
       }
-    }]);
+    });
+
   };
 
   const totalPoints = bids.reduce((sum, bid) => sum + parseInt(bid.points), 0);
@@ -180,7 +222,7 @@ export default function PanaFamilyGame({ navigation, route }) {
 
       <View style={styles.scrollContainer}>
         {bids.length > 0 ? (
-          <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 20 }}>
+          <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
             <View style={styles.bidListContainer}>
               {bids.map((bid) => (
                 <View key={bid.id} style={styles.bidItemCard}>
@@ -269,9 +311,21 @@ export default function PanaFamilyGame({ navigation, route }) {
           </View>
         </TouchableOpacity>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5EDE0' },

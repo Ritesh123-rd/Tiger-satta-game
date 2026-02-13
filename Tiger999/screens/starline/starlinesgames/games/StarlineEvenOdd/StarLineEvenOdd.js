@@ -1,11 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, placeOddEvenBet, getMarkets } from '../../../api/auth';
+import { getWalletBalance, starlinegetMarkets, StarlineEvenOdd } from '../../../../../api/auth';
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, StatusBar, Alert, Modal, Dimensions, Animated, Easing, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import CustomAlert from '../../../components/CustomAlert';
+import CustomAlert from '../../../../../components/CustomAlert';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -46,13 +46,13 @@ const MarqueeText = ({ text, style }) => {
     );
 };
 
-export default function OddEvenGame({ navigation, route }) {
+export default function StarlineEvenOddGame({ navigation, route }) {
     const insets = useSafeAreaInsets();
-    const { gameName, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'ODD EVEN' };
+    const { gameName, gameId, sessionTime, marketId, marketName, isOpenAvailable = true, isCloseAvailable = true } = route.params || { gameName: 'ODD EVEN' };
 
     const [balance, setBalance] = useState(0.0);
     const [bets, setBets] = useState([]);
-    const [currentMarketId, setCurrentMarketId] = useState(marketId);
+    const [currentMarketId, setCurrentMarketId] = useState(gameId || marketId || null);
     const [loading, setLoading] = useState(false);
 
     const fetchBalance = async () => {
@@ -71,13 +71,18 @@ export default function OddEvenGame({ navigation, route }) {
     };
 
     const fetchMarkets = async () => {
+        if (currentMarketId) return;
         try {
-            const response = await getMarkets();
+            const response = await starlinegetMarkets();
             if (response && (response.status === true || response.status === 'true')) {
-                const currentMarket = response.data.find(m => m.market_name === gameName);
+                const currentMarket = response.data.find(m => {
+                    const mName = (m.market_name || m.name || '').trim().toLowerCase();
+                    const target = gameName.trim().toLowerCase();
+                    return mName === target || mName.includes(target) || target.includes(mName);
+                });
                 if (currentMarket) {
                     setCurrentMarketId(currentMarket.id);
-                    console.log('Market fetched and updated for OddEven:', currentMarket.id);
+                    console.log('EvenOdd: Market fetched and updated:', currentMarket.id);
                 }
             }
         } catch (error) {
@@ -183,17 +188,16 @@ export default function OddEvenGame({ navigation, route }) {
             const userId = await AsyncStorage.getItem('userId');
             const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile');
 
-            if (!userId) {
+            if (!userId || !currentMarketId) {
                 setAlertConfig({
                     visible: true,
                     title: 'Error',
-                    message: 'User ID not found. Please login again.',
+                    message: 'User ID or Market ID not found. Please login again or restart.',
                     type: 'error'
                 });
                 setLoading(false);
                 return;
             }
-
 
             // Prepare bids according to JSON example
             const formattedBids = bets.map(bet => ({
@@ -203,13 +207,21 @@ export default function OddEvenGame({ navigation, route }) {
                 session: bet.session
             }));
 
-            const response = await placeOddEvenBet(
+            console.log('EvenOdd Submit Data:', JSON.stringify({
+                userId, username, bids: formattedBids, totalPoints,
+                market: marketName || gameName, marketId: currentMarketId,
+                session: selectedGameType, sessionTime
+            }));
+
+            const response = await StarlineEvenOdd(
                 userId,
                 username,
                 formattedBids,
+                totalPoints,
                 marketName || gameName,
                 String(currentMarketId),
-                totalPoints
+                selectedGameType,
+                sessionTime || gameName
             );
 
             if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {

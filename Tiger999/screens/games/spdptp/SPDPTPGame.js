@@ -16,6 +16,7 @@ import {
   Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import CustomAlert from '../../../components/CustomAlert';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -99,9 +100,23 @@ export default function SPDPTPGame({ navigation, route }) {
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showPointsError, setShowPointsError] = useState(false);
 
+  // Custom Alert State
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: '',
+    message: '',
+    type: 'success',
+    onClose: null
+  });
+
   const generatePanas = () => {
     if (!digit || !points) {
-      alert('Please enter digit and points');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter digit and points',
+        type: 'error'
+      });
       return;
     }
 
@@ -113,7 +128,12 @@ export default function SPDPTPGame({ navigation, route }) {
     setShowPointsError(false);
 
     if (!sp && !dp && !tp) {
-      alert('Please select at least one option (SP, DP, or TP)');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please select at least one option (SP, DP, or TP)',
+        type: 'error'
+      });
       return;
     }
 
@@ -232,7 +252,12 @@ export default function SPDPTPGame({ navigation, route }) {
     if (bids.length > 0) {
       setShowConfirmModal(true);
     } else {
-      alert('No bids to submit. Please generate bids first.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'No bids to submit. Please generate bids first.',
+        type: 'error'
+      });
     }
   };
 
@@ -245,7 +270,12 @@ export default function SPDPTPGame({ navigation, route }) {
       const username = await AsyncStorage.getItem('userName') || await AsyncStorage.getItem('userMobile'); // Fallback to mobile if name not found
 
       if (!userId || !currentMarketId) {
-        alert('User ID or Market ID not found. Please login again or restart the app.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'User ID or Market ID not found. Please login again or restart the app.',
+          type: 'error'
+        });
         setLoading(false);
         return;
       }
@@ -271,7 +301,12 @@ export default function SPDPTPGame({ navigation, route }) {
       );
 
       if (response && (response.status === true || response.status === 'true')) {
-        alert('Bids submitted successfully!');
+        setAlertConfig({
+          visible: true,
+          title: 'Success',
+          message: 'Bids submitted successfully!',
+          type: 'success'
+        });
         setBids([]);
         setTotalBids(0);
         setTotalPoints(0);
@@ -279,13 +314,23 @@ export default function SPDPTPGame({ navigation, route }) {
         setPoints('');
         fetchBalance(); // Refresh balance
       } else {
-        alert(response?.message || 'Failed to submit bids. Please check your balance and try again.');
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: response?.message || 'Failed to submit bids. Please check your balance and try again.',
+          type: 'error'
+        });
         fetchBalance();
       }
 
     } catch (error) {
       console.error('Error submitting bids:', error);
-      alert('An error occurred while submitting bids. Please try again.');
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'An error occurred while submitting bids. Please try again.',
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -422,6 +467,7 @@ export default function SPDPTPGame({ navigation, route }) {
         <ScrollView
           style={styles.bidsScrollContainer}
           showsVerticalScrollIndicator={true}
+          contentContainerStyle={{ paddingBottom: 100 }}
         >
           {bids.map((bid) => (
             <View key={bid.id} style={styles.bidRow}>
@@ -504,6 +550,17 @@ export default function SPDPTPGame({ navigation, route }) {
           </View>
         </View>
       </Modal>
+
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+          if (alertConfig.onClose) alertConfig.onClose();
+        }}
+      />
     </View>
   );
 }
