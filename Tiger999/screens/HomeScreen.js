@@ -15,7 +15,8 @@ import {
   Dimensions,
   Easing,
   Share,
-  Image
+  Image,
+  RefreshControl
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
@@ -42,6 +43,7 @@ export default function HomeScreen({ navigation }) {
   });
 
   const [gamesList, setGamesList] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchBalance = async () => {
     console.log('HomeScreen: fetchBalance started');
@@ -142,8 +144,15 @@ export default function HomeScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchBalance();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -214,7 +223,7 @@ export default function HomeScreen({ navigation }) {
 
         <TouchableOpacity
           style={styles.gameButton}
-          onPress={() => navigation.navigate('PSJackpot')}
+          onPress={() => navigation.navigate('PSJackpotScreen')}
         >
           <View style={styles.iconCircle}>
             <MaterialIcons name="play-arrow" size={26} color="#000" />
@@ -263,7 +272,19 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       {/* Games List */}
-      <ScrollView style={styles.gamesList}>
+      <ScrollView
+        style={styles.gamesList}
+        overScrollMode="never"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#D32F2F"]} // Red color as requested
+            progressBackgroundColor="#ffffff"
+            tintColor="#D32F2F"
+          />
+        }
+      >
         {gamesList.map((game) => (
           <TouchableOpacity
             key={game.id}

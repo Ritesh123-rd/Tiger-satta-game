@@ -28,29 +28,17 @@ export default function MyBidsScreen({ navigation }) {
       icon: 'history',
       type: 'MaterialIcons'
     },
+   
     {
       id: 3,
-      title: 'PS Starline Bid History',
-      subtitle: 'You can view starline history',
-      icon: 'database-outline',
-      type: 'MaterialCommunityIcons'
-    },
-    {
-      id: 4,
       title: 'PS Starline Result History',
       subtitle: 'You can view starline result',
       icon: 'clock-outline',
       type: 'MaterialCommunityIcons'
     },
+   
     {
-      id: 5,
-      title: 'PS Jackpot Bid History',
-      subtitle: 'You can view Jackpot history',
-      icon: 'database-outline',
-      type: 'MaterialCommunityIcons'
-    },
-    {
-      id: 6,
+      id: 4,
       title: 'PS Jackpot Result History',
       subtitle: 'You can view Jackpot result',
       icon: 'clock-outline',
@@ -87,6 +75,12 @@ export default function MyBidsScreen({ navigation }) {
               }
               if (option.id === 2) {
                 navigation.navigate('GameResults');
+              }
+              if (option.id === 3) {
+                navigation.navigate('PSStarlineResultHistory');
+              }
+              if (option.id === 4) {
+                navigation.navigate('psJackpotResultHistory')
               }
             }}
           >

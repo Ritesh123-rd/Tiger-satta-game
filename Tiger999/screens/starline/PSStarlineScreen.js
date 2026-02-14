@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
@@ -10,13 +9,14 @@ import {
   Switch,
   ActivityIndicator,
   Image,
-  SafeAreaView
+  SafeAreaView,
+  RefreshControl
 } from 'react-native';
 
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, starlinegetMarkets, getStarlineResults, gamerates } from '../../api/auth';
+import { getWalletBalance, starlinegetMarkets, getStarlineResults, sarline } from '../../api/auth';
 
 const PSStarlineScreen = ({ navigation }) => {
   const [balance, setBalance] = useState(0.0);
@@ -24,6 +24,7 @@ const PSStarlineScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(true);
   const [rates, setRates] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchData = async () => {
     setLoading(true);
@@ -59,29 +60,28 @@ const PSStarlineScreen = ({ navigation }) => {
           setMarkets(marketsWithResults);
         }
 
-        // Fetch Game Rates
-        if (marketRes.data && marketRes.data.length > 0) {
-          try {
-            const ratesRes = await gamerates(marketRes.data[0].id);
-            if (ratesRes) {
-              // Handle nested data or direct object
-              if (ratesRes.status === true && ratesRes.data) {
-                setRates(Array.isArray(ratesRes.data) ? ratesRes.data[0] : ratesRes.data);
-              } else {
-                setRates(ratesRes);
-              }
-            }
-          } catch (e) {
-            console.error('Error fetching game rates:', e);
+        // Fetch Game Rates using the new sarline API
+        try {
+          const ratesRes = await sarline();
+          if (ratesRes && ratesRes.status === true && ratesRes.data && ratesRes.data.length > 0) {
+            setRates(ratesRes.data[0]);
           }
+        } catch (e) {
+          console.error('Error fetching starline game rates:', e);
         }
       }
     } catch (error) {
       console.error('Error fetching starline data:', error);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchData();
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -91,10 +91,8 @@ const PSStarlineScreen = ({ navigation }) => {
 
   const toggleNotification = () => setIsNotificationEnabled(previousState => !previousState);
 
-  const safeRate = (value, defaultMultiplier = 10, fallback = "0") => {
-    const num = parseInt(value);
-    if (isNaN(num)) return `10/${defaultMultiplier * 10}`;
-    return `10/${num * 10}`;
+  const formatRate = (val) => {
+    return (val === undefined || val === null || val === "") ? "-" : val.toString();
   };
 
   const renderGameRateCard = (title, rate) => (
@@ -113,10 +111,8 @@ const PSStarlineScreen = ({ navigation }) => {
       const endTime = new Date();
       endTime.setHours(hours, minutes, 0, 0);
 
-      // Calculate difference in minutes
       const diffInMinutes = (endTime.getTime() - now.getTime()) / (1000 * 60);
 
-      // Close 15 minutes before the end_time
       if (diffInMinutes <= 15) {
         return false;
       }
@@ -143,23 +139,24 @@ const PSStarlineScreen = ({ navigation }) => {
           <Text style={styles.resultText}>{market.resultStr}</Text>
         </View>
 
-        <TouchableOpacity
-          style={[styles.playButton, !isActuallyOpen && styles.playButtonDisabled]}
-          onPress={() => {
-            if (isActuallyOpen) {
-              console.log('PSStarlineScreen: Navigating to Detail with ID:', market.id, 'Name:', market.market_name, 'Time:', market.end_time_12);
-              navigation.navigate('StarlineGameDetail', {
-                gameName: market.market_name,
-                gameId: market.id,
-                gameCode: market.api_game_id,
-                sessionTime: market.end_time_12
-              });
-            }
-          }}
-        >
-          <Ionicons name="play-circle" size={24} color={isActuallyOpen ? "#C36578" : "#999"} />
-          <Text style={[styles.playButtonText, { color: isActuallyOpen ? "#333" : "#999" }]}>Play Game</Text>
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.playButton, !isActuallyOpen && styles.playButtonDisabled]}
+            onPress={() => {
+              if (isActuallyOpen) {
+                console.log('PSStarlineScreen: Navigating to Detail with ID:', market.id, 'Name:', market.market_name, 'Time:', market.end_time_12);
+                navigation.navigate('StarlineGameDetail', {
+                  gameName: market.market_name,
+                  gameId: market.id,
+                  gameCode: market.api_game_id,
+                  sessionTime: market.end_time_12
+                });
+              }
+            }}
+          >
+            <Text style={[styles.playButtonText, { color: isActuallyOpen ? "#333" : "#999" }]}>Play Game</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   };
@@ -179,12 +176,22 @@ const PSStarlineScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+        overScrollMode="never"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#D32F2F"]}
+            progressBackgroundColor="#ffffff"
+            tintColor="#D32F2F"
+          />
+        }
+      >
         <View style={styles.controlsRow}>
-          <TouchableOpacity style={styles.historyButton}>
-            <MaterialIcons name="history" size={24} color="#333" />
-            <Text style={styles.controlText}>History</Text>
-          </TouchableOpacity>
+          <View />
           <View style={styles.notificationControl}>
             <Text style={styles.controlText}>Notification</Text>
             <Switch
@@ -197,14 +204,15 @@ const PSStarlineScreen = ({ navigation }) => {
           </View>
         </View>
 
+        {/* Displaying only 4 requested game rates */}
         <View style={styles.rateGrid}>
           <View style={styles.rateRow}>
-            {renderGameRateCard("Single Digit", rates ? safeRate(rates.single_digit, 10) : "10/100")}
-            {renderGameRateCard("Double Pana", rates ? safeRate(rates.double_panna, 300) : "10/3000")}
+            {renderGameRateCard("Single Digit", rates ? formatRate(rates.single_digit) : "-")}
+            {renderGameRateCard("Double Pana", rates ? formatRate(rates.double_panna) : "-")}
           </View>
           <View style={styles.rateRow}>
-            {renderGameRateCard("Single Pana", rates ? safeRate(rates.single_panna, 150) : "10/1500")}
-            {renderGameRateCard("Triple Pana", rates ? safeRate(rates.tripple_panna, 1000) : "10/10000")}
+            {renderGameRateCard("Single Pana", rates ? formatRate(rates.single_panna) : "-")}
+            {renderGameRateCard("Triple Pana", rates ? formatRate(rates.tripple_panna) : "-")}
           </View>
         </View>
 
@@ -278,10 +286,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
     marginVertical: 10,
-  },
-  historyButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
   },
   notificationControl: {
     flexDirection: 'row',
@@ -366,10 +370,11 @@ const styles = StyleSheet.create({
   playButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#fff',
     borderWidth: 1,
     borderColor: '#A0A0A0',
     borderRadius: 20,
-    paddingHorizontal: 10,
+    paddingHorizontal: 14,
     paddingVertical: 8,
   },
   playButtonDisabled: {
@@ -377,10 +382,14 @@ const styles = StyleSheet.create({
     borderColor: '#eee',
   },
   playButtonText: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
-    marginLeft: 4,
-  }
+    marginLeft: 0,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
 });
 
 export default PSStarlineScreen;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Image, StyleSheet, Text } from 'react-native';
@@ -27,7 +27,6 @@ import OddEvenGame from './screens/games/oddeven/OddEvenGame';
 import FullSangamGame from './screens/games/fullsangam/FullSangamGame';
 
 
-
 //startline games import 
 import PSStarlineScreen from './screens/starline/PSStarlineScreen';
 import StarlineGameDetailScreen from './screens/starline/StarlineGameDetailScreen';
@@ -42,7 +41,10 @@ import StarlineEvenOddGame from './screens/starline/starlinesgames/games/Starlin
 
 
 //js jackpot Screen
-
+import JackpotGameDetailScreen from './screens/PsJackpot/PSJackpotGameDetailsScreen';
+import PSJackpotScreen from './screens/PsJackpot/PSJackpotScreen';
+import JackpotSingleGame from './screens/PsJackpot/PSJackpotGames/games/JackpotSingle/JackpotSingleGame';
+import JackpotJodiGame from './screens/PsJackpot/PSJackpotGames/games/JackpotJodi/JackpotJodi';
 
 // Utility Screens  
 import MyBidsScreen from './screens/sidebar-items/MyBidsScreen';
@@ -54,21 +56,29 @@ import GameRateScreen from './screens/sidebar-items/GameRateScreen';
 import TimeTableScreen from './screens/sidebar-items/TimeTableScreen';
 import UpdatePasswordScreen from './screens/sidebar-items/UpdatePasswordScreen';
 import TransactionHistoryScreen from './screens/sidebar-items/TransactionHistoryScreen';
-import PSJackpotScreen from './screens/sidebar-items/PSJackpotScreen';
 import AddFundScreen from './screens/sidebar-items/AddFundScreen';
 import WithdrawFundScreen from './screens/sidebar-items/WithdrawFundScreen';
-import ChartsScreen from './screens/sidebar-items/ChartsScreen';
 import NoticeBoardScreen from './screens/sidebar-items/NoticeBoardScreen';
 import HowToPlayScreen from './screens/sidebar-items/HowToPlayScreen';
 import ChangePasswordScreen from './screens/sidebar-items/ChangePasswordScreen';
-import BidHistoryScreen from './screens/sidebar-items/BidHistoryScreen';
 import AddFundHistoryScreen from './screens/sidebar-items/AddFundHistoryScreen';
 import WithdrawFundHistoryScreen from './screens/sidebar-items/WithdrawFundHistoryScreen';
 import UpdateBankDetailsScreen from './screens/sidebar-items/UpdateBankDetailsScreen';
 import MyProfileScreen from './screens/sidebar-items/MyProfileScreen';
-import GameResults from './screens/sidebar-items/GameResults';
 
-const Stack = createStackNavigator();
+//Game charts
+import ChartsScreen from './screens/GameCharts/GameChartsScreen';
+import MatkaChartsListScreen from './screens/GameCharts/MatkaChart/MatkaChartsListScreen';
+import StarlineChart from './screens/GameCharts/StarLineChart/StarLineChart';
+import JackpotChartListScreen from './screens/GameCharts/JackpotChart/JackpotChartListScreen';
+import JodiChartScreen from './screens/GameCharts/MatkaChart/JodiChartScreen';
+import PanelChartScreen from './screens/GameCharts/MatkaChart/PanelChartScreen';
+
+
+import GameResults from './screens/all-games-historyANDresults/GameResults';
+import BidHistoryScreen from './screens/all-games-historyANDresults/BidHistoryScreen';
+import PSStarlineResultScreen from './screens/all-games-historyANDresults/PSStarlineResultScreen';
+import PSjackpotResultScreen from './screens/all-games-historyANDresults/PSjackpotResultScreen';
 
 import { useFonts } from 'expo-font';
 import {
@@ -90,7 +100,7 @@ import {
   Raleway_700Bold,
 } from '@expo-google-fonts/raleway';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+const Stack = createStackNavigator();
 
 SplashScreen.preventAutoHideAsync();
 
@@ -198,14 +208,16 @@ export default function App() {
         <Stack.Screen name="StarLineDPMotorGame" component={StarLineDPMotorGame} />
         <Stack.Screen name="StarlineEvenOddGame" component={StarlineEvenOddGame} />
 
-
         {/* js jackpot screen */}
+        <Stack.Screen name="JackpotGameDetailScreen" component={JackpotGameDetailScreen} />
+        <Stack.Screen name="PSJackpotScreen" component={PSJackpotScreen} />
+        <Stack.Screen name="JackpotSingleGame" component={JackpotSingleGame} />
+        <Stack.Screen name="JackpotJodiGame" component={JackpotJodiGame} />
 
-        <Stack.Screen name="PSJackpot" component={PSJackpotScreen} />
+
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
         <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
-        <Stack.Screen name="Charts" component={ChartsScreen} />
         <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
         <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
@@ -214,6 +226,17 @@ export default function App() {
         <Stack.Screen name="WithdrawFundHistory" component={WithdrawFundHistoryScreen} />
         <Stack.Screen name="UpdateBankDetails" component={UpdateBankDetailsScreen} />
         <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+        <Stack.Screen name="PSStarlineResultHistory" component={PSStarlineResultScreen} />
+        <Stack.Screen name="psJackpotResultHistory" component={PSjackpotResultScreen} />
+
+
+        <Stack.Screen name="Charts" component={ChartsScreen} />
+        <Stack.Screen name="ChartsList" component={MatkaChartsListScreen} />
+        <Stack.Screen name="StarlineChart" component={StarlineChart} />
+        <Stack.Screen name="JackpotChart" component={JackpotChartListScreen} />
+        <Stack.Screen name="JodiChart" component={JodiChartScreen} />
+        <Stack.Screen name="PanelChart" component={PanelChartScreen} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );

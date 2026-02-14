@@ -111,34 +111,9 @@ export const getMarkets = async () => {
     }
 };
 
-export const getStarlineResults = async (market_id) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/website/Starlines/read/Results.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                "market_id": market_id
-            }),
-        });
 
-        const text = await response.text();
-        try {
-            const data = JSON.parse(text);
-            return data;
-        } catch (e) {
-            const jsonMatch = text.match(/\{.*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            throw new Error('Invalid Results JSON: ' + text.substring(0, 50));
-        }
-    } catch (error) {
-        console.error('Get Starline Results API Error:', error);
-        throw error;
-    }
-};
+
+
 export const getBetHistory = async (userId, firstDate, lastDate) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/betHistory.php`, {
@@ -861,17 +836,19 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
 };
 
 
-export const result = async (market_id, date) => {
+export const result = async (market_id, date = null) => {
     try {
+        const body = { "market_id": market_id };
+        if (date) {
+            body["date"] = date;
+        }
+
         const response = await fetch(`${API_BASE_URL}/website/Reguler/read/Results.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                "market_id": market_id,
-                "date": date
-            }),
+            body: JSON.stringify(body),
         });
 
         const text = await response.text();
@@ -967,36 +944,7 @@ export const withdrawfund = async (UserId, Username, total_amount, typeofpay) =>
 
 
 
-export const gamerates = async (market_id) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/website/Starlines/read/marketRate.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                "market_id": market_id
-            }),
-        });
-        console.log(response);
-        const rawText = await response.text();
 
-        try {
-            const data = JSON.parse(rawText);
-            return data;
-        } catch (e) {
-            console.error('Markets JSON Parse Error:', e);
-            const jsonMatch = rawText.match(/\{.*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
-        }
-    } catch (error) {
-        console.error('Get Markets API Error:', error);
-        throw error;
-    }
-};
 
 
 
@@ -1351,3 +1299,349 @@ export const StarlineEvenOdd = async (userId, username, bids, totalAmount, marke
 }
 
 
+// ps jackpot 
+
+
+export const psJackpotMarket = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/market.php`, {
+
+        });
+        console.log(response);
+        const rawText = await response.text();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (e) {
+            console.error('Markets JSON Parse Error:', e);
+            const jsonMatch = rawText.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Get Markets API Error:', error);
+        throw error;
+    }
+}
+
+
+
+
+
+
+// Jackpot Games
+
+export const JackpotSingleGame = async (userId, username, number, amounts, market_name, marketId, session, session_time) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Jackpot/insert/BetDataInsertSingleAnk.php`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": userId,
+                "username": username,
+                "numbers": number,
+                "amounts": amounts,
+                "market_name": market_name,
+                "market_id": marketId,
+                "session": session,
+                "session_time": session_time
+            })
+        });
+        console.log(response);
+        const rawText = await response.text();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (e) {
+            console.error('Markets JSON Parse Error:', e);
+            const jsonMatch = rawText.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Get Markets API Error:', error);
+        throw error;
+    }
+}
+
+export const JackpotJodiGame = async (userId, username, number, amounts, market_name, marketId, session, session_time) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Jackpot/insert/BetDataInsertJodi.php`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "user_id": userId,
+                "username": username,
+                "numbers": number,
+                "amounts": amounts,
+                "market_name": market_name,
+                "market_id": marketId,
+                "session": session,
+                "session_time": session_time
+            })
+        });
+        console.log(response);
+        const rawText = await response.text();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (e) {
+            console.error('Markets JSON Parse Error:', e);
+            const jsonMatch = rawText.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Get Markets API Error:', error);
+        throw error;
+    }
+}
+
+//ps starline history 
+
+export const getStarlineResults = async (market_id, date = null) => {
+    try {
+        const body = { "market_id": market_id };
+        if (date) {
+            body["date"] = date;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/website/Starlines/read/Results.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Results JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Get Starline Results API Error:', error);
+        throw error;
+    }
+};
+
+
+export const psJackpotResult = async (marketId = null) => {
+
+    try {
+        const body = {};
+        if (marketId) {
+            body.market_id = marketId.toString();
+        }
+        const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/Results.php`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+        console.log(response);
+        const rawText = await response.text();
+
+        try {
+            const data = JSON.parse(rawText);
+            return data;
+        } catch (e) {
+            console.error('Markets JSON Parse Error:', e);
+            const jsonMatch = rawText.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Get Markets API Error:', error);
+        throw error;
+    }
+
+}
+
+
+// all games rates api
+
+// export const psJackpotMarketRate = async (market_id) => {
+//     try {
+//         const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/marketRate.php`, {
+//             method: "POST",
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 "market_id": market_id
+//             })
+//         });
+//         console.log(response);
+//         const rawText = await response.text();
+
+//         try {
+//             const data = JSON.parse(rawText);
+//             return data;
+//         } catch (e) {
+//             console.error('Markets JSON Parse Error:', e);
+//             const jsonMatch = rawText.match(/\{.*\}/);
+//             if (jsonMatch) {
+//                 return JSON.parse(jsonMatch[0]);
+//             }
+//             throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+//         }
+//     } catch (error) {
+//         console.error('Get Markets API Error:', error);
+//         throw error;
+//     }
+// }
+
+
+// export const AllGameRates = async (market_id) => {
+//     try {
+//         const response = await fetch(`${API_BASE_URL}/website/Reguler/read/marketRate.php`, {
+
+//             method: "POST",
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 "market_id": market_id
+//             })
+//         });
+//         console.log(response);
+//         const text = await response.text();
+
+//         try {
+//             const data = JSON.parse(text);
+//             return data;
+//         } catch (e) {
+//             console.error('Bet History JSON Parse Error:', e);
+//             const jsonMatch = text.match(/\{.*\}/);
+//             if (jsonMatch) {
+//                 return JSON.parse(jsonMatch[0]);
+//             }
+//             throw new Error('Invalid Bet History JSON: ' + text.substring(0, 50));
+//         }
+//     } catch (error) {
+//         console.error('Get Bet History API Error:', error);
+//         throw error;
+//     }
+// }
+
+
+// export const Starlinegamerates = async (market_id) => {
+//     try {
+//         const response = await fetch(`${API_BASE_URL}/website/Starlines/read/marketRate.php`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 "market_id": market_id
+//             }),
+//         });
+//         console.log(response);
+//         const rawText = await response.text();
+
+//         try {
+//             const data = JSON.parse(rawText);
+//             return data;
+//         } catch (e) {
+//             console.error('Markets JSON Parse Error:', e);
+//             const jsonMatch = rawText.match(/\{.*\}/);
+//             if (jsonMatch) {
+//                 return JSON.parse(jsonMatch[0]);
+//             }
+//             throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
+//         }
+//     } catch (error) {
+//         console.error('Get Markets API Error:', error);
+//         throw error;
+//     }
+// };
+
+
+
+// Game Rates
+
+export const getMarketRate = async () => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/website/Reguler/read/marketRate.php`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error("Market Rate API Error:", error);
+        throw error;
+    }
+};
+
+
+export const getJackPot = async () => {
+    try {
+        const response = await fetch(
+            `${API_BASE_URL}/website/Jackpot/read/marketRate.php`,
+            {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error("Jackpot API Error:", error);
+        throw error;
+    }
+};
+
+
+export const sarline = async () => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Starlines/read/marketRate.php`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+        );
+
+        const data = await response.json();
+        return data;
+
+    } catch (error) {
+        console.error("Jackpot API Error:", error);
+        throw error;
+    }
+}
