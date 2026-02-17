@@ -951,7 +951,6 @@ export const withdrawfund = async (UserId, Username, total_amount, typeofpay) =>
 export const starlinegetMarkets = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/Starlines/read/market.php`);
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -994,7 +993,6 @@ export const starlineSingleDigit = async (user_id, username, numbers, amounts, m
                 "session_time": session_time
             }),
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1037,7 +1035,6 @@ export const StarLineSinglePanaGame = async (user_id, username, numbers, amounts
                 "session_time": session_time
             }),
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1118,7 +1115,6 @@ export const StarLineTripplePana = async (user_id, username, numbers, amounts, m
                 "session_time": session_time
             }),
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1157,7 +1153,6 @@ export const StarlineSPDPTP = async (UserId, Username, Bids, market_name, market
                 "session_time": session_time
             }),
         });
-        console.log(response);
 
         const rawText = await response.text();
 
@@ -1197,7 +1192,6 @@ export const StarlineSPMotor = async (userId, username, bids, totalAmount, marke
                 "session_time": sessionTime
             }),
         });
-        console.log(response);
 
         const rawText = await response.text();
 
@@ -1239,7 +1233,6 @@ export const StarlineDpMotar = async (userId, username, bids, totalAmount, marke
 
 
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1278,7 +1271,6 @@ export const StarlineEvenOdd = async (userId, username, bids, totalAmount, marke
                 "session_time": sessionTime
             })
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1307,7 +1299,6 @@ export const psJackpotMarket = async () => {
         const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/market.php`, {
 
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1352,7 +1343,6 @@ export const JackpotSingleGame = async (userId, username, number, amounts, marke
                 "session_time": session_time
             })
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1390,7 +1380,6 @@ export const JackpotJodiGame = async (userId, username, number, amounts, market_
                 "session_time": session_time
             })
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {
@@ -1459,7 +1448,6 @@ export const psJackpotResult = async (marketId = null) => {
             },
             body: JSON.stringify(body)
         });
-        console.log(response);
         const rawText = await response.text();
 
         try {

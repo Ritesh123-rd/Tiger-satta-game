@@ -55,7 +55,7 @@ import SettingsScreen from './screens/sidebar-items/SettingsScreen';
 import GameRateScreen from './screens/sidebar-items/GameRateScreen';
 import TimeTableScreen from './screens/sidebar-items/TimeTableScreen';
 import UpdatePasswordScreen from './screens/sidebar-items/UpdatePasswordScreen';
-import TransactionHistoryScreen from './screens/sidebar-items/TransactionHistoryScreen';
+
 import AddFundScreen from './screens/sidebar-items/AddFundScreen';
 import WithdrawFundScreen from './screens/sidebar-items/WithdrawFundScreen';
 import NoticeBoardScreen from './screens/sidebar-items/NoticeBoardScreen';
@@ -217,7 +217,7 @@ export default function App() {
 
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
-        <Stack.Screen name="TransactionHistory" component={TransactionHistoryScreen} />
+
         <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
         <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
         <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
