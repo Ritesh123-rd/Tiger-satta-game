@@ -76,7 +76,13 @@ const CustomAlert = ({
     };
 
     const getHeaderColor = () => {
-        return '#C27183'; // Primary brand color requested by user
+        switch (type) {
+            case 'success': return '#4CAF50';
+            case 'error': return '#F44336';
+            case 'warning': return '#FF9800';
+            case 'info': return '#2196F3';
+            default: return '#C27183';
+        }
     };
 
 

@@ -46,16 +46,19 @@ const JodiGame = ({ navigation, route }) => {
     const [specialBids, setSpecialBids] = useState({});
 
     useEffect(() => {
-        if (isOpenAvailable === false) {
-            setAlertConfig({
-                visible: true,
-                title: 'Market Closed',
-                message: 'Jodi game ke liye open time samapt ho chuka hai.',
-                type: 'warning',
-                onClose: () => navigation.navigate('Home')
-            });
+        // Strict check for open availability with delay to ensure mount
+        if (!isOpenAvailable || isOpenAvailable === 'false') {
+            const timer = setTimeout(() => {
+                setAlertConfig({
+                    visible: true,
+                    title: 'Market Closed',
+                    message: 'Jodi game is only available when market is OPEN.',
+                    type: 'warning',
+                    onClose: () => navigation.goBack()
+                });
+            }, 500);
+            return () => clearTimeout(timer);
         }
-
     }, [isOpenAvailable]);
 
     useEffect(() => {
@@ -231,7 +234,14 @@ const JodiGame = ({ navigation, route }) => {
 
             const response = await PlaceJodiBet(userId, username, numbers, amounts, gameName, String(marketId));
 
-            if (response && response.status === 'success') {
+            const isSuccess = response && (
+                response.status === 'success' ||
+                response.status === true ||
+                response.status === 'true' ||
+                (typeof response.message === 'string' && response.message.toLowerCase().includes('success'))
+            );
+
+            if (isSuccess) {
                 setAlertConfig({
                     visible: true,
                     title: 'Success',

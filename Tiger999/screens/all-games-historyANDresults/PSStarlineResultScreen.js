@@ -49,6 +49,13 @@ const PSStarlineResultScreen = () => {
     const changeDate = (days) => {
         const newDate = new Date(selectedDate);
         newDate.setDate(newDate.getDate() + days);
+
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+
+        // Prevent future dates
+        if (newDate > today) return;
+
         setSelectedDate(newDate);
     };
 
@@ -75,11 +82,18 @@ const PSStarlineResultScreen = () => {
                     let resultValue = "***-*";
 
                     if (res && res.status === 'success' && res.data && res.data.length > 0) {
-                        const item = res.data[0];
-                        // Check if the result matches the date we want (API might return all history if date param is ignored)
-                        // But assuming API respects date param as implemented in api/auth.js
-                        if (item.open_number && item.last_digit_open) {
+                        // STRICTLY find the item belonging to this market ID
+                        // The user complained "id ke hisab se result dikhna chahiye"
+                        const item = res.data.find(r => String(r.market_id) === String(market.id));
+
+                        if (item && item.open_number && item.last_digit_open) {
                             resultValue = `${item.open_number}-${item.last_digit_open}`;
+                        } else if (res.data[0] && String(res.data[0].market_id) === String(market.id)) {
+                            // Fallback to first item ONLY if ID matches
+                            const first = res.data[0];
+                            if (first.open_number && first.last_digit_open) {
+                                resultValue = `${first.open_number}-${first.last_digit_open}`;
+                            }
                         }
                     }
                     return {
@@ -143,7 +157,11 @@ const PSStarlineResultScreen = () => {
                     <View style={styles.datePill}>
                         <Text style={styles.dateText}>{formatDateDisplay(selectedDate)}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => changeDate(1)} style={styles.arrowButton}>
+                    <TouchableOpacity
+                        onPress={() => changeDate(1)}
+                        style={[styles.arrowButton, { opacity: selectedDate.toDateString() === new Date().toDateString() ? 0.3 : 1 }]}
+                        disabled={selectedDate.toDateString() === new Date().toDateString()}
+                    >
                         <Ionicons name="chevron-forward" size={24} color="#333" />
                     </TouchableOpacity>
                 </View>

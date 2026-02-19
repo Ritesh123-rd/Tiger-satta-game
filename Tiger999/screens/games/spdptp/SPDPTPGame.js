@@ -300,7 +300,15 @@ export default function SPDPTPGame({ navigation, route }) {
         currentTotalAmount
       );
 
-      if (response && (response.status === true || response.status === 'true')) {
+      // Check for success status or success message in the response
+      const isSuccess = response && (
+        response.status === true ||
+        response.status === 'true' ||
+        response.status === 'success' ||
+        (response.message && typeof response.message === 'string' && response.message.toLowerCase().includes('success'))
+      );
+
+      if (isSuccess) {
         setAlertConfig({
           visible: true,
           title: 'Success',

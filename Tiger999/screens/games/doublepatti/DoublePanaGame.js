@@ -17,6 +17,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import CustomAlert from '../../../components/CustomAlert';
 
@@ -345,7 +346,14 @@ export default function DoublePanaGame({ navigation, route }) {
 
         const response = await DoublePatti(userId, username, numbers, amounts, gameName, String(marketId), session);
 
-        if (response && response.status === 'success') {
+        const isSuccess = response && (
+          response.status === 'success' ||
+          response.status === true ||
+          response.status === 'true' ||
+          (response.message && typeof response.message === 'string' && response.message.toLowerCase().includes('success'))
+        );
+
+        if (isSuccess) {
           successCount++;
         } else {
           setAlertConfig({

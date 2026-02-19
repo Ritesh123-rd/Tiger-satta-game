@@ -60,8 +60,36 @@ export default function GameResults({ navigation }) {
                 const resultsPromises = markets.map(async (market) => {
                     try {
                         const res = await result(market.id, date);
-                        // Extracting actual result data (usually inside res.data or the object itself)
-                        const resultData = (res && res.status === true && res.data) ? res.data : res;
+
+                        let resultData = null;
+
+                        // Handle result data extraction similar to other screens
+                        if (res) {
+                            if (res.open_number || (res.full_result && res.full_result.open)) {
+                                // Single object ? Check ID if available
+                                if (!res.market_id || String(res.market_id) === String(market.id)) {
+                                    resultData = res;
+                                }
+                            } else if (res.status === true && res.data) {
+                                // If array, find matching market ID
+                                if (Array.isArray(res.data)) {
+                                    resultData = res.data.find(r => String(r.market_id) === String(market.id));
+                                    // Fallback: If no ID found but array has content, check if first item matches
+                                    if (!resultData && res.data.length > 0 && String(res.data[0].market_id) === String(market.id)) {
+                                        resultData = res.data[0];
+                                    }
+                                } else {
+                                    // Single object inside data
+                                    if (!res.data.market_id || String(res.data.market_id) === String(market.id)) {
+                                        resultData = res.data;
+                                    }
+                                }
+                            }
+                        }
+
+                        // If still null, try one more fallback if res is the object itself but without ID check?
+                        // No, let's be strict as requested. "id ke hisab se"
+                        // If resultData is null, formatResult will handle it as '***-**-***'
 
                         return {
                             id: market.id,
@@ -114,6 +142,21 @@ export default function GameResults({ navigation }) {
 
     const confirmDate = () => {
         const formattedDate = `${tempYear}-${tempMonth}-${tempDay}`;
+
+        const selected = new Date(formattedDate);
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+
+        // Prevent future dates
+        if (selected > today) {
+            // Ideally show an alert, or just reset to today, or do nothing.
+            // For consistency with other screens, we just don't update if it's future.
+            // But since this is a modal "Select" confirmation, user expects feedback.
+            // Let's just set it to Today if future.
+            alert('Cannot select future date.');
+            return;
+        }
+
         setSelectedDate(formattedDate);
         setIsModalVisible(false);
         fetchAllResults(formattedDate);

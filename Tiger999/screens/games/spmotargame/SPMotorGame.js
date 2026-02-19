@@ -286,7 +286,15 @@ export default function SPMotorGame({ navigation, route }) {
                 "SP Motor" // Consistent with example name or can use originalDigits if needed
             );
 
-            if (response && (response.status === true || response.status === 'true')) {
+            // Check for success status or success message in the response
+            const isSuccess = response && (
+                response.status === true ||
+                response.status === 'true' ||
+                response.status === 'success' ||
+                (typeof response.message === 'string' && response.message.toLowerCase().includes('success'))
+            );
+
+            if (isSuccess) {
                 // Update balance and clear bids immediately
                 fetchBalance();
                 setBids([]);

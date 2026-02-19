@@ -88,8 +88,10 @@ export default function BidHistoryScreen({ navigation }) {
 
             const response = await bidhistory(userId, fromDate, toDate);
             if (response && (response.status === true || response.status === 'true')) {
-                setAllBids(response.data || []);
-                setTotalCount(response.count || 0);
+                // Filter by user ID on client side since API returns all users' data
+                const filteredBids = (response.data || []).filter(item => String(item.user_id) === String(userId));
+                setAllBids(filteredBids);
+                setTotalCount(filteredBids.length);
                 setCurrentPage(1);
             } else {
                 setAllBids([]);
@@ -127,8 +129,10 @@ export default function BidHistoryScreen({ navigation }) {
             const userId = await AsyncStorage.getItem('userId');
             const response = await bidhistory(userId, pickingFor === 'from' ? formattedDate : fromDate, pickingFor === 'to' ? formattedDate : toDate);
             if (response && (response.status === true || response.status === 'true')) {
-                setAllBids(response.data || []);
-                setTotalCount(response.count || 0);
+                // Filter by user ID on client side since API returns all users' data
+                const filteredBids = (response.data || []).filter(item => String(item.user_id) === String(userId));
+                setAllBids(filteredBids);
+                setTotalCount(filteredBids.length);
                 setCurrentPage(1);
             } else {
                 setAllBids([]);

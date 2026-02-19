@@ -49,6 +49,13 @@ const PSjackpotResultScreen = () => {
     const changeDate = (days) => {
         const newDate = new Date(selectedDate);
         newDate.setDate(newDate.getDate() + days);
+
+        const today = new Date();
+        today.setHours(23, 59, 59, 999);
+
+        // Prevent future dates
+        if (newDate > today) return;
+
         setSelectedDate(newDate);
     };
 
@@ -83,9 +90,26 @@ const PSjackpotResultScreen = () => {
                     if (res) {
                         // Check if res is the object or res.data is the object/array
                         if (res.full_result || res.jodi) {
-                            item = res;
+                            // If API returns single object, check if it matches market ID (if available in response)
+                            if (!res.market_id || String(res.market_id) === String(market.id)) {
+                                item = res;
+                            }
                         } else if (res.status === 'success' && res.data) {
-                            item = Array.isArray(res.data) ? res.data[0] : res.data;
+                            // If array, find the one matching market ID
+                            if (Array.isArray(res.data)) {
+                                item = res.data.find(r => String(r.market_id) === String(market.id));
+                                // Fallback: if no ID match found but array exists, and we are sure this API call was for this market...
+                                // But to be safe as per user request "id ke hisab se", we stick to strict check or default to first if strict check fails? 
+                                // Better to trust strict check first.
+                                if (!item && res.data.length > 0 && String(res.data[0].market_id) === String(market.id)) {
+                                    item = res.data[0];
+                                }
+                            } else {
+                                // Single object in data
+                                if (!res.data.market_id || String(res.data.market_id) === String(market.id)) {
+                                    item = res.data;
+                                }
+                            }
                         }
                     }
 
@@ -157,7 +181,11 @@ const PSjackpotResultScreen = () => {
                     <View style={styles.datePill}>
                         <Text style={styles.dateText}>{formatDateDisplay(selectedDate)}</Text>
                     </View>
-                    <TouchableOpacity onPress={() => changeDate(1)} style={styles.arrowButton}>
+                    <TouchableOpacity
+                        onPress={() => changeDate(1)}
+                        style={[styles.arrowButton, { opacity: selectedDate.toDateString() === new Date().toDateString() ? 0.3 : 1 }]}
+                        disabled={selectedDate.toDateString() === new Date().toDateString()}
+                    >
                         <Ionicons name="chevron-forward" size={24} color="#333" />
                     </TouchableOpacity>
                 </View>
