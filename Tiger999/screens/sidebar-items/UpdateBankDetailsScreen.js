@@ -243,18 +243,21 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                         showsVerticalScrollIndicator={false}
                         keyboardShouldPersistTaps="handled"
                     >
+                        <Text style={styles.label}>Bank Name</Text>
                         <InputField
                             icon="business"
                             placeholder="Bank Name"
                             value={bankName}
                             onChangeText={setBankName}
                         />
+                        <Text style={styles.label}>Account Holder Name</Text>
                         <InputField
                             icon="person"
                             placeholder="Account Holder Name"
                             value={holderName}
                             onChangeText={setHolderName}
                         />
+                        <Text style={styles.label}>Bank Account Number</Text>
                         <InputField
                             icon="bank"
                             iconType="FontAwesome5"
@@ -263,6 +266,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                             onChangeText={setAccountNumber}
                             keyboardType="numeric"
                         />
+                        <Text style={styles.label}>IFSC Code</Text>
                         <InputField
                             icon="card-outline"
                             placeholder="IFSC"
@@ -274,12 +278,14 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                             <Text style={styles.dividerText}>UPI & Digital Wallets</Text>
                         </View>
 
+                        <Text style={styles.label}>UPI ID</Text>
                         <InputField
                             icon="at-circle-outline"
                             placeholder="UPI ID"
                             value={upi}
                             onChangeText={setUpi}
                         />
+                        <Text style={styles.label}>Paytm Number</Text>
                         <InputField
                             icon="wallet-outline"
                             placeholder="Paytm Number"
@@ -287,6 +293,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                             onChangeText={setPaytm}
                             keyboardType="numeric"
                         />
+                        <Text style={styles.label}>Google Pay Number</Text>
                         <InputField
                             icon="google-pay"
                             iconType="MaterialCommunityIcons"
@@ -295,6 +302,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                             onChangeText={setGooglePay}
                             keyboardType="numeric"
                         />
+                        <Text style={styles.label}>Phone Pe Number</Text>
                         <InputField
                             icon="phone-portrait-outline"
                             placeholder="Phone Pe Number"
@@ -449,5 +457,23 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         fontFamily: 'RaleighStdDemi',
+    },
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#000',
+        fontFamily: 'RaleighStdDemi',
+        marginBottom: 15,
+    },
+    label: {
+        fontSize: 14,
+        color: '#C36578',
+        fontWeight: '600',
+        fontFamily: 'RaleighStdDemi',
+        alignSelf: 'flex-start',
+        marginLeft: 5,
+        marginBottom: 5,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
     },
 });

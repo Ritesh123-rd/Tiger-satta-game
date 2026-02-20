@@ -416,6 +416,7 @@ export const JodiGame = async (UserId, Username, Numbers, Amounts, market_name, 
 };
 
 
+
 export const SinglePatti = async (UserId, Username, Numbers, Amounts, market_name, market_id, session) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/Reguler/insert/BetDataInsertSinglePatti.php`, {
