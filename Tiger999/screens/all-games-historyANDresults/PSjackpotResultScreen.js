@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { psJackpotMarket, psJackpotResult } from '../../api/auth';
+import { dateviseResultPJackpot } from '../../api/auth';
 
 const PSjackpotResultScreen = () => {
     const navigation = useNavigation();
@@ -60,85 +60,26 @@ const PSjackpotResultScreen = () => {
     };
 
     const fetchData = async () => {
-        setLoading(true);
+        if (!refreshing) setLoading(true);
+        const dateStr = formatDate(selectedDate);
+        console.log('Fetching jackpot results for:', dateStr);
         try {
-            // 1. Fetch Markets
-            const marketsRes = await psJackpotMarket();
-            let markets = [];
-            if (marketsRes && marketsRes.status === true && marketsRes.data) {
-                markets = marketsRes.data;
+            const response = await dateviseResultPJackpot(dateStr);
+            if (response && response.status === 'success' && response.data) {
+                const results = response.data.map(item => ({
+                    id: item.id || item.market_id,
+                    time: item.market_name || item.end_time || "Unknown",
+                    result: item.full_result || item.jodi || (
+                        item.open_number && item.close_number ? `${item.open_number}-${item.close_number}` : (item.open_number || item.close_number || "***-**")
+                    )
+                }));
+                setHistoryData(results);
             } else {
-                setLoading(false);
                 setHistoryData([]);
-                setRefreshing(false);
-                return;
             }
-
-            // 2. Fetch Results for each market
-            // Note: psJackpotResult currently doesn't seem to support date filtering in the API definition found.
-            // We will fetch the result for the market. If the API supported date, we'd pass it here.
-            const resultsPromises = markets.map(async (market) => {
-                try {
-                    const res = await psJackpotResult(market.id);
-                    let resultValue = "***-**"; // Default placeholder
-
-                    // API returns a single object or array? The previous user snippet showed an object.
-                    // { "market_id": "1", "date": "...", "full_result": "..." }
-                    // But typically APIs might return an array. Let's handle both or the specific object.
-
-                    let item = null;
-                    if (res) {
-                        // Check if res is the object or res.data is the object/array
-                        if (res.full_result || res.jodi) {
-                            // If API returns single object, check if it matches market ID (if available in response)
-                            if (!res.market_id || String(res.market_id) === String(market.id)) {
-                                item = res;
-                            }
-                        } else if (res.status === 'success' && res.data) {
-                            // If array, find the one matching market ID
-                            if (Array.isArray(res.data)) {
-                                item = res.data.find(r => String(r.market_id) === String(market.id));
-                                // Fallback: if no ID match found but array exists, and we are sure this API call was for this market...
-                                // But to be safe as per user request "id ke hisab se", we stick to strict check or default to first if strict check fails? 
-                                // Better to trust strict check first.
-                                if (!item && res.data.length > 0 && String(res.data[0].market_id) === String(market.id)) {
-                                    item = res.data[0];
-                                }
-                            } else {
-                                // Single object in data
-                                if (!res.data.market_id || String(res.data.market_id) === String(market.id)) {
-                                    item = res.data;
-                                }
-                            }
-                        }
-                    }
-
-                    if (item) {
-                        // If we wanted to filter by date locally:
-                        // if (item.date === formatDate(selectedDate)) { ... }
-                        // For now, we display what we get as per "Day View" usually showing the relevant slot's result.
-                        resultValue = item.full_result || item.jodi || "***-**";
-                    }
-
-                    return {
-                        id: market.id,
-                        time: market.end_time_12 || market.market_name || market.name || "Unknown", // Adjust field based on psJackpotMarket response
-                        result: resultValue
-                    };
-                } catch (e) {
-                    return {
-                        id: market.id,
-                        time: market.end_time_12 || market.market_name || "Unknown",
-                        result: "***-**"
-                    };
-                }
-            });
-
-            const resultsData = await Promise.all(resultsPromises);
-            setHistoryData(resultsData);
-
         } catch (error) {
             console.error('Error fetching jackpot history:', error);
+            setHistoryData([]);
         } finally {
             setLoading(false);
             setRefreshing(false);

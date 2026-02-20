@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { starlinegetMarkets, getStarlineResults } from '../../api/auth';
+import { dateviseResultPStarline } from '../../api/auth';
 
 const PSStarlineResultScreen = () => {
     const navigation = useNavigation();
@@ -60,61 +60,24 @@ const PSStarlineResultScreen = () => {
     };
 
     const fetchData = async () => {
-        setLoading(true);
+        if (!refreshing) setLoading(true);
+        const dateStr = formatDate(selectedDate);
+        console.log('Fetching starline results for:', dateStr);
         try {
-            // 1. Fetch Markets
-            const marketsRes = await starlinegetMarkets();
-            let markets = [];
-            if (marketsRes && marketsRes.status === true && marketsRes.data) {
-                markets = marketsRes.data;
+            const response = await dateviseResultPStarline(dateStr);
+            if (response && response.status === 'success' && response.data) {
+                const results = response.data.map(item => ({
+                    id: item.id || item.market_id,
+                    time: item.market_name || item.end_time || "Unknown",
+                    result: `${item.open_number || '***'}-${item.last_digit_open || '*'}`
+                }));
+                setHistoryData(results);
             } else {
-                setLoading(false);
                 setHistoryData([]);
-                setRefreshing(false);
-                return;
             }
-
-            // 2. Fetch Results for each market for the selected date
-            const dateStr = formatDate(selectedDate);
-            const resultsPromises = markets.map(async (market) => {
-                try {
-                    const res = await getStarlineResults(market.id, dateStr);
-                    let resultValue = "***-*";
-
-                    if (res && res.status === 'success' && res.data && res.data.length > 0) {
-                        // STRICTLY find the item belonging to this market ID
-                        // The user complained "id ke hisab se result dikhna chahiye"
-                        const item = res.data.find(r => String(r.market_id) === String(market.id));
-
-                        if (item && item.open_number && item.last_digit_open) {
-                            resultValue = `${item.open_number}-${item.last_digit_open}`;
-                        } else if (res.data[0] && String(res.data[0].market_id) === String(market.id)) {
-                            // Fallback to first item ONLY if ID matches
-                            const first = res.data[0];
-                            if (first.open_number && first.last_digit_open) {
-                                resultValue = `${first.open_number}-${first.last_digit_open}`;
-                            }
-                        }
-                    }
-                    return {
-                        id: market.id,
-                        time: market.end_time_12 || market.market_name,
-                        result: resultValue
-                    };
-                } catch (e) {
-                    return {
-                        id: market.id,
-                        time: market.end_time_12 || market.market_name,
-                        result: "***-*"
-                    };
-                }
-            });
-
-            const resultsData = await Promise.all(resultsPromises);
-            setHistoryData(resultsData);
-
         } catch (error) {
-            console.error('Error fetching history:', error);
+            console.error('Error fetching starline history:', error);
+            setHistoryData([]);
         } finally {
             setLoading(false);
             setRefreshing(false);

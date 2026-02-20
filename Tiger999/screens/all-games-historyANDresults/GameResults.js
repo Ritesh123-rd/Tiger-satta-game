@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     View,
     Text,
@@ -8,10 +8,11 @@ import {
     StatusBar,
     ActivityIndicator,
     Modal,
-    Dimensions
+    Dimensions,
+    RefreshControl
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { getMarkets, result } from '../../api/auth';
+import { dateViseResult } from '../../api/auth';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -30,12 +31,13 @@ const formatToDisplayDate = (dateStr) => {
 
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const days = Array.from({ length: 31 }, (_, i) => String(i + 1).padStart(2, '0'));
-const years = ['2024', '2025', '2026'];
+const years = ['2023', '2024', '2025', '2026', '2027', '2028', '2029', '2030'];
 
 export default function GameResults({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [marketResults, setMarketResults] = useState([]);
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
+    const [refreshing, setRefreshing] = useState(false);
 
     // Date Picker Modal State (Reused from BidHistory)
     const [isModalVisible, setIsModalVisible] = useState(false);
@@ -52,74 +54,63 @@ export default function GameResults({ navigation }) {
     }, []);
 
     const fetchAllResults = async (date) => {
-        setLoading(true);
+        if (!refreshing) setLoading(true);
+        console.log('Fetching results for date:', date);
         try {
-            const marketResponse = await getMarkets();
-            if (marketResponse && marketResponse.status === true && marketResponse.data) {
-                const markets = marketResponse.data;
-                const resultsPromises = markets.map(async (market) => {
-                    try {
-                        const res = await result(market.id, date);
-
-                        let resultData = null;
-
-                        // Handle result data extraction similar to other screens
-                        if (res) {
-                            if (res.open_number || (res.full_result && res.full_result.open)) {
-                                // Single object ? Check ID if available
-                                if (!res.market_id || String(res.market_id) === String(market.id)) {
-                                    resultData = res;
-                                }
-                            } else if (res.status === true && res.data) {
-                                // If array, find matching market ID
-                                if (Array.isArray(res.data)) {
-                                    resultData = res.data.find(r => String(r.market_id) === String(market.id));
-                                    // Fallback: If no ID found but array has content, check if first item matches
-                                    if (!resultData && res.data.length > 0 && String(res.data[0].market_id) === String(market.id)) {
-                                        resultData = res.data[0];
-                                    }
-                                } else {
-                                    // Single object inside data
-                                    if (!res.data.market_id || String(res.data.market_id) === String(market.id)) {
-                                        resultData = res.data;
-                                    }
-                                }
-                            }
-                        }
-
-                        // If still null, try one more fallback if res is the object itself but without ID check?
-                        // No, let's be strict as requested. "id ke hisab se"
-                        // If resultData is null, formatResult will handle it as '***-**-***'
-
-                        return {
-                            id: market.id,
-                            name: market.market_name,
-                            value: formatResult(resultData)
-                        };
-                    } catch (e) {
-                        return { id: market.id, name: market.market_name, value: '***-**-***' };
-                    }
-                });
-                const resolvedResults = await Promise.all(resultsPromises);
-                setMarketResults(resolvedResults);
+            const response = await dateViseResult(date);
+            if (response && response.status === 'success' && response.data) {
+                const results = response.data.map(item => ({
+                    id: item.id || item.market_id,
+                    name: item.market_name,
+                    value: formatResult(item)
+                }));
+                setMarketResults(results);
+            } else {
+                setMarketResults([]);
             }
         } catch (error) {
             console.error('Error fetching results:', error);
+            setMarketResults([]);
         } finally {
             setLoading(false);
+            setRefreshing(false);
         }
+    };
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        fetchAllResults(selectedDate);
+    }, [selectedDate, refreshing]);
+
+    const calculateDigit = (pana) => {
+        if (!pana || pana === '***' || pana.length !== 3) return null;
+        const sum = pana.split('').reduce((acc, digit) => acc + parseInt(digit), 0);
+        return sum % 10;
     };
 
     const formatResult = (res) => {
         if (!res || typeof res !== 'object') return '***-**-***';
 
-        // Priority: open_number/close_number/combined_digit
-        // Fallback: full_result.open/full_result.close
-        let open = res.open_number || (res.full_result && res.full_result.open) || '***';
-        let jodi = res.combined_digit || '**';
-        let close = res.close_number || (res.full_result && res.full_result.close) || '***';
+        let open = res.open_number || '***';
+        let close = res.close_number || '***';
 
-        // Clean up hyphens or empty strings from API
+        // Handle Jodi calculation
+        let jodi = res.combined_digit;
+        if (!jodi || jodi === '**') {
+            const openDigit = calculateDigit(open);
+            const closeDigit = calculateDigit(close);
+
+            if (openDigit !== null && closeDigit !== null) {
+                jodi = `${openDigit}${closeDigit}`;
+            } else if (openDigit !== null) {
+                jodi = `${openDigit}*`;
+            } else if (closeDigit !== null) {
+                jodi = `*${closeDigit}`;
+            } else {
+                jodi = '**';
+            }
+        }
+
         const formatField = (val, placeholder) => {
             if (val === '-' || val === '' || val === null || val === undefined) return placeholder;
             return val;
@@ -196,7 +187,13 @@ export default function GameResults({ navigation }) {
                         <ActivityIndicator size="large" color="#6B3A3A" />
                     </View>
                 ) : (
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 20 }}>
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={{ paddingBottom: 20 }}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#6B3A3A"]} />
+                        }
+                    >
                         {marketResults.map(renderResultItem)}
                     </ScrollView>
                 )}

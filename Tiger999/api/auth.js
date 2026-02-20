@@ -836,39 +836,6 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
 };
 
 
-export const result = async (market_id, date = null) => {
-    try {
-        const body = { "market_id": market_id };
-        if (date) {
-            body["date"] = date;
-        }
-
-        const response = await fetch(`${API_BASE_URL}/website/Reguler/read/Results.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(body),
-        });
-
-        const text = await response.text();
-
-        try {
-            const data = JSON.parse(text);
-            return data;
-        } catch (e) {
-            console.error('Result JSON Parse Error:', e);
-            const jsonMatch = text.match(/\{.*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
-        }
-    } catch (error) {
-        console.error('Result API Error:', error);
-        throw error;
-    }
-};
 
 
 export const addfund = async (UserId, Username, total_amount) => {
@@ -1401,6 +1368,8 @@ export const JackpotJodiGame = async (userId, username, number, amounts, market_
 
 //ps starline history 
 
+
+
 export const getStarlineResults = async (market_id, date = null) => {
     try {
         const body = { "market_id": market_id };
@@ -1468,6 +1437,132 @@ export const psJackpotResult = async (marketId = null) => {
 
 }
 
+
+export const result = async (market_id, date = null) => {
+    try {
+        const body = { "market_id": market_id };
+        if (date) {
+            body["date"] = date;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/read/Results.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        const text = await response.text();
+
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Result JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Result API Error:', error);
+        throw error;
+    }
+};
+
+//datevise result
+export const dateViseResult = async (DATE) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Reguler/read/TodayResults.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "date": DATE,
+                "current_datee": DATE
+            }),
+        });
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Result JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Result API Error:', error);
+        throw error;
+    }
+}
+
+export const dateviseResultPJackpot = async (DATE) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/TodayResults.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "date": DATE,
+                "current_datee": DATE
+            }),
+        });
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Result JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Result API Error:', error);
+        throw error;
+    }
+}
+
+
+export const dateviseResultPStarline = async (DATE) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/Starlines/read/TodayResults.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                "date": DATE,
+                "current_datee": DATE
+            }),
+        });
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Result JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Result JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Result API Error:', error);
+        throw error;
+    }
+}
 
 // all games rates api
 
