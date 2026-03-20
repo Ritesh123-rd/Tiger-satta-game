@@ -137,7 +137,7 @@ export default function HomeScreen({ navigation }) {
 
         const sortedMarkets = transformedMarkets.sort((a, b) => {
           if (a.isOpen === b.isOpen) return 0;
-          return a.isOpen ? -1 : 1;
+          return a.isOpen ? 1 : -1;
         });
 
         setGamesList(sortedMarkets);

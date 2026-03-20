@@ -15,11 +15,12 @@ import CustomAlert from '../components/CustomAlert';
 
 
 import logo from '../assets/logo/logo.png';
-import { loginUser } from '../api/auth';
+import { sendOtp, verifyOtp } from '../api/auth';
 
 export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [password, setPassword] = useState(''); // Added password state
+  const [otp, setOtp] = useState('');
+  const [step, setStep] = useState('mobile'); // 'mobile' or 'otp'
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,80 +32,37 @@ export default function LoginScreen({ navigation }) {
     type: 'success',
   });
 
-
-  const handleLogin = async () => {
-    if (phoneNumber.length === 10 && password.length > 0) {
+  const handleSendOtp = async () => {
+    if (phoneNumber.length === 10) {
       setIsLoading(true);
       try {
-        // Try API Login first
-        const response = await loginUser(phoneNumber, password);
-        console.log('Login API Response:', response);
+        const response = await sendOtp(phoneNumber);
+        console.log('Send OTP Response:', response);
 
-        if (response && (response.status === true || response.status === 'true')) {
+        if (response && response.status === true) {
           setAlertConfig({
             visible: true,
-            title: 'Login Successful',
-            message: 'Welcome back!',
+            title: 'OTP Sent',
+            message: response.message || 'OTP has been sent to your mobile number.',
             type: 'success'
           });
-
-
-          // Save user info from response
-          await AsyncStorage.setItem('userMobile', phoneNumber);
-          await AsyncStorage.setItem('userPassword', password);
-          if (response.username) await AsyncStorage.setItem('userName', response.username);
-          if (response.user_id) await AsyncStorage.setItem('userId', String(response.user_id));
-          if (response.created_at) {
-            const date = new Date(response.created_at);
-            await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
-          }
-
-          navigation.replace('Home');
-        } else {
-          // Fallback to Local Auth if API fails but user is registered locally
-          const storedMobile = await AsyncStorage.getItem('userMobile');
-          const storedPassword = await AsyncStorage.getItem('userPassword');
-
-          if (storedMobile === phoneNumber && storedPassword === password) {
-            setAlertConfig({
-              visible: true,
-              title: 'Login Successful',
-              message: 'Logged in using local credentials.',
-              type: 'success'
-            });
-            navigation.replace('Home');
-          } else {
-            setAlertConfig({
-              visible: true,
-              title: 'Login Failed',
-              message: response.message || 'Invalid Mobile or Password',
-              type: 'error'
-            });
-          }
-
-        }
-      } catch (error) {
-        console.error('Login Error:', error);
-        // Fallback to Local Auth on network error
-        const storedMobile = await AsyncStorage.getItem('userMobile');
-        const storedPassword = await AsyncStorage.getItem('userPassword');
-        if (storedMobile === phoneNumber && storedPassword === password) {
-          setAlertConfig({
-            visible: true,
-            title: 'Login Successful',
-            message: 'Logged in offline.',
-            type: 'success'
-          });
-          navigation.replace('Home');
+          setStep('otp');
         } else {
           setAlertConfig({
             visible: true,
             title: 'Error',
-            message: 'Login Error: ' + error.message,
+            message: response.message || 'Failed to send OTP. Please try again.',
             type: 'error'
           });
         }
-
+      } catch (error) {
+        console.error('Send OTP Error:', error);
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'Network error. Please check your connection.',
+          type: 'error'
+        });
       } finally {
         setIsLoading(false);
       }
@@ -112,11 +70,64 @@ export default function LoginScreen({ navigation }) {
       setAlertConfig({
         visible: true,
         title: 'Error',
-        message: 'Please enter a valid 10-digit phone number and password',
+        message: 'Please enter a valid 10-digit phone number',
         type: 'error'
       });
     }
+  };
 
+  const handleVerifyOtp = async () => {
+    if (otp.length > 0) {
+      setIsLoading(true);
+      try {
+        const response = await verifyOtp(phoneNumber, otp);
+        console.log('Verify OTP Response:', response);
+
+        if (response && response.status === true) {
+          setAlertConfig({
+            visible: true,
+            title: 'Login Successful',
+            message: 'Welcome back!',
+            type: 'success'
+          });
+
+          // Save user info from response
+          await AsyncStorage.setItem('userMobile', phoneNumber);
+          if (response.username) await AsyncStorage.setItem('userName', response.username);
+          if (response.user_id) await AsyncStorage.setItem('userId', String(response.user_id));
+          if (response.created_at) {
+            const date = new Date(response.created_at);
+            await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
+          }
+
+          // navigation.replace('Home') is handled in CustomAlert's onClose
+        } else {
+          setAlertConfig({
+            visible: true,
+            title: 'Verification Failed',
+            message: response.message || 'Invalid OTP. Please try again.',
+            type: 'error'
+          });
+        }
+      } catch (error) {
+        console.error('Verify OTP Error:', error);
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'Network error. Please check your connection.',
+          type: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter the OTP',
+        type: 'error'
+      });
+    }
   };
 
   const makeCall = () => {
@@ -141,50 +152,80 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
-        {/* Title */}
-        <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
+        {step === 'mobile' ? (
+          <>
+            {/* Title */}
+            <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
 
-        {/* Phone Input */}
-        <View style={styles.inputContainer}>
-          <View style={styles.phoneIcon}>
-            <Ionicons name="phone-portrait" size={28} color="#fff" />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Phone Number"
-            placeholderTextColor="#999"
-            keyboardType="phone-pad"
-            maxLength={10}
-            value={phoneNumber}
-            onChangeText={setPhoneNumber}
-          />
-        </View>
+            {/* Phone Input */}
+            <View style={styles.inputContainer}>
+              <View style={styles.phoneIcon}>
+                <Ionicons name="phone-portrait" size={28} color="#fff" />
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Phone Number"
+                placeholderTextColor="#999"
+                keyboardType="phone-pad"
+                maxLength={10}
+                value={phoneNumber}
+                onChangeText={setPhoneNumber}
+              />
+            </View>
 
-        {/* Password Input */}
-        <View style={styles.inputContainer}>
-          <View style={styles.phoneIcon}>
-            <Ionicons name="lock-closed" size={28} color="#fff" />
-          </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#999"
-            secureTextEntry={true}
-            value={password}
-            onChangeText={setPassword}
-          />
-        </View>
+            {/* Send OTP Button */}
+            <TouchableOpacity
+              style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
+              onPress={handleSendOtp}
+              disabled={isLoading}
+            >
+              <Text style={styles.loginButtonText}>
+                {isLoading ? 'Sending...' : 'Send OTP'}
+              </Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            {/* Title */}
+            <Text style={styles.title}>ENTER OTP SENT TO {phoneNumber}</Text>
 
-        {/* Login Button */}
-        <TouchableOpacity
-          style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          <Text style={styles.loginButtonText}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </Text>
-        </TouchableOpacity>
+            {/* OTP Input */}
+            <View style={styles.inputContainer}>
+              <View style={styles.phoneIcon}>
+                <Ionicons name="mail-open" size={28} color="#fff" />
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter OTP"
+                placeholderTextColor="#999"
+                keyboardType="number-pad"
+                value={otp}
+                onChangeText={setOtp}
+              />
+            </View>
+
+            {/* Verify OTP Button */}
+            <TouchableOpacity
+              style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
+              onPress={handleVerifyOtp}
+              disabled={isLoading}
+            >
+              <Text style={styles.loginButtonText}>
+                {isLoading ? 'Verifying...' : 'Verify OTP'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Resend OTP Link */}
+            <TouchableOpacity onPress={handleSendOtp} disabled={isLoading}>
+              <Text style={[styles.signupLink, { marginBottom: 20 }]}>Resend OTP</Text>
+            </TouchableOpacity>
+
+            {/* Back to Mobile Number */}
+            <TouchableOpacity onPress={() => { setStep('mobile'); setOtp(''); }}>
+              <Text style={styles.signupText}>Change Number</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
         {/* Contact Buttons */}
         <View style={styles.contactContainer}>
@@ -212,7 +253,7 @@ export default function LoginScreen({ navigation }) {
         type={alertConfig.type}
         onClose={() => {
           setAlertConfig({ ...alertConfig, visible: false });
-          // If login was successful, we might want to navigate after alert closes
+          // If login was successful, we navigate after alert closes
           if (alertConfig.title === 'Login Successful') {
             navigation.replace('Home');
           }

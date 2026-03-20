@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { changePassword } from '../../api/auth';
 
 
 export default function ChangePasswordScreen({ navigation }) {
@@ -60,17 +62,52 @@ export default function ChangePasswordScreen({ navigation }) {
 
         setLoading(true);
 
-        // Simulate API call
-        setTimeout(() => {
-            setLoading(false);
-            setAlertConfig({
-                visible: true,
-                title: 'Success',
-                message: 'Password changed successfully',
-                type: 'success',
-                onClose: () => navigation.goBack()
-            });
-        }, 1500);
+        const performChangePassword = async () => {
+            try {
+                const userId = await AsyncStorage.getItem('userId');
+                if (!userId) {
+                    setAlertConfig({
+                        visible: true,
+                        title: 'Error',
+                        message: 'User session not found. Please login again.',
+                        type: 'error'
+                    });
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await changePassword(userId, currentPassword, newPassword, confirmPassword);
+
+                if (response.status === true || response.status === 'true') {
+                    setAlertConfig({
+                        visible: true,
+                        title: 'Success',
+                        message: response.message || 'Password changed successfully',
+                        type: 'success',
+                        onClose: () => navigation.goBack()
+                    });
+                } else {
+                    setAlertConfig({
+                        visible: true,
+                        title: 'Error',
+                        message: response.message || 'Failed to change password',
+                        type: 'error'
+                    });
+                }
+            } catch (error) {
+                console.error('Change Password Error:', error);
+                setAlertConfig({
+                    visible: true,
+                    title: 'Error',
+                    message: 'Network error or server unavailable',
+                    type: 'error'
+                });
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        performChangePassword();
 
     };
 

@@ -2,7 +2,6 @@ import { API_BASE_URL } from './config';
 
 export const loginUser = async (mobile, password) => {
     try {
-
         const response = await fetch(`${API_BASE_URL}/userLogin/login.php`, {
             method: 'POST',
             headers: {
@@ -88,6 +87,7 @@ export const getDateTime = async () => {
         throw error;
     }
 };
+
 export const getMarkets = async () => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/Reguler/read/market.php`);
@@ -110,8 +110,6 @@ export const getMarkets = async () => {
         throw error;
     }
 };
-
-
 
 
 export const getBetHistory = async (userId, firstDate, lastDate) => {
@@ -837,8 +835,6 @@ export const placeFullSangamBet = async (UserId, Username, Bids, market_name, ma
 };
 
 
-
-
 export const addfund = async (UserId, Username, total_amount) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/BalanceAdd.php`, {
@@ -871,6 +867,7 @@ export const addfund = async (UserId, Username, total_amount) => {
         throw error;
     }
 };
+
 
 export const withdrawfund = async (UserId, Username, total_amount, typeofpay) => {
     try {
@@ -908,12 +905,6 @@ export const withdrawfund = async (UserId, Username, total_amount, typeofpay) =>
 
 
 //ps startline Dashboard
-
-
-
-
-
-
 
 
 export const starlinegetMarkets = async () => {
@@ -1065,6 +1056,7 @@ export const StarlineDoublePana = async (user_id, username, numbers, amounts, ma
 
 }
 
+
 export const StarLineTripplePana = async (user_id, username, numbers, amounts, market_name, market_id, session, session_time) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/Starlines/insert/BetDataInsertTriplePatti.php`, {
@@ -1180,6 +1172,7 @@ export const StarlineSPMotor = async (userId, username, bids, totalAmount, marke
     }
 }
 
+
 export const StarlineDpMotar = async (userId, username, bids, totalAmount, marketName, marketId, session, sessionTime) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/Starlines/insert/BetDataInsertDP_Motor.php`, {
@@ -1285,9 +1278,6 @@ export const psJackpotMarket = async () => {
         throw error;
     }
 }
-
-
-
 
 
 
@@ -1700,7 +1690,6 @@ export const getJackPot = async () => {
                 },
             }
         );
-
         const data = await response.json();
         return data;
 
@@ -1729,3 +1718,95 @@ export const sarline = async () => {
         throw error;
     }
 }
+
+export const changePassword = async (userId, oldPass, newPass, confirmPass) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/userLogin/ChangePassword.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                old_pass: oldPass,
+                new_pass: newPass,
+                confirm_pass: confirmPass,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Change Password JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Change Password JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Change Password API Error:', error);
+        throw error;
+    }
+};
+
+export const sendOtp = async (mobile) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/userLogin/send_otp.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mobile: mobile,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Send OTP API Error:', error);
+        throw error;
+    }
+};
+
+export const verifyOtp = async (mobile, otp) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/userLogin/verify_otp.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mobile: mobile,
+                otp: otp,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Verify OTP API Error:', error);
+        throw error;
+    }
+};
