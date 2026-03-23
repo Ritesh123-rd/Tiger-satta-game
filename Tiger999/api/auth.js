@@ -1810,3 +1810,35 @@ export const verifyOtp = async (mobile, otp) => {
         throw error;
     }
 };
+
+
+export const paymentGetWay = async (name, mobile, amount) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/paymentGetWay/deposit.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                mobile: mobile,
+                amount: amount,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error('Payment GetWay API Error:', error);
+        throw error;
+    }
+};

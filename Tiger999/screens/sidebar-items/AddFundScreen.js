@@ -11,11 +11,12 @@ import {
   ScrollView,
   Linking,
   ActivityIndicator,
+  AppState,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect } from 'react';
-import { getWalletBalance, getFundRequestHistory, addfund } from '../../api/auth';
+import { useCallback, useEffect, useRef } from 'react';
+import { getWalletBalance, getFundRequestHistory, paymentGetWay } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
 
@@ -28,6 +29,7 @@ export default function AddFundScreen({ navigation }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const appState = useRef(AppState.currentState);
 
   // Custom Alert State
   const [alertConfig, setAlertConfig] = useState({
@@ -36,6 +38,26 @@ export default function AddFundScreen({ navigation }) {
     message: '',
     type: 'success',
   });
+
+  // Check status on app resume
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === 'active'
+      ) {
+        // User has returned from PhonePe/Navi
+        setTimeout(() => {
+           fetchUserData();
+        }, 3000);
+      }
+      appState.current = nextAppState;
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
 
 
   const fetchUserData = async () => {
@@ -52,7 +74,16 @@ export default function AddFundScreen({ navigation }) {
       if (phone && userId) {
         const response = await getWalletBalance(phone, userId);
         if (response && (response.status === true || response.status === 'true')) {
-          setBalance(parseFloat(response.balance));
+          const newBalance = parseFloat(response.balance);
+          if (newBalance > balance && balance !== 0) {
+            setAlertConfig({
+              visible: true,
+              title: 'Success!',
+              message: `₹ ${newBalance - balance} successfully added to your wallet.`,
+              type: 'success'
+            });
+          }
+          setBalance(newBalance);
         }
       }
 
@@ -90,6 +121,27 @@ export default function AddFundScreen({ navigation }) {
     Linking.openURL('https://wa.me/919999999999');
   };
 
+  const decodeBase64 = (str) => {
+    try {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+      let output = '';
+      str = String(str).replace(/=+$/, '');
+      if (str.length % 4 === 1) return null;
+      for (
+        let bc = 0, bs, buffer, idx = 0;
+        (buffer = str.charAt(idx++));
+        ~buffer && ((bs = bc % 4 ? bs * 64 + buffer : buffer), bc++ % 4)
+          ? (output += String.fromCharCode(255 & (bs >> ((-2 * bc) & 6))))
+          : 0
+      ) {
+        buffer = chars.indexOf(buffer);
+      }
+      return output;
+    } catch (e) {
+      return null;
+    }
+  };
+
   const handleAddFund = async () => {
     if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
       setAlertConfig({
@@ -103,38 +155,71 @@ export default function AddFundScreen({ navigation }) {
 
     setSubmitting(true);
     try {
-      const response = await addfund(userData.id, userData.name, amount);
-      const isSuccess = response && (
-        response.status === true ||
-        response.status === 'true' ||
-        response.status === 1 ||
-        response.status === '1' ||
-        (response.message && response.message.toLowerCase().includes('success'))
-      );
+      const response = await paymentGetWay(userData.name, userData.phone, amount);
+      console.log('Payment Gateway Response:', response);
 
-      if (isSuccess) {
-        setAlertConfig({
-          visible: true,
-          title: 'Success',
-          message: response.message || 'Fund request submitted successfully!',
-          type: 'success'
-        });
-        setAmount('');
-        fetchUserData(); // Refresh balance and history
-      } else {
-        setAlertConfig({
-          visible: true,
-          title: 'Error',
-          message: response.message || 'Failed to submit fund request. Please try again.',
-          type: 'error'
-        });
+      if (response) {
+        const potentialFields = [
+          response.payment_url,
+          response.url,
+          response.redirect_url,
+          response.error,
+          response.msg,
+          response.upi,
+          response.data?.url,
+          response.data?.upi
+        ];
+
+        let targetUrl = null;
+        for (const field of potentialFields) {
+          if (!field || typeof field !== 'string') continue;
+
+          if (field.startsWith('http') || field.startsWith('upi')) {
+            targetUrl = field;
+            break;
+          }
+
+          const decoded = decodeBase64(field);
+          if (decoded && (decoded.startsWith('http') || decoded.startsWith('upi'))) {
+            targetUrl = decoded;
+            break;
+          } 
+        }
+
+        if (targetUrl) {
+          setAlertConfig({
+            visible: true,
+            title: 'Redirecting',
+            message: 'Opening secure payment gateway...',
+            type: 'success'
+          });
+          
+          await Linking.openURL(encodeURI(targetUrl));
+          setAmount('');
+        } else if (response.status === 200 || response.status === true || response.status === 'true' || response.status === 1 || response.status === 'success' || response.status === 'SUCCESS') {
+          setAlertConfig({
+            visible: true,
+            title: 'Success',
+            message: response.msg || response.message || 'Fund request submitted!',
+            type: 'success'
+          });
+          setAmount('');
+          fetchUserData();
+        } else {
+          setAlertConfig({
+            visible: true,
+            title: 'Payment Error',
+            message: response.msg || response.message || 'Payment could not be processed. Please check your data.',
+            type: 'error'
+          });
+        }
       }
     } catch (error) {
-      console.error('Add Fund Error:', error);
+      console.error('Payment Error:', error);
       setAlertConfig({
         visible: true,
-        title: 'Error',
-        message: 'Something went wrong. Please check your connection.',
+        title: 'Network Error',
+        message: 'Failed to connect to payment gateway.',
         type: 'error'
       });
     } finally {
