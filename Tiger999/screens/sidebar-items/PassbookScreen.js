@@ -7,7 +7,8 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
-  FlatList
+  FlatList,
+  RefreshControl
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +17,7 @@ import { useFocusEffect } from '@react-navigation/native';
 
 export default function PassbookScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState([]);
 
   useFocusEffect(
@@ -28,10 +30,10 @@ export default function PassbookScreen({ navigation }) {
     setLoading(true);
     try {
       const userId = await AsyncStorage.getItem('userId');
-      console.log('Passbook: Fetching for userId:', userId);
+      // console.log('Passbook: Fetching for userId:', userId);
 
       if (!userId) {
-        console.log('Passbook: No userId found');
+        // console.log('Passbook: No userId found');
         setLoading(false);
         return;
       }
@@ -41,7 +43,7 @@ export default function PassbookScreen({ navigation }) {
       // Fetch Fund Requests
       try {
         const fundResponse = await getFundRequestHistory(userId);
-        console.log('Passbook: Fund Response:', JSON.stringify(fundResponse));
+        // console.log('Passbook: Fund Response:', JSON.stringify(fundResponse));
         if (fundResponse && (fundResponse.status === true || fundResponse.status === 'true')) {
           const funds = (fundResponse.data || []).map(item => ({ ...item, type: 'Deposit' }));
           combinedHistory = [...combinedHistory, ...funds];
@@ -53,7 +55,7 @@ export default function PassbookScreen({ navigation }) {
       // Fetch Withdraw Requests
       try {
         const withdrawResponse = await getWithdrawRequestHistory(userId);
-        console.log('Passbook: Withdraw Response:', JSON.stringify(withdrawResponse));
+        // console.log('Passbook: Withdraw Response:', JSON.stringify(withdrawResponse));
         if (withdrawResponse && (withdrawResponse.status === true || withdrawResponse.status === 'true')) {
           const withdraws = (withdrawResponse.data || []).map(item => ({ ...item, type: 'Withdraw' }));
           combinedHistory = [...combinedHistory, ...withdraws];
@@ -91,6 +93,12 @@ export default function PassbookScreen({ navigation }) {
       setLoading(false);
     }
   };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await fetchTransactionHistory();
+    setRefreshing(false);
+  }, []);
 
   const renderTransactionItem = ({ item }) => {
     const isDeposit = item.type === 'Deposit';
@@ -182,6 +190,9 @@ export default function PassbookScreen({ navigation }) {
             keyExtractor={(item, index) => item.id ? item.id.toString() + item.type : index.toString()}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ paddingBottom: 20 }}
+            refreshControl={
+              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6B3A3A']} />
+            }
           />
         )}
       </View>

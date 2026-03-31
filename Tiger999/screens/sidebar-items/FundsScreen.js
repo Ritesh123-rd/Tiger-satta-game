@@ -37,14 +37,14 @@ export default function FundsScreen({ navigation }) {
       title: 'Add Fund History',
       subtitle: 'You can check your add point history',
       icon: 'time',
-      screen: 'AddFundHistory'
+      screen: 'AddFund'
     },
     {
       id: 5,
       title: 'Withdraw Fund History',
       subtitle: 'You can check your Withdraw point history',
       icon: 'refresh',
-      screen: 'WithdrawFundHistory'
+      screen: 'WithdrawFund'
     },
   ];
 

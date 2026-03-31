@@ -4,9 +4,10 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    ScrollView,
     StatusBar,
     ActivityIndicator,
+    RefreshControl,
+    ScrollView,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -16,6 +17,7 @@ import CustomAlert from '../../components/CustomAlert';
 
 export default function WithdrawFundHistoryScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [history, setHistory] = useState([]);
 
     // Custom Alert State
@@ -56,6 +58,12 @@ export default function WithdrawFundHistoryScreen({ navigation }) {
             setLoading(false);
         }
     };
+
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        await fetchHistory();
+        setRefreshing(false);
+    }, []);
 
     const renderHistoryItem = (item) => (
         <View key={item.id} style={styles.card}>
@@ -119,7 +127,13 @@ export default function WithdrawFundHistoryScreen({ navigation }) {
                         <Text style={styles.emptyText}>NO DATA FOUND</Text>
                     </View>
                 ) : (
-                    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+                    <ScrollView 
+                        showsVerticalScrollIndicator={false} 
+                        contentContainerStyle={{ paddingBottom: 30 }}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6B3A3A']} />
+                        }
+                    >
                         {history.map(renderHistoryItem)}
                     </ScrollView>
                 )}

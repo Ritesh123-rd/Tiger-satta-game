@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { getWalletBalance, getWithdrawRequestHistory, withdrawfund } from '../../api/auth';
+import { getWalletBalance, getWithdrawRequestHistory, withdrawfund, getBankDetails } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
 
@@ -16,8 +16,11 @@ export default function WithdrawFundScreen({ navigation }) {
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('phone_pay'); // Default method
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [bankDetails, setBankDetails] = useState(null);
+
 
 
   // Custom Alert State
@@ -53,11 +56,31 @@ export default function WithdrawFundScreen({ navigation }) {
         }
         setLoadingHistory(false);
       }
+      
+      // Fetch Bank Details to display on screen
+      if (userId) {
+          const bankResponse = await getBankDetails(userId, name || 'User');
+          if (bankResponse && (bankResponse.status === true || bankResponse.status === 'true')) {
+              const data = bankResponse.data || bankResponse;
+              // Verify that the returned data belongs to the current user
+              if (data && data.user_id && data.user_id !== userId) {
+                  setBankDetails(null);
+              } else {
+                  setBankDetails(data);
+              }
+          }
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       setLoadingHistory(false);
     }
   };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    setRefreshing(false);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -77,11 +100,11 @@ export default function WithdrawFundScreen({ navigation }) {
     }
 
     const withdrawAmt = parseFloat(amount);
-    if (withdrawAmt < 1000) {
+    if (withdrawAmt < 1) {
       setAlertConfig({
         visible: true,
         title: 'Error',
-        message: 'Minimum withdrawal amount is ₹ 1000.',
+        message: 'Minimum withdrawal amount is ₹ 1.',
         type: 'error'
       });
       return;
@@ -97,10 +120,21 @@ export default function WithdrawFundScreen({ navigation }) {
       return;
     }
 
+    if (!userData.id) {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'User session expired. Please login again.',
+        type: 'error'
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
-      const response = await withdrawfund(userData.id, userData.name, amount, selectedMethod);
-
+      // Send amount as a number (parseFloat) to match Postman request
+      const response = await withdrawfund(userData.id, userData.name, parseFloat(amount), selectedMethod);
+      // console.log('Withdraw Response:', response);
 
       const isSuccess = response && (
         response.status === true ||
@@ -108,23 +142,30 @@ export default function WithdrawFundScreen({ navigation }) {
         response.status === 'success' ||
         response.status === 1 ||
         response.status === '1' ||
-        (response.message && response.message.toLowerCase().includes('success'))
+        (response.message && response.message.toLowerCase().includes('success')) ||
+        (response.msg && response.msg.toLowerCase().includes('success'))
       );
 
       if (isSuccess) {
         setAlertConfig({
           visible: true,
           title: 'Success',
-          message: response.message || 'Withdrawal request submitted successfully!',
+          message: response.message || response.msg || response.message_text || 'Withdrawal request submitted successfully!',
           type: 'success'
         });
         setAmount('');
-        fetchUserData(); // Refresh balance and history
+        
+        // If response contains new balance, update it immediately
+        if (response.data && response.data.new_balance) {
+            setBalance(parseFloat(response.data.new_balance));
+        } else {
+            fetchUserData(); // Fallback to full refresh
+        }
       } else {
         setAlertConfig({
           visible: true,
-          title: 'Error',
-          message: response.message || 'Failed to submit withdrawal request. Please try again.',
+          title: 'Request Failed',
+          message: response.message || response.msg || response.error || 'Failed to submit withdrawal request. Please try again.',
           type: 'error'
         });
       }
@@ -132,8 +173,8 @@ export default function WithdrawFundScreen({ navigation }) {
       console.error('Withdraw Fund Error:', error);
       setAlertConfig({
         visible: true,
-        title: 'Error',
-        message: 'Something went wrong. Please check your connection.',
+        title: 'Network Error',
+        message: 'Something went wrong. Please check your connection or try again later.',
         type: 'error'
       });
     } finally {
@@ -164,7 +205,13 @@ export default function WithdrawFundScreen({ navigation }) {
       </View>
 
       {/* Main Content */}
-      <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.scrollContent} 
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#C27183']} />
+        }
+      >
         <View style={styles.content}>
           {/* User Info Card */}
           <View style={styles.userCard}>
@@ -213,6 +260,22 @@ export default function WithdrawFundScreen({ navigation }) {
             </View>
             <Ionicons name="chevron-forward" size={20} color="#999" />
           </TouchableOpacity>
+
+          {/* New: Display Details of Selected Method */}
+          {bankDetails && (
+              <View style={styles.methodDetailsPreview}>
+                  <Ionicons name="information-circle-outline" size={16} color="#C27183" />
+                  <Text style={styles.methodDetailsTitle}>Will be sent to: </Text>
+                  <Text style={styles.methodDetailsValue}>
+                      {selectedMethod === 'phone_pay' && (bankDetails.phone_pay ? `Number: ${bankDetails.phone_pay}` : 'Not Added')}
+                      {selectedMethod === 'paytm' && (bankDetails.paytm ? `Number: ${bankDetails.paytm}` : 'Not Added')}
+                      {selectedMethod === 'google_pay' && (bankDetails.google_pay ? `Number: ${bankDetails.google_pay}` : 'Not Added')}
+                      {selectedMethod === 'upi' && (bankDetails.upi ? `UPI ID: ${bankDetails.upi}` : 'Not Added')}
+                  </Text>
+              </View>
+          )}
+
+
 
 
           {/* History Section */}
@@ -288,7 +351,7 @@ export default function WithdrawFundScreen({ navigation }) {
               </Text>
 
               <Text style={styles.termText}>
-                Minimum Withdraw is 1000/- Rs. Maximum Withdraw unlimited Per Day..
+                Minimum Withdraw is 1/- Rs. Maximum Withdraw unlimited Per Day..
               </Text>
 
               <Text style={styles.termText}>
@@ -328,7 +391,9 @@ export default function WithdrawFundScreen({ navigation }) {
         title={alertConfig.title}
         message={alertConfig.message}
         type={alertConfig.type}
-        onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+        onClose={() => {
+          setAlertConfig({ ...alertConfig, visible: false });
+        }}
       />
 
       {/* Payment Method Modal */}
@@ -711,5 +776,28 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontFamily: 'RaleighStdDemi',
     letterSpacing: 1,
+  },
+  methodDetailsPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(195, 101, 120, 0.05)',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: -5,
+    marginBottom: 15,
+    borderLeftWidth: 3,
+    borderLeftColor: '#C27183',
+  },
+  methodDetailsTitle: {
+    fontSize: 13,
+    color: '#666',
+    fontFamily: 'RaleighStdDemi',
+    marginLeft: 5,
+  },
+  methodDetailsValue: {
+    fontSize: 13,
+    color: '#333',
+    fontWeight: 'bold',
+    fontFamily: 'RaleighStdDemi',
   },
 });

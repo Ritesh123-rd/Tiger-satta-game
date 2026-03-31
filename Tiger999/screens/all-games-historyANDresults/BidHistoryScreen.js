@@ -9,7 +9,8 @@ import {
     Dimensions,
     ActivityIndicator,
     Image,
-    Modal
+    Modal,
+    RefreshControl
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +34,7 @@ const years = ['2024', '2025', '2026'];
 
 export default function BidHistoryScreen({ navigation }) {
     const [loading, setLoading] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [allBids, setAllBids] = useState([]);
     const [paginatedBids, setPaginatedBids] = useState([]);
     const [currentPage, setCurrentPage] = useState(1);
@@ -103,6 +105,12 @@ export default function BidHistoryScreen({ navigation }) {
             setLoading(false);
         }
     };
+
+    const onRefresh = React.useCallback(async () => {
+        setRefreshing(true);
+        await fetchBids();
+        setRefreshing(false);
+    }, [fromDate, toDate]);
 
     const openDatePicker = (type) => {
         setPickingFor(type);
@@ -248,7 +256,12 @@ export default function BidHistoryScreen({ navigation }) {
                         <Text style={styles.emptyText}>NO BID FOUND</Text>
                     </View>
                 ) : (
-                    <ScrollView showsVerticalScrollIndicator={false}>
+                    <ScrollView 
+                        showsVerticalScrollIndicator={false}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6B3A3A']} />
+                        }
+                    >
                         {paginatedBids.map(renderBidItem)}
                     </ScrollView>
                 )}

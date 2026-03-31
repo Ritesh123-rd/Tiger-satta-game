@@ -220,7 +220,7 @@ export default function SingleDigitGame({ navigation, route }) {
       const amounts = bids.map(b => parseInt(b.point));
       const session = selectedGame; // 'OPEN' or 'CLOSE'
 
-      console.log('Submitting Bid:', { userId, username, numbers, amounts, gameName, marketId, session });
+      // console.log('Submitting Bid:', { userId, username, numbers, amounts, gameName, marketId, session });
 
       const response = await getSingleDigitGame(userId, username, numbers, amounts, gameName, String(marketId), session);
 

@@ -347,7 +347,7 @@ export default function StarlineDoublePanaGame({ navigation, route }) {
 
                 const session = type.toUpperCase();
 
-                console.log(`Submitting Double Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session, sessionTime });
+                // console.log(`Submitting Double Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session, sessionTime });
 
                 const response = await StarlineDoublePana(userId, username, numbers, amounts, gameName, String(marketId), session, sessionTime || gameName);
 

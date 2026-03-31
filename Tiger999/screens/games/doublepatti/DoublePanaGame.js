@@ -342,7 +342,7 @@ export default function DoublePanaGame({ navigation, route }) {
 
         const session = type.toUpperCase();
 
-        console.log(`Submitting Double Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session });
+        // console.log(`Submitting Double Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session });
 
         const response = await DoublePatti(userId, username, numbers, amounts, gameName, String(marketId), session);
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -9,20 +9,71 @@ import {
   StatusBar,
   Image,
   Linking,
+  BackHandler,
+  ActivityIndicator
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../components/CustomAlert';
 
 
 import logo from '../assets/logo/logo.png';
-import { sendOtp, verifyOtp } from '../api/auth';
+import { sendOtp, verifyOtp, LoginWithMPin } from '../api/auth';
 
 export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState('mobile'); // 'mobile' or 'otp'
+  const [loginMode, setLoginMode] = useState('otp'); // 'otp' or 'mpin'
+  const [mpin, setMpin] = useState('');
+  const [hasSavedMobile, setHasSavedMobile] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialChecking, setIsInitialChecking] = useState(true);
+
+  useEffect(() => {
+    const checkSavedNumber = async () => {
+      try {
+        const saved = await AsyncStorage.getItem('userMobile');
+        const hasPin = await AsyncStorage.getItem('hasSetMpin');
+        
+        if (saved) {
+          setPhoneNumber(saved);
+          setHasSavedMobile(true);
+          // Only auto-switch to MPIN if they have actually set one
+          if (hasPin === 'true') {
+            setLoginMode('mpin');
+          }
+        }
+      } catch (err) {
+        console.error('Error reading saved mobile:', err);
+      } finally {
+        setIsInitialChecking(false);
+      }
+    };
+    checkSavedNumber();
+  }, []);
+
+  useEffect(() => {
+    const handleBackPress = () => {
+      if (loginMode === 'mpin') {
+        setLoginMode('otp');
+        return true;
+      }
+      if (step === 'otp') {
+        setStep('mobile');
+        setOtp('');
+        return true;
+      }
+      return false; // exit app or go to previous screen
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => backHandler.remove();
+  }, [loginMode, step]);
 
   // Custom Alert State
   const [alertConfig, setAlertConfig] = useState({
@@ -37,7 +88,7 @@ export default function LoginScreen({ navigation }) {
       setIsLoading(true);
       try {
         const response = await sendOtp(phoneNumber);
-        console.log('Send OTP Response:', response);
+        // console.log('Send OTP Response:', response);
 
         if (response && response.status === true) {
           setAlertConfig({
@@ -81,16 +132,9 @@ export default function LoginScreen({ navigation }) {
       setIsLoading(true);
       try {
         const response = await verifyOtp(phoneNumber, otp);
-        console.log('Verify OTP Response:', response);
+        // console.log('Verify OTP Response:', response);
 
         if (response && response.status === true) {
-          setAlertConfig({
-            visible: true,
-            title: 'Login Successful',
-            message: 'Welcome back!',
-            type: 'success'
-          });
-
           // Save user info from response
           await AsyncStorage.setItem('userMobile', phoneNumber);
           if (response.username) await AsyncStorage.setItem('userName', response.username);
@@ -100,7 +144,7 @@ export default function LoginScreen({ navigation }) {
             await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
           }
 
-          // navigation.replace('Home') is handled in CustomAlert's onClose
+          navigation.replace('Home');
         } else {
           setAlertConfig({
             visible: true,
@@ -130,6 +174,53 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+  const handleLoginWithMPin = async () => {
+    if (phoneNumber.length === 10 && mpin.length >= 4) {
+      setIsLoading(true);
+      try {
+        const response = await LoginWithMPin(phoneNumber, mpin);
+        // console.log('MPIN Login Response:', response);
+
+        if (response && response.status === true) {
+          // Save user info from response
+          await AsyncStorage.setItem('userMobile', phoneNumber);
+          if (response.username) await AsyncStorage.setItem('userName', response.username);
+          if (response.user_id) await AsyncStorage.setItem('userId', String(response.user_id));
+          if (response.created_at) {
+            const date = new Date(response.created_at);
+            await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
+          }
+
+          navigation.replace('Home');
+        } else {
+          setAlertConfig({
+            visible: true,
+            title: 'Login Failed',
+            message: response.message || 'Invalid MPIN or Number.',
+            type: 'error'
+          });
+        }
+      } catch (error) {
+        console.error('MPIN Login Error:', error);
+        setAlertConfig({
+          visible: true,
+          title: 'Error',
+          message: 'Network error. Please check your connection.',
+          type: 'error'
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Please enter a valid 10-digit phone number and MPIN',
+        type: 'error'
+      });
+    }
+  };
+
   const makeCall = () => {
     Linking.openURL('tel:8149182874');
   };
@@ -137,6 +228,14 @@ export default function LoginScreen({ navigation }) {
   const openWhatsApp = () => {
     Linking.openURL('whatsapp://send?phone=8149182874');
   };
+
+  if (isInitialChecking) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5EDE0' }]}>
+        <ActivityIndicator size="large" color="#C36578" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -152,79 +251,126 @@ export default function LoginScreen({ navigation }) {
           />
         </View>
 
-        {step === 'mobile' ? (
+        {loginMode === 'mpin' ? (
           <>
-            {/* Title */}
-            <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
+            <Text style={styles.title}>LOGIN WITH MPIN</Text>
+            
+            <Text style={{ fontFamily: 'RaleighStdDemi', fontSize: 16, marginBottom: 20, color: '#555' }}>
+              Welcome back, +91 {phoneNumber.substring(0,2)}******{phoneNumber.substring(8)}
+            </Text>
 
-            {/* Phone Input */}
             <View style={styles.inputContainer}>
               <View style={styles.phoneIcon}>
-                <Ionicons name="phone-portrait" size={28} color="#fff" />
+                <Ionicons name="lock-closed" size={28} color="#fff" />
               </View>
               <TextInput
                 style={styles.input}
-                placeholder="Phone Number"
-                placeholderTextColor="#999"
-                keyboardType="phone-pad"
-                maxLength={10}
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-              />
-            </View>
-
-            {/* Send OTP Button */}
-            <TouchableOpacity
-              style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
-              onPress={handleSendOtp}
-              disabled={isLoading}
-            >
-              <Text style={styles.loginButtonText}>
-                {isLoading ? 'Sending...' : 'Send OTP'}
-              </Text>
-            </TouchableOpacity>
-          </>
-        ) : (
-          <>
-            {/* Title */}
-            <Text style={styles.title}>ENTER OTP SENT TO {phoneNumber}</Text>
-
-            {/* OTP Input */}
-            <View style={styles.inputContainer}>
-              <View style={styles.phoneIcon}>
-                <Ionicons name="mail-open" size={28} color="#fff" />
-              </View>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter OTP"
+                placeholder="Enter MPIN"
                 placeholderTextColor="#999"
                 keyboardType="number-pad"
-                value={otp}
-                onChangeText={setOtp}
+                secureTextEntry
+                maxLength={6}
+                value={mpin}
+                onChangeText={setMpin}
               />
             </View>
 
-            {/* Verify OTP Button */}
             <TouchableOpacity
               style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
-              onPress={handleVerifyOtp}
+              onPress={handleLoginWithMPin}
               disabled={isLoading}
             >
               <Text style={styles.loginButtonText}>
-                {isLoading ? 'Verifying...' : 'Verify OTP'}
+                {isLoading ? 'Logging in...' : 'Login'}
               </Text>
             </TouchableOpacity>
 
-            {/* Resend OTP Link */}
-            <TouchableOpacity onPress={handleSendOtp} disabled={isLoading}>
-              <Text style={[styles.signupLink, { marginBottom: 20 }]}>Resend OTP</Text>
+            <TouchableOpacity onPress={() => setLoginMode('otp')}>
+              <Text style={styles.signupLink}>Login with OTP instead</Text>
             </TouchableOpacity>
-
-            {/* Back to Mobile Number */}
-            <TouchableOpacity onPress={() => { setStep('mobile'); setOtp(''); }}>
-              <Text style={styles.signupText}>Change Number</Text>
-            </TouchableOpacity>
+            <View style={{ marginBottom: 20 }} />
           </>
+        ) : (
+          step === 'mobile' ? (
+            <>
+              {/* Title */}
+              <Text style={styles.title}>ENTER YOUR MOBILE NUMBER</Text>
+
+              {/* Phone Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.phoneIcon}>
+                  <Ionicons name="phone-portrait" size={28} color="#fff" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Phone Number"
+                  placeholderTextColor="#999"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                />
+              </View>
+
+              {/* Send OTP Button */}
+              <TouchableOpacity
+                style={[styles.loginButton, isLoading && { opacity: 0.7 }, hasSavedMobile && { marginBottom: 15 }]}
+                onPress={handleSendOtp}
+                disabled={isLoading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {isLoading ? 'Sending...' : 'Send OTP'}
+                </Text>
+              </TouchableOpacity>
+
+              {phoneNumber.length === 10 && (
+                <TouchableOpacity onPress={() => setLoginMode('mpin')}>
+                  <Text style={[styles.signupLink, { marginBottom: 20 }]}>Login with MPIN</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Title */}
+              <Text style={styles.title}>ENTER OTP SENT TO {phoneNumber}</Text>
+
+              {/* OTP Input */}
+              <View style={styles.inputContainer}>
+                <View style={styles.phoneIcon}>
+                  <Ionicons name="mail-open" size={28} color="#fff" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Enter OTP"
+                  placeholderTextColor="#999"
+                  keyboardType="number-pad"
+                  value={otp}
+                  onChangeText={setOtp}
+                />
+              </View>
+
+              {/* Verify OTP Button */}
+              <TouchableOpacity
+                style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
+                onPress={handleVerifyOtp}
+                disabled={isLoading}
+              >
+                <Text style={styles.loginButtonText}>
+                  {isLoading ? 'Verifying...' : 'Verify OTP'}
+                </Text>
+              </TouchableOpacity>
+
+              {/* Resend OTP Link */}
+              <TouchableOpacity onPress={handleSendOtp} disabled={isLoading}>
+                <Text style={[styles.signupLink, { marginBottom: 20 }]}>Resend OTP</Text>
+              </TouchableOpacity>
+
+              {/* Back to Mobile Number */}
+              <TouchableOpacity onPress={() => { setStep('mobile'); setOtp(''); }}>
+                <Text style={styles.signupText}>Change Number</Text>
+              </TouchableOpacity>
+            </>
+          )
         )}
 
         {/* Contact Buttons */}
@@ -253,10 +399,6 @@ export default function LoginScreen({ navigation }) {
         type={alertConfig.type}
         onClose={() => {
           setAlertConfig({ ...alertConfig, visible: false });
-          // If login was successful, we navigate after alert closes
-          if (alertConfig.title === 'Login Successful') {
-            navigation.replace('Home');
-          }
         }}
       />
     </View>

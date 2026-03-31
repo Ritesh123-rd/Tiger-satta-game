@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -8,6 +8,7 @@ import {
   TextInput,
   StatusBar,
   Image,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../components/CustomAlert';
@@ -31,13 +32,26 @@ export default function RegisterScreen({ navigation }) {
     type: 'success',
   });
 
+  useEffect(() => {
+    const handleBackPress = () => {
+      navigation.goBack();
+      return true; // prevent default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      handleBackPress
+    );
+
+    return () => backHandler.remove();
+  }, [navigation]);
 
   const handleRegister = async () => {
     if (phone && username && password) {
       setIsLoading(true);
       try {
         const response = await registerUser(username, password, phone);
-        console.log('Register response:', response);
+        // console.log('Register response:', response);
 
         if (response && (response.status === 'true' || response.status === true)) {
           // Save credentials locally for local login check
@@ -55,7 +69,7 @@ export default function RegisterScreen({ navigation }) {
               await AsyncStorage.setItem('userId', String(response.user_id));
             }
 
-            console.log('Credentials and user info saved locally');
+            // console.log('Credentials and user info saved locally');
           } catch (e) {
             console.error('Failed to save credentials', e);
           }

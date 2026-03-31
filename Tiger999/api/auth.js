@@ -241,29 +241,35 @@ export const getWithdrawRequestHistory = async (userId) => {
         throw error;
     }
 };
+
+
 export const updateBankDetails = async (details) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/paymentDetailesUpdate.php`, {
+        const body = JSON.stringify({
+            user_id: details.user_id,
+            username: details.username,
+            action: details.action,
+            bank_name: details.bank_name,
+            ac_holder_name: details.ac_holder_name,
+            ac_number: details.ac_number,
+            ifsc_code: details.ifsc_code,
+            upi: details.upi,
+            paytm: details.paytm,
+            google_pay: details.google_pay,
+            phone_pay: details.phone_pay,
+        });
+
+
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/update_bank_details.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                user_id: details.user_id,
-                username: details.username,
-                action: 'update',
-                bank_name: details.bank_name,
-                ac_holder_name: details.ac_holder_name,
-                ac_number: details.ac_number,
-                ifsc_code: details.ifsc_code,
-                upi: details.upi,
-                paytm: details.paytm,
-                google_pay: details.google_pay,
-                phone_pay: details.phone_pay,
-            }),
+            body: body,
         });
 
         const text = await response.text();
+
 
         try {
             const data = JSON.parse(text);
@@ -282,16 +288,17 @@ export const updateBankDetails = async (details) => {
     }
 };
 
-export const getBankDetails = async (userId) => {
+
+export const getBankDetails = async (userId, username) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/paymentDetailesUpdate.php`, {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/BankDetailesAddAndGet.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
                 user_id: userId,
-                action: 'read',
+                username: username,
             }),
         });
 
@@ -301,18 +308,23 @@ export const getBankDetails = async (userId) => {
             const data = JSON.parse(text);
             return data;
         } catch (e) {
-            console.error('Get Bank Details JSON Parse Error:', e);
+            console.error('Get/Insert Bank Details JSON Parse Error:', e);
             const jsonMatch = text.match(/\{.*\}/);
             if (jsonMatch) {
                 return JSON.parse(jsonMatch[0]);
             }
-            throw new Error('Invalid Get Bank Details JSON: ' + text.substring(0, 50));
+            throw new Error('Invalid Bank Details JSON: ' + text.substring(0, 50));
         }
     } catch (error) {
         console.error('Get Bank Details API Error:', error);
         throw error;
     }
 };
+
+// Deprecated: getBankDetails1 is now synonymous with getBankDetails
+export const getBankDetails1 = getBankDetails;
+
+
 export const getUserProfile = async (userId) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/myProfile.php?user_id=${userId}`);
@@ -868,7 +880,6 @@ export const addfund = async (UserId, Username, total_amount) => {
     }
 };
 
-
 export const withdrawfund = async (UserId, Username, total_amount, typeofpay) => {
     try {
         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/BalanceWithdrawal.php`, {
@@ -902,7 +913,6 @@ export const withdrawfund = async (UserId, Username, total_amount, typeofpay) =>
         throw error;
     }
 };
-
 
 //ps startline Dashboard
 
@@ -1811,18 +1821,16 @@ export const verifyOtp = async (mobile, otp) => {
     }
 };
 
-
-export const paymentGetWay = async (name, mobile, amount) => {
+export const LoginWithMPin = async (mobile, password) => {
     try {
-        const response = await fetch(`${API_BASE_URL}/paymentGetWay/deposit.php`, {
+        const response = await fetch(`${API_BASE_URL}/userLogin/loginWithPin.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: name,
                 mobile: mobile,
-                amount: amount,
+                password: password,
             }),
         });
 
@@ -1838,7 +1846,45 @@ export const paymentGetWay = async (name, mobile, amount) => {
             throw new Error('Invalid JSON: ' + text.substring(0, 50));
         }
     } catch (error) {
+        console.error('Login API Error:', error);
+        throw error;
+    }
+};
+
+export const paymentGetWay = async (user_id, username, mobile, amount) => {
+    try {
+
+        const response = await fetch(`${API_BASE_URL}/paymentGetWay/deposit.php`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: user_id,
+                username: username,
+                mobile: mobile,
+                amount: amount,
+            }),
+        });
+
+        const text = await response.text();
+        // console.log('paymentGetWay raw response:', text);
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            if (response.ok) {
+                return { status: true, msg: text };
+            }
+            throw new Error('Invalid JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
         console.error('Payment GetWay API Error:', error);
         throw error;
     }
 };
+

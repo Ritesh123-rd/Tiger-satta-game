@@ -1,0 +1,5 @@
+--- Step 1: Updating Bank Details (action: update) ---
+Update Response: {"status":true,"message":"Bank details updated successfully."}
+
+--- Step 2: Testing Withdrawal API ---
+Withdraw Response: {"status":"error","message":"Bank details not found. Please add your bank details first."}

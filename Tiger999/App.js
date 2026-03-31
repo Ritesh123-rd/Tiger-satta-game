@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Image, StyleSheet, Text } from 'react-native';
@@ -65,6 +66,7 @@ import AddFundHistoryScreen from './screens/sidebar-items/AddFundHistoryScreen';
 import WithdrawFundHistoryScreen from './screens/sidebar-items/WithdrawFundHistoryScreen';
 import UpdateBankDetailsScreen from './screens/sidebar-items/UpdateBankDetailsScreen';
 import MyProfileScreen from './screens/sidebar-items/MyProfileScreen';
+import MpinScreen from './screens/sidebar-items/MpinScreen';
 
 //Game charts
 import ChartsScreen from './screens/GameCharts/GameChartsScreen';
@@ -153,91 +155,94 @@ export default function App() {
   }
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Login"
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        {/* Auth Screens */}
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
+    <SafeAreaProvider>
+      <NavigationContainer>
+        <Stack.Navigator
+          initialRouteName="Login"
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          {/* Auth Screens */}
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
 
-        {/* Main Screens */}
-        <Stack.Screen name="Home" component={HomeScreen} />
-        <Stack.Screen name="GameDetail" component={GameDetailScreen} />
+          {/* Main Screens */}
+          <Stack.Screen name="Home" component={HomeScreen} />
+          <Stack.Screen name="GameDetail" component={GameDetailScreen} />
 
-        {/* Game Play Screens */}
-        <Stack.Screen name="SingleDigitGame" component={SingleDigitGame} />
-        <Stack.Screen name="JodiGame" component={JodiGame} />
-        <Stack.Screen name="SinglePanaGame" component={SinglePanaGame} />
-        <Stack.Screen name="DoublePanaGame" component={DoublePanaGame} />
-        <Stack.Screen name="TriplePanaGame" component={TriplePanaGame} />
-        <Stack.Screen name="FullSangamGame" component={FullSangamGame} />
-        <Stack.Screen name="HalfSangamAGame" component={HalfSangamAGame} />
-        <Stack.Screen name="HalfSangamBGame" component={HalfSangamBGame} />
-        <Stack.Screen name="SPDPTPGame" component={SPDPTPGame} />
-        <Stack.Screen name="SPMotorGame" component={SPMotorGame} />
-        <Stack.Screen name="DPMotorGame" component={DPMotorGame} />
-        <Stack.Screen name="RedJodiGame" component={RedJodiGame} />
-        <Stack.Screen name="OddEvenGame" component={OddEvenGame} />
-        <Stack.Screen name="GameResults" component={GameResults} />
-
-
-        {/* Utility Screens */}
-        <Stack.Screen name="AddFund" component={AddFundScreen} />
-        <Stack.Screen name="WithdrawFund" component={WithdrawFundScreen} />
-        <Stack.Screen name="MyBids" component={MyBidsScreen} />
-        <Stack.Screen name="Passbook" component={PassbookScreen} />
-        <Stack.Screen name="Funds" component={FundsScreen} />
-        <Stack.Screen name="Notification" component={NotificationScreen} />
-        <Stack.Screen name="GameRate" component={GameRateScreen} />
-        <Stack.Screen name="TimeTable" component={TimeTableScreen} />
-        <Stack.Screen name="PSStarline" component={PSStarlineScreen} />
-        <Stack.Screen name="StarlineGameDetail" component={StarlineGameDetailScreen} />
+          {/* Game Play Screens */}
+          <Stack.Screen name="SingleDigitGame" component={SingleDigitGame} />
+          <Stack.Screen name="JodiGame" component={JodiGame} />
+          <Stack.Screen name="SinglePanaGame" component={SinglePanaGame} />
+          <Stack.Screen name="DoublePanaGame" component={DoublePanaGame} />
+          <Stack.Screen name="TriplePanaGame" component={TriplePanaGame} />
+          <Stack.Screen name="FullSangamGame" component={FullSangamGame} />
+          <Stack.Screen name="HalfSangamAGame" component={HalfSangamAGame} />
+          <Stack.Screen name="HalfSangamBGame" component={HalfSangamBGame} />
+          <Stack.Screen name="SPDPTPGame" component={SPDPTPGame} />
+          <Stack.Screen name="SPMotorGame" component={SPMotorGame} />
+          <Stack.Screen name="DPMotorGame" component={DPMotorGame} />
+          <Stack.Screen name="RedJodiGame" component={RedJodiGame} />
+          <Stack.Screen name="OddEvenGame" component={OddEvenGame} />
+          <Stack.Screen name="GameResults" component={GameResults} />
 
 
-        {/* Starline Game Screens */}
-        <Stack.Screen name="StarLineSingleDigitGame" component={StarLineSingleDigitGame} />
-        <Stack.Screen name="StarLineSinglePanaGame" component={StarLineSinglePanaGame} />
-        <Stack.Screen name="StarlineDoublePanaGame" component={StarlineDoublePanaGame} />
-        <Stack.Screen name="StarlineTriplePanaGame" component={StarlineTriplePanaGame} />
-        <Stack.Screen name="StarlineSPDPTPGame" component={StarlineSPDPTPGame} />
-        <Stack.Screen name="StarlineSPMotorGame" component={StarlineSPMotorGame} />
-        <Stack.Screen name="StarLineDPMotorGame" component={StarLineDPMotorGame} />
-        <Stack.Screen name="StarlineEvenOddGame" component={StarlineEvenOddGame} />
-
-        {/* js jackpot screen */}
-        <Stack.Screen name="JackpotGameDetailScreen" component={JackpotGameDetailScreen} />
-        <Stack.Screen name="PSJackpotScreen" component={PSJackpotScreen} />
-        <Stack.Screen name="JackpotSingleGame" component={JackpotSingleGame} />
-        <Stack.Screen name="JackpotJodiGame" component={JackpotJodiGame} />
+          {/* Utility Screens */}
+          <Stack.Screen name="AddFund" component={AddFundScreen} />
+          <Stack.Screen name="WithdrawFund" component={WithdrawFundScreen} />
+          <Stack.Screen name="MyBids" component={MyBidsScreen} />
+          <Stack.Screen name="Passbook" component={PassbookScreen} />
+          <Stack.Screen name="Funds" component={FundsScreen} />
+          <Stack.Screen name="Notification" component={NotificationScreen} />
+          <Stack.Screen name="GameRate" component={GameRateScreen} />
+          <Stack.Screen name="TimeTable" component={TimeTableScreen} />
+          <Stack.Screen name="PSStarline" component={PSStarlineScreen} />
+          <Stack.Screen name="StarlineGameDetail" component={StarlineGameDetailScreen} />
 
 
-        <Stack.Screen name="Settings" component={SettingsScreen} />
-        <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
+          {/* Starline Game Screens */}
+          <Stack.Screen name="StarLineSingleDigitGame" component={StarLineSingleDigitGame} />
+          <Stack.Screen name="StarLineSinglePanaGame" component={StarLineSinglePanaGame} />
+          <Stack.Screen name="StarlineDoublePanaGame" component={StarlineDoublePanaGame} />
+          <Stack.Screen name="StarlineTriplePanaGame" component={StarlineTriplePanaGame} />
+          <Stack.Screen name="StarlineSPDPTPGame" component={StarlineSPDPTPGame} />
+          <Stack.Screen name="StarlineSPMotorGame" component={StarlineSPMotorGame} />
+          <Stack.Screen name="StarLineDPMotorGame" component={StarLineDPMotorGame} />
+          <Stack.Screen name="StarlineEvenOddGame" component={StarlineEvenOddGame} />
 
-        <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
-        <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
-        <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
-        <Stack.Screen name="BidHistory" component={BidHistoryScreen} />
-        <Stack.Screen name="AddFundHistory" component={AddFundHistoryScreen} />
-        <Stack.Screen name="WithdrawFundHistory" component={WithdrawFundHistoryScreen} />
-        <Stack.Screen name="UpdateBankDetails" component={UpdateBankDetailsScreen} />
-        <Stack.Screen name="MyProfile" component={MyProfileScreen} />
-        <Stack.Screen name="PSStarlineResultHistory" component={PSStarlineResultScreen} />
-        <Stack.Screen name="psJackpotResultHistory" component={PSjackpotResultScreen} />
+          {/* js jackpot screen */}
+          <Stack.Screen name="JackpotGameDetailScreen" component={JackpotGameDetailScreen} />
+          <Stack.Screen name="PSJackpotScreen" component={PSJackpotScreen} />
+          <Stack.Screen name="JackpotSingleGame" component={JackpotSingleGame} />
+          <Stack.Screen name="JackpotJodiGame" component={JackpotJodiGame} />
 
 
-        <Stack.Screen name="Charts" component={ChartsScreen} />
-        <Stack.Screen name="ChartsList" component={MatkaChartsListScreen} />
-        <Stack.Screen name="StarlineChart" component={StarlineChart} />
-        <Stack.Screen name="JackpotChart" component={JackpotChartListScreen} />
-        <Stack.Screen name="JodiChart" component={JodiChartScreen} />
-        <Stack.Screen name="PanelChart" component={PanelChartScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="UpdatePassword" component={UpdatePasswordScreen} />
 
-      </Stack.Navigator>
-    </NavigationContainer>
+          <Stack.Screen name="NoticeBoard" component={NoticeBoardScreen} />
+          <Stack.Screen name="HowToPlay" component={HowToPlayScreen} />
+          <Stack.Screen name="ChangePassword" component={ChangePasswordScreen} />
+          <Stack.Screen name="BidHistory" component={BidHistoryScreen} />
+          <Stack.Screen name="AddFundHistory" component={AddFundHistoryScreen} />
+          <Stack.Screen name="WithdrawFundHistory" component={WithdrawFundHistoryScreen} />
+          <Stack.Screen name="UpdateBankDetails" component={UpdateBankDetailsScreen} />
+          <Stack.Screen name="MyProfile" component={MyProfileScreen} />
+          <Stack.Screen name="MpinScreen" component={MpinScreen} />
+          <Stack.Screen name="PSStarlineResultHistory" component={PSStarlineResultScreen} />
+          <Stack.Screen name="psJackpotResultHistory" component={PSjackpotResultScreen} />
+
+
+          <Stack.Screen name="Charts" component={ChartsScreen} />
+          <Stack.Screen name="ChartsList" component={MatkaChartsListScreen} />
+          <Stack.Screen name="StarlineChart" component={StarlineChart} />
+          <Stack.Screen name="JackpotChart" component={JackpotChartListScreen} />
+          <Stack.Screen name="JodiChart" component={JodiChartScreen} />
+          <Stack.Screen name="PanelChart" component={PanelChartScreen} />
+
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

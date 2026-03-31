@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { getWalletBalance, getDateTime, getMarkets } from '../api/auth';
 import {
@@ -27,6 +28,7 @@ import Sidebar from '../components/Sidebar';
 
 //home
 export default function HomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [drawerVisible, setDrawerVisible] = useState(false);
   const [balance, setBalance] = useState(0.0);
   const [infoModalVisible, setInfoModalVisible] = useState(false);
@@ -46,12 +48,12 @@ export default function HomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchBalance = async () => {
-    console.log('HomeScreen: fetchBalance started');
+    // console.log('HomeScreen: fetchBalance started');
     try {
       // Fetch Server Time
-      console.log('HomeScreen: Fetching server time...');
+      // console.log('HomeScreen: Fetching server time...');
       const timeData = await getDateTime();
-      console.log('HomeScreen: Server time response:', timeData);
+      // console.log('HomeScreen: Server time response:', timeData);
       if (timeData && timeData.status === true) {
         setServerTime({
           date: timeData.date,
@@ -72,25 +74,25 @@ export default function HomeScreen({ navigation }) {
         date: date || '03/01/2026'
       }));
 
-      console.log('HomeScreen: Stored mobile:', mobile, 'userId:', userId);
+      // console.log('HomeScreen: Stored mobile:', mobile, 'userId:', userId);
       if (mobile && userId) {
         const response = await getWalletBalance(mobile, userId);
-        console.log('HomeScreen: Balance response:', response);
+        // console.log('HomeScreen: Balance response:', response);
         if (response && (response.status === true || response.status === 'true')) {
           const newBalance = parseFloat(response.balance);
-          console.log('HomeScreen: Setting balance to:', newBalance);
+          // console.log('HomeScreen: Setting balance to:', newBalance);
           setBalance(newBalance);
         } else {
-          console.log('HomeScreen: Balance status not true');
+          // console.log('HomeScreen: Balance status not true');
         }
       } else {
-        console.log('HomeScreen: No mobile number or user ID found');
+        // console.log('HomeScreen: No mobile number or user ID found');
       }
 
       // Fetch Markets
-      console.log('HomeScreen: Fetching markets...');
+      // console.log('HomeScreen: Fetching markets...');
       const marketResponse = await getMarkets();
-      console.log('HomeScreen: Market response count:', marketResponse?.data?.length);
+      // console.log('HomeScreen: Market response count:', marketResponse?.data?.length);
 
       if (marketResponse && marketResponse.status === true && marketResponse.data) {
         const currentTime = new Date();
@@ -192,7 +194,7 @@ export default function HomeScreen({ navigation }) {
       <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
 
       {/* Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top + 10, 45) }]}>
         <TouchableOpacity onPress={openDrawer} style={styles.menuButton}>
           <Ionicons name="menu" size={28} color="#fff" />
           <Text style={styles.headerTitle}>TIGER 999</Text>
@@ -218,7 +220,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.iconCircle}>
             <MaterialIcons name="play-arrow" size={26} color="#000" />
           </View>
-          <Text style={styles.gameButtonText}>PS Starline</Text>
+          <Text style={styles.gameButtonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} ellipsizeMode='tail'>King Starline</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -228,7 +230,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.iconCircle}>
             <MaterialIcons name="play-arrow" size={26} color="#000" />
           </View>
-          <Text style={styles.gameButtonText}>PS Jackpot</Text>
+          <Text style={styles.gameButtonText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} ellipsizeMode='tail'>King Jackpot</Text>
         </TouchableOpacity>
       </View>
 
@@ -339,7 +341,7 @@ export default function HomeScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+      <View style={[styles.bottomNav, { paddingBottom: Math.max(insets.bottom + 5, 12) }]}>
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => navigation.navigate('MyBids')}
@@ -527,7 +529,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#6B3A3A',
     paddingVertical: 8,
     borderRadius: 30,
-    marginHorizontal: 5,
+    marginHorizontal: 3,
     borderWidth: 2,
     borderColor: '#000',
     shadowColor: "#000",
@@ -536,15 +538,16 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 18,
     height: 45,
-    paddingHorizontal: 15,
+    paddingHorizontal: 8,
     justifyContent: 'flex-start',
     paddingLeft: 2,
   },
   gameButtonText: {
     color: '#fff',
-    fontSize: 18,
-    marginLeft: 12,
+    fontSize: 16, // Reduced from 18 to fit better
+    marginLeft: 10, // Reduced from 12
     fontFamily: 'Raleway_600SemiBold',
+    flex: 1, // Added flex: 1 to ensure it stays in bounds
   },
   actionWrapper: {
     backgroundColor: '#f8daa7ff',

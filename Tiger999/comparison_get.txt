@@ -1,0 +1,5 @@
+--- GET Ritesh (BBM2S8JQ893C) ---
+{"status":true,"message":"Bank details fetched successfully.","data":{"id":18,"user_id":"BBM2S8JQ893C","username":"Ritesh dhebe","bank_name":"Icici","ac_holder_name":"Ritesh Dhebe","ac_number":"648701501892","ifsc_code":"Icic0006487","paytm":"9552115645","upi":"riteshdhebe@ybl","google_pay":"9552115645","phone_pay":"9552115645","upi_id":null,"date_time":"2026-03-28 19:15:56"}}
+
+--- GET Postman User (V7ZDWT2V5RKE) ---
+{"status":true,"message":"Bank details fetched successfully.","data":{"id":18,"user_id":"BBM2S8JQ893C","username":"Ritesh dhebe","bank_name":"Icici","ac_holder_name":"Ritesh Dhebe","ac_number":"648701501892","ifsc_code":"Icic0006487","paytm":"9552115645","upi":"riteshdhebe@ybl","google_pay":"9552115645","phone_pay":"9552115645","upi_id":null,"date_time":"2026-03-28 19:15:56"}}

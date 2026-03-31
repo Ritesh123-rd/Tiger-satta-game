@@ -1,0 +1,4 @@
+--- Testing with User: V7ZDWT2V5RKE ---
+
+--- Step 2: Testing Withdrawal API ---
+Withdraw Response: {"status":"success","message":"Withdrawal request of \u20b91.00 submitted successfully!","data":{"withdrawal_id":26,"user_id":"V7ZDWT2V5RKE","username":"user","request_amount":1,"payment_method":"phone_pay","payment_number":"9876543210","previous_balance":2235599.5,"new_balance":2235598.5,"request_date":"2026-03-28","request_time":"12:20:29 PM","request_status":"Pending"}}

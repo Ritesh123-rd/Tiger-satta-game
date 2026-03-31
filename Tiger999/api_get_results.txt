@@ -1,0 +1,2 @@
+--- Step 1: Getting Bank Details (action: get) ---
+Get Response: {"status":true,"message":"Bank details fetched successfully.","data":{"id":2,"user_id":"V7ZDWT2V5RKE","username":"user","bank_name":"Demo Bank","ac_holder_name":"Test Account","ac_number":"1234567890","ifsc_code":"TEST0001","paytm":"9876543210","upi":"test@upi","google_pay":"9876543210","phone_pay":"9876543210","upi_id":null,"date_time":"2026-03-28 14:49:43"}}

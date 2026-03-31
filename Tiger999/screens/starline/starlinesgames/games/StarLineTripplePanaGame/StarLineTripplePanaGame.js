@@ -226,7 +226,7 @@ export default function StarlineTriplePanaGame({ navigation, route }) {
 
                 const session = type.toUpperCase();
 
-                console.log(`Submitting Triple Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session, sessionTime });
+                // console.log(`Submitting Triple Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session, sessionTime });
 
                 const response = await StarLineTripplePana(userId, username, numbers, amounts, gameName, String(marketId), session, sessionTime || gameName);
 

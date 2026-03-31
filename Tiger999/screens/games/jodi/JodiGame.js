@@ -230,7 +230,7 @@ const JodiGame = ({ navigation, route }) => {
             const numbers = bidsPayload.map(b => b.jodi || b.digit); // b.jodi from easy, b.digit fallback
             const amounts = bidsPayload.map(b => parseInt(b.points));
 
-            console.log('Submitting Jodi Bid:', { userId, username, numbers, amounts, gameName, marketId });
+            // console.log('Submitting Jodi Bid:', { userId, username, numbers, amounts, gameName, marketId });
 
             const response = await PlaceJodiBet(userId, username, numbers, amounts, gameName, String(marketId));
 

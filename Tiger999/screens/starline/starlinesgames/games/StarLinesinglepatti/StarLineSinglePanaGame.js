@@ -299,7 +299,7 @@ export default function StarLineSinglePanaGame({ navigation, route }) {
 
                 // API expects 'session' parameter which is 'OPEN' or 'CLOSE'
                 // derived from bid.type
-                console.log(`Submitting Single Patti Bids for ${type}:`, { userId, username, numbers, amounts, gameName, marketId, type, sessionTime });
+                // console.log(`Submitting Single Patti Bids for ${type}:`, { userId, username, numbers, amounts, gameName, marketId, type, sessionTime });
 
                 const response = await starlineSinglePana(userId, username, numbers, amounts, gameName, String(marketId), type, sessionTime || gameName);
 

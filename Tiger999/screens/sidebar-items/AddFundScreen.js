@@ -12,6 +12,7 @@ import {
   Linking,
   ActivityIndicator,
   AppState,
+  RefreshControl,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -25,10 +26,13 @@ export default function AddFundScreen({ navigation }) {
   const [amount, setAmount] = useState('');
 
   const [balance, setBalance] = useState(0.0);
-  const [userData, setUserData] = useState({ name: 'User', phone: '', id: '' });
+  const [userData, setUserData] = useState({ username: 'User', mobile: '', user_id: '' });
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [lastOrderId, setLastOrderId] = useState(null);
+  const [lastSentAmount, setLastSentAmount] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const appState = useRef(AppState.currentState);
 
   // Custom Alert State
@@ -37,19 +41,35 @@ export default function AddFundScreen({ navigation }) {
     title: '',
     message: '',
     type: 'success',
+    onPress: null,
   });
 
-  // Check status on app resume
+  // Check status on app resume and load stored order data
   useEffect(() => {
+    const initVerification = async () => {
+      try {
+        const storedOrderId = await AsyncStorage.getItem('lastOrderId');
+        const storedAmount = await AsyncStorage.getItem('lastSentAmount');
+        if (storedOrderId) {
+          setLastOrderId(storedOrderId);
+          if (storedAmount) setLastSentAmount(storedAmount);
+        }
+      } catch (e) {
+        console.error('Error loading pending order:', e);
+      }
+    };
+
+    initVerification();
+
     const subscription = AppState.addEventListener('change', nextAppState => {
       if (
         appState.current.match(/inactive|background/) &&
         nextAppState === 'active'
       ) {
-        // User has returned from PhonePe/Navi
-        setTimeout(() => {
-           fetchUserData();
-        }, 3000);
+        console.log('App returned to foreground, refreshing data...');
+        handleReturnFromPayment();
+        // Always refresh user data and balance when returning to foreground
+        fetchUserData();
       }
       appState.current = nextAppState;
     });
@@ -59,20 +79,99 @@ export default function AddFundScreen({ navigation }) {
     };
   }, []);
 
+  const handleReturnFromPayment = async () => {
+    try {
+      const storedOrderId = await AsyncStorage.getItem('lastOrderId');
+      console.log('Checking for stored order ID on return:', storedOrderId);
+      if (storedOrderId) {
+        setAlertConfig({
+          visible: true,
+          title: 'Payment Status',
+          message: 'Did you complete the payment? Click OK to verify your transaction.',
+          type: 'info',
+          onPress: () => checkVerification()
+        });
+      }
+    } catch (error) {
+      console.error('Error in handleReturnFromPayment:', error);
+    }
+  };
 
-  const fetchUserData = async () => {
+  const checkVerification = async () => {
+    try {
+      const storedOrderId = await AsyncStorage.getItem('lastOrderId');
+      const storedAmount = await AsyncStorage.getItem('lastSentAmount');
+
+      if (!storedOrderId && !lastOrderId) {
+        fetchUserData();
+        return;
+      }
+
+      const idToVerify = storedOrderId || lastOrderId;
+      const amtToVerify = storedAmount || lastSentAmount;
+
+      const name = await AsyncStorage.getItem('userName') || userData.username || 'User';
+      const mobile = await AsyncStorage.getItem('userMobile') || userData.mobile || '';
+ 
+      await handleVerifyAndRefresh(idToVerify, amtToVerify, name, mobile);
+    } catch (error) {
+      console.error('Error in checkVerification:', error);
+    }
+  };
+
+  const handleVerifyAndRefresh = async (user_id, amountToVerify, username, mobile) => {
+    try {
+      setLoadingHistory(true);
+      // Clear immediately to prevent re-triggering
+      await AsyncStorage.removeItem('lastOrderId');
+      await AsyncStorage.removeItem('lastSentAmount');
+      setLastOrderId(null);
+      setLastSentAmount(null);
+
+      // Skip verification as the API is not required now
+      const response = { status: true, message: 'Your balance will update soon.' };
+      // const response = await verifyPayment(orderId, amountToVerify, 'success', name, mobile);
+      // console.log('Verification response in screen:', response);
+
+      if (response && (response.status === true || response.status === 'success' || response.status === 'SUCCESS')) {
+        const isAlreadyDone = response.message?.includes('already');
+        setAlertConfig({
+          visible: true,
+          title: isAlreadyDone ? 'Verified' : 'Payment Success',
+          message: response.message || response.msg || `Payment verified successfully for ₹${amountToVerify}`,
+          type: 'success',
+          onPress: () => fetchUserData()
+        });
+      } else {
+        setAlertConfig({
+          visible: true,
+          title: 'Verification Pending',
+          message: response?.message || response?.msg || 'Verification failed or is still processing.',
+          type: 'warning',
+          onPress: () => fetchUserData()
+        });
+      }
+    } catch (err) {
+      console.error('Verify error:', err);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+
+  const fetchUserData = useCallback(async () => {
     try {
       const name = await AsyncStorage.getItem('userName');
-      const phone = await AsyncStorage.getItem('userMobile');
+      const mobile = await AsyncStorage.getItem('userMobile');
       const userId = await AsyncStorage.getItem('userId');
       setUserData({
-        name: name || 'User',
-        phone: phone || '',
-        id: userId || '',
+        username: name || 'User',
+        mobile: mobile || '',
+        user_id: userId || '',
       });
 
-      if (phone && userId) {
-        const response = await getWalletBalance(phone, userId);
+      if (mobile && userId) {
+        const response = await getWalletBalance(mobile, userId);
         if (response && (response.status === true || response.status === 'true')) {
           const newBalance = parseFloat(response.balance);
           if (newBalance > balance && balance !== 0) {
@@ -99,15 +198,21 @@ export default function AddFundScreen({ navigation }) {
       console.error('Error fetching data:', error);
       setLoadingHistory(false);
     }
-  };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchUserData();
-    }, [])
+    }, [fetchUserData])
   );
 
-  const quickAmounts = [500, 1000, 1500, 2000];
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchUserData();
+    setRefreshing(false);
+  }, [fetchUserData]);
+
+  const quickAmounts = [100, 200, 5001000, 1500, 2000];
 
   const handleQuickAmount = (value) => {
     setAmount(value.toString());
@@ -155,8 +260,9 @@ export default function AddFundScreen({ navigation }) {
 
     setSubmitting(true);
     try {
-      const response = await paymentGetWay(userData.name, userData.phone, amount);
-      console.log('Payment Gateway Response:', response);
+      // console.log('Initiating payment for user:', userData.user_id, 'Amount:', amount);
+      const response = await paymentGetWay(userData.user_id, userData.username, userData.mobile, amount);
+      // console.log('Payment Gateway Response:', response);
 
       if (response) {
         const potentialFields = [
@@ -183,28 +289,33 @@ export default function AddFundScreen({ navigation }) {
           if (decoded && (decoded.startsWith('http') || decoded.startsWith('upi'))) {
             targetUrl = decoded;
             break;
-          } 
+          }
         }
 
         if (targetUrl) {
-          setAlertConfig({
-            visible: true,
-            title: 'Redirecting',
-            message: 'Opening secure payment gateway...',
-            type: 'success'
+          const orderId = response.order_id || response.txnId || response.txn_id || response.id || null;
+
+          if (orderId) {
+            await AsyncStorage.setItem('lastOrderId', orderId.toString());
+            await AsyncStorage.setItem('lastSentAmount', amount.toString());
+            setLastOrderId(orderId);
+            setLastSentAmount(amount);
+          }
+
+          console.log('Redirecting to target URL:', targetUrl);
+          Linking.openURL(encodeURI(targetUrl)).catch(err => {
+            console.error('Linking error:', err);
           });
-          
-          await Linking.openURL(encodeURI(targetUrl));
           setAmount('');
         } else if (response.status === 200 || response.status === true || response.status === 'true' || response.status === 1 || response.status === 'success' || response.status === 'SUCCESS') {
           setAlertConfig({
             visible: true,
-            title: 'Success',
-            message: response.msg || response.message || 'Fund request submitted!',
-            type: 'success'
+            title: 'Request Sent',
+            message: response.msg || response.message || 'Payment request submitted successfully.',
+            type: 'success',
+            onPress: () => fetchUserData()
           });
           setAmount('');
-          fetchUserData();
         } else {
           setAlertConfig({
             visible: true,
@@ -243,8 +354,9 @@ export default function AddFundScreen({ navigation }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <TouchableOpacity onPress={() => navigation.navigate('AddFundHistory')} style={styles.historyBtn}>
             <Ionicons name="time" size={24} color="#C27183" />
-          </TouchableOpacity>
+          </TouchableOpacity> 
           <View style={styles.coinsBadge}>
+
             <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
             <Text style={styles.coinsText}>{balance.toFixed(1)}</Text>
           </View>
@@ -259,13 +371,16 @@ export default function AddFundScreen({ navigation }) {
           style={styles.scrollContent}
           contentContainerStyle={styles.scrollContentContainer}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#C27183']} />
+          }
         >
           {/* User Info Card */}
           <View style={styles.userCard}>
             {/* Pink Top Section */}
             <View style={styles.userCardTop}>
-              <Text style={styles.userName}>{userData.name}</Text>
-              <Text style={styles.userPhone}>{userData.phone}</Text>
+              <Text style={styles.userName}>{userData.username}</Text>
+              <Text style={styles.usermobile}>{userData.mobile}</Text>
             </View>
 
             {/* Yellow Bottom Section */}
@@ -392,7 +507,12 @@ export default function AddFundScreen({ navigation }) {
         title={alertConfig.title}
         message={alertConfig.message}
         type={alertConfig.type}
-        onClose={() => setAlertConfig({ ...alertConfig, visible: false })}
+        onClose={() => {
+          if (alertConfig.onPress) {
+            alertConfig.onPress();
+          }
+          setAlertConfig({ ...alertConfig, visible: false, onPress: null });
+        }}
       />
     </View>
 
@@ -466,7 +586,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
   },
-  userPhone: {
+  usermobile: {
     fontSize: 26,
     color: '#fff',
     fontFamily: 'RaleighStdDemi',

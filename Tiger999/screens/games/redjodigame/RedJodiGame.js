@@ -213,7 +213,7 @@ export default function RedJodiGame({ navigation, route }) {
                 totalPoints
             );
 
-            console.log('Red Jodi Submit Response:', response);
+            // console.log('Red Jodi Submit Response:', response);
 
             if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 fetchBalance();

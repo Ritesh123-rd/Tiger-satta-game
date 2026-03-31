@@ -62,6 +62,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
     const [initialLoading, setInitialLoading] = useState(true);
     const [userId, setUserId] = useState('');
     const [username, setUsername] = useState('');
+    const [hasDetails, setHasDetails] = useState(false);
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -76,7 +77,11 @@ export default function UpdateBankDetailsScreen({ navigation }) {
         const storedUserId = await AsyncStorage.getItem('userId');
         const storedUsername = await AsyncStorage.getItem('userName');
         setUserId(storedUserId || '');
-        setUsername(storedUsername || '');
+        const currentUsername = storedUsername || '';
+        setUsername(currentUsername);
+        
+        // Auto-populate holder name with username if it's currently empty
+        setHolderName(prev => prev || currentUsername);
 
         // 1. Try to load from Local Cache first (for immediate visibility)
         try {
@@ -91,10 +96,10 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                 setPaytm(data.paytm || '');
                 setGooglePay(data.google_pay || '');
                 setPhonePay(data.phone_pay || '');
-                console.log('UpdateBankDetails: Loaded from cache');
+                setHasDetails(true); // Cache has details, so we start in 'update' mode
             }
         } catch (e) {
-            console.log('UpdateBankDetails: Cache load error', e);
+
         }
 
         if (storedUserId) {
@@ -102,16 +107,33 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                 if (isInitial) setInitialLoading(true);
                 else setLoading(true);
 
-                const response = await getBankDetails(storedUserId);
-                console.log('UpdateBankDetails: API Response:', response);
+                // Fetch and/or Initialize the bank record
+                const response = await getBankDetails(storedUserId, currentUsername);
+                // console.log('UpdateBankDetails: API Response:', response);
 
                 if (response && (response.status === true || response.status === 'true')) {
                     // Handle both nested 'data' and flat response
                     const data = response.data || response;
 
-                    if (data && typeof data === 'object' && data.bank_name !== undefined) {
+                    // Verify that the returned data belongs to the current user
+                    if (data && typeof data === 'object' && data.user_id && data.user_id !== storedUserId) {
+                        setHasDetails(false);
+                        setBankName('');
+                        setHolderName(currentUsername);
+                        setAccountNumber('');
+                        setIfsc('');
+                        setUpi('');
+                        setPaytm('');
+                        setGooglePay('');
+                        setPhonePay('');
+                        await AsyncStorage.removeItem(`bankDetails_${storedUserId}`);
+                    } else if (data && typeof data === 'object') {
                         setBankName(data.bank_name || '');
-                        setHolderName(data.ac_holder_name || '');
+                        
+                        // Prioritize: Saved Holder Name > Response Username > Local Username
+                        const suggestedHolderName = data.ac_holder_name || data.username || currentUsername || '';
+                        setHolderName(suggestedHolderName);
+                        
                         setAccountNumber(data.ac_number || '');
                         setIfsc(data.ifsc_code || '');
                         setUpi(data.upi || '');
@@ -119,11 +141,24 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                         setGooglePay(data.google_pay || '');
                         setPhonePay(data.phone_pay || '');
 
+                        setHasDetails(true);
+
                         // Update Local Cache
                         await AsyncStorage.setItem(`bankDetails_${storedUserId}`, JSON.stringify(data));
                     }
                 } else {
-                    console.log('UpdateBankDetails: Status not true', response?.message);
+                    setHasDetails(false);
+                    // Clear fields if no details found in database
+                    setBankName('');
+                    setHolderName(username);
+                    setAccountNumber('');
+                    setIfsc('');
+                    setUpi('');
+                    setPaytm('');
+                    setGooglePay('');
+                    setPhonePay('');
+                    
+                    await AsyncStorage.removeItem(`bankDetails_${storedUserId}`);
                 }
             } catch (error) {
                 console.error('UpdateBankDetails: Fetch error', error);
@@ -154,22 +189,12 @@ export default function UpdateBankDetailsScreen({ navigation }) {
     );
 
     const handleSave = async () => {
-        if (!bankName || !holderName || !accountNumber || !ifsc) {
-            setAlertConfig({
-                visible: true,
-                title: 'Error',
-                message: 'Please fill all mandatory bank details (Bank Name, Holder Name, Account Number, IFSC)',
-                type: 'error'
-            });
-            return;
-        }
-
-
         setLoading(true);
         try {
             const details = {
                 user_id: userId,
                 username: username,
+                action: 'insert', // Changed to insert as per new API spec
                 bank_name: bankName,
                 ac_holder_name: holderName,
                 ac_number: accountNumber,
@@ -181,9 +206,11 @@ export default function UpdateBankDetailsScreen({ navigation }) {
             };
 
             const response = await updateBankDetails(details);
-            if (response && (response.status === true || response.status === 'true')) {
+
+            if (response && (response.status === true || response.status === 'true' || response.status === 'success')) {
                 // Save to Local Cache immediately on success
                 await AsyncStorage.setItem(`bankDetails_${userId}`, JSON.stringify(details));
+                setHasDetails(true); // Now we have details definitely
 
                 setAlertConfig({
                     visible: true,
@@ -259,7 +286,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                         />
                         <Text style={styles.label}>Bank Account Number</Text>
                         <InputField
-                            icon="bank"
+                            icon="university"
                             iconType="FontAwesome5"
                             placeholder="Bank Account number"
                             value={accountNumber}
@@ -295,8 +322,8 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                         />
                         <Text style={styles.label}>Google Pay Number</Text>
                         <InputField
-                            icon="google-pay"
-                            iconType="MaterialCommunityIcons"
+                            icon="logo-google"
+                            iconType="Ionicons"
                             placeholder="Google Pay Number"
                             value={googlePay}
                             onChangeText={setGooglePay}
@@ -305,6 +332,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                         <Text style={styles.label}>Phone Pe Number</Text>
                         <InputField
                             icon="phone-portrait-outline"
+                            iconType="Ionicons"
                             placeholder="Phone Pe Number"
                             value={phonePay}
                             onChangeText={setPhonePay}
@@ -322,6 +350,9 @@ export default function UpdateBankDetailsScreen({ navigation }) {
                                 <Text style={styles.saveButtonText}>Save Detail</Text>
                             )}
                         </TouchableOpacity>
+
+
+
 
                         <View style={{ height: 30 }} />
                     </ScrollView>

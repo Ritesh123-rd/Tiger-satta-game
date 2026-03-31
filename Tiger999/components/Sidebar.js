@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -12,6 +12,7 @@ import {
     Image
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.8;
@@ -27,6 +28,8 @@ const MenuIcon = ({ name, type = 'Ionicons' }) => {
 export default function Sidebar({ isVisible, onClose, userData, navigation, shareApp }) {
     const slideAnim = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const logoutScaleAnim = useRef(new Animated.Value(0.8)).current;
 
     useEffect(() => {
         if (isVisible) {
@@ -66,6 +69,7 @@ export default function Sidebar({ isVisible, onClose, userData, navigation, shar
     };
 
     return (
+        <>
         <Modal
             animationType="none"
             transparent={true}
@@ -268,6 +272,17 @@ export default function Sidebar({ isVisible, onClose, userData, navigation, shar
                             <Text style={styles.menuText}>Change Password</Text>
                         </TouchableOpacity>
 
+                        {/* Menu Item - Generate MPIN */}
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => handleLink('MpinScreen')}
+                        >
+                            <View style={[styles.menuIconContainer, { backgroundColor: '#C36578' }]}>
+                                <MenuIcon name="lock-closed" />
+                            </View>
+                            <Text style={styles.menuText}>Generate MPIN</Text>
+                        </TouchableOpacity>
+
                         {/* Menu Item - Share App */}
                         <TouchableOpacity
                             style={styles.menuItem}
@@ -280,18 +295,77 @@ export default function Sidebar({ isVisible, onClose, userData, navigation, shar
                         </TouchableOpacity>
 
                         {/* Menu Item - Logout */}
-                        <TouchableOpacity style={styles.menuItem} onPress={() => { onClose(); navigation.navigate('Login'); }}>
+                        <TouchableOpacity style={styles.menuItem} onPress={() => {
+                            onClose();
+                            setShowLogoutModal(true);
+                            Animated.spring(logoutScaleAnim, {
+                                toValue: 1,
+                                friction: 5,
+                                useNativeDriver: true,
+                            }).start();
+                        }}>
                             <View style={styles.menuIconContainer}>
                                 <MenuIcon name="log-out-outline" />
                             </View>
                             <Text style={styles.menuText}>Logout</Text>
                         </TouchableOpacity>
 
-                        <Text style={styles.versionText}>Version: 1.0.1</Text>
+                        <Text style={styles.versionText}>.</Text>
                     </ScrollView>
                 </Animated.View>
             </View>
         </Modal>
+
+        {/* Custom Logout Confirmation Modal */}
+        <Modal
+            transparent
+            visible={showLogoutModal}
+            animationType="none"
+            onRequestClose={() => setShowLogoutModal(false)}
+        >
+            <View style={styles.logoutOverlay}>
+                <Animated.View style={[styles.logoutContainer, { transform: [{ scale: logoutScaleAnim }] }]}>
+                    <View style={styles.logoutTopStrip} />
+
+                    <View style={styles.logoutIconContainer}>
+                        <Ionicons name="log-out-outline" size={70} color="#D32F2F" />
+                    </View>
+
+                    <Text style={styles.logoutTitle}>Logout</Text>
+                    <Text style={styles.logoutMessage}>Are you sure you want to logout?</Text>
+
+                    <View style={styles.logoutButtons}>
+                        <TouchableOpacity
+                            style={styles.cancelButton}
+                            onPress={() => {
+                                logoutScaleAnim.setValue(0.8);
+                                setShowLogoutModal(false);
+                            }}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={styles.logoutButton}
+                            onPress={async () => {
+                                logoutScaleAnim.setValue(0.8);
+                                setShowLogoutModal(false);
+                                await AsyncStorage.multiRemove(['userName', 'userId', 'userDate']);
+                                navigation.reset({
+                                    index: 0,
+                                    routes: [{ name: 'Login' }],
+                                });
+                            }}
+                            activeOpacity={0.8}
+                        >
+                            <Text style={styles.logoutButtonText}>Logout</Text>
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
+            </View>
+        </Modal>
+        </>
     );
 }
 
@@ -408,5 +482,94 @@ const styles = StyleSheet.create({
         padding: 20,
         marginBottom: 20,
         fontFamily: 'Roboto_700Bold',
+    },
+    logoutOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoutContainer: {
+        width: SCREEN_WIDTH * 0.85,
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        overflow: 'hidden',
+        alignItems: 'center',
+        elevation: 10,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.3,
+        shadowRadius: 10,
+    },
+    logoutTopStrip: {
+        width: '100%',
+        height: 6,
+        backgroundColor: '#D32F2F',
+    },
+    logoutIconContainer: {
+        marginTop: 30,
+        marginBottom: 15,
+        width: 90,
+        height: 90,
+        borderRadius: 45,
+        backgroundColor: '#FFEBEE',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    logoutTitle: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 10,
+        fontFamily: 'RaleighStdDemi',
+    },
+    logoutMessage: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
+        paddingHorizontal: 30,
+        marginBottom: 25,
+        fontFamily: 'RaleighStdDemi',
+    },
+    logoutButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        paddingHorizontal: 20,
+        marginBottom: 25,
+        gap: 12,
+    },
+    cancelButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 30,
+        backgroundColor: '#E0E0E0',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 2,
+    },
+    cancelButtonText: {
+        color: '#333',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fontFamily: 'RaleighStdDemi',
+    },
+    logoutButton: {
+        flex: 1,
+        paddingVertical: 14,
+        borderRadius: 30,
+        backgroundColor: '#D32F2F',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#D32F2F',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 4,
+    },
+    logoutButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fontFamily: 'RaleighStdDemi',
     },
 });

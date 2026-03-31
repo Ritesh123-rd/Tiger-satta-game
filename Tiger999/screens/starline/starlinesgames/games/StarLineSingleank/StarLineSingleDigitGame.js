@@ -111,11 +111,11 @@ export default function StarLineSingleDigitGame({ navigation, route }) {
       console.log('SingleDigit Game: Fetching markets for gameName:', gameName);
       const response = await starlinegetMarkets();
       if (response && response.status === true) {
-        console.log('SingleDigit Game: Found', response.data?.length, 'markets');
+        // console.log('SingleDigit Game: Found', response.data?.length, 'markets');
 
         // Log the first few markets to see structure
         if (response.data && response.data.length > 0) {
-          console.log('SingleDigit Game: Sample market data:', JSON.stringify(response.data[0]));
+          // console.log('SingleDigit Game: Sample market data:', JSON.stringify(response.data[0]));
         }
 
         // Search by market_name or name or end_time (sometimes used as name)
@@ -127,11 +127,11 @@ export default function StarLineSingleDigitGame({ navigation, route }) {
 
         if (currentMarket) {
           setMarketId(currentMarket.id);
-          console.log('SingleDigit Game: Market ID found via robust search:', currentMarket.id, 'for name:', currentMarket.market_name);
+          // console.log('SingleDigit Game: Market ID found via robust search:', currentMarket.id, 'for name:', currentMarket.market_name);
         } else {
           console.warn('SingleDigit Game: Market not found for gameName:', gameName);
           // Log all names for debugging
-          console.log('SingleDigit Game: Available market names:', response.data.map(m => m.market_name || m.name).join(', '));
+          // console.log('SingleDigit Game: Available market names:', response.data.map(m => m.market_name || m.name).join(', '));
         }
       }
     } catch (error) {
@@ -292,7 +292,7 @@ export default function StarLineSingleDigitGame({ navigation, route }) {
         sessionTime || gameName // Fallback to gameName if sessionTime missing
       );
 
-      console.log('SingleDigitGame: API Response:', JSON.stringify(response));
+      // console.log('SingleDigitGame: API Response:', JSON.stringify(response));
 
       if (response && (response.status === 'success' || response.status === true || response.status === 'true')) {
         setAlertConfig({

@@ -220,7 +220,7 @@ export default function TriplePanaGame({ navigation, route }) {
 
         const session = type.toUpperCase();
 
-        console.log(`Submitting Triple Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session });
+        // console.log(`Submitting Triple Patti Bids for ${session}:`, { userId, username, numbers, amounts, gameName, marketId, session });
 
         const response = await TriplePatti(userId, username, numbers, amounts, gameName, String(marketId), session);
 

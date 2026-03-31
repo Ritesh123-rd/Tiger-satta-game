@@ -1,0 +1,5 @@
+--- Testing INSERT for User: BBM2S8JQ893C ---
+Insert Response: {"status":false,"message":"Bank details already exist. Use action \"update\" to modify."}
+
+--- Now Step 2: Testing Withdrawal API ---
+Withdraw Response: {"status":"error","message":"Bank details not found. Please add your bank details first."}
