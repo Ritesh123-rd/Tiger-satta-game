@@ -21,8 +21,8 @@
     },
     "android": {
       "package": "com.yourcompany.tiger999",
-      "versionCode": 2,
-      "googleServicesFile": "./google-services.json",
+      "versionCode": 10,
+      "googleServicesFile": "./assets/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/logo.png",
         "backgroundColor": "#F5C542"

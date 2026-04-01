@@ -2,7 +2,18 @@ import React, { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Image, StyleSheet, Text } from 'react-native';
+import { View, Image, StyleSheet, Text, Platform, Alert } from 'react-native';
+import * as Device from 'expo-device';
+import * as Notifications from 'expo-notifications';
+
+// Foreground notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 // Auth Screens
 import LoginScreen from './screens/LoginScreen';
@@ -154,6 +165,29 @@ export default function App() {
     if (loaded || error) {
       SplashScreen.hideAsync();
     }
+
+    // --- Push Notifications Setup ---
+    registerForPushNotificationsAsync().then(token => {
+      if (token) {
+        console.log("Mera FCM Token ye hai:", token);
+        // Tip: You can save this token to AsyncStorage or send it to your backend
+      }
+    });
+
+    // Listener for when a notification is received while the app is in foreground
+    const notificationListener = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Foreground Notification aayi!", notification);
+    });
+
+    // Listener for when a user interacts with a notification (taps it)
+    const responseListener = Notifications.addNotificationResponseReceivedListener(response => {
+      console.log("User ne click kiya!", response);
+    });
+
+    return () => {
+      notificationListener.remove();
+      responseListener.remove();
+    };
   }, [loaded, error]);
 
   if (!loaded && !error) {
@@ -251,4 +285,46 @@ export default function App() {
       </NavigationContainer>
     </SafeAreaProvider>
   );
+}
+
+/**
+ * Function to request permissions and get the FCM Device Token
+ */
+async function registerForPushNotificationsAsync() {
+  let token;
+
+  if (Platform.OS === 'android') {
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'default',
+      importance: Notifications.AndroidImportance.MAX,
+      vibrationPattern: [0, 250, 250, 250],
+      lightColor: '#FF231F7C',
+    });
+  }
+
+  if (Device.isDevice) {
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== 'granted') {
+      console.warn('Notification permission not granted!');
+      return;
+    }
+
+    // Get the direct FCM token (Device Push Token)
+    try {
+      token = (await Notifications.getDevicePushTokenAsync()).data;
+    } catch (e) {
+      console.error("Error getting Device Push Token:", e);
+    }
+  } else {
+    console.log('Must use physical device for Push Notifications');
+  }
+
+  return token;
 }
