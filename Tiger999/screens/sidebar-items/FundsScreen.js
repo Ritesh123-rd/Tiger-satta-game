@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: {
     flex: 1,
@@ -139,11 +139,11 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#000',
     marginBottom: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   optionSubtitle: {
     fontSize: 13,
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

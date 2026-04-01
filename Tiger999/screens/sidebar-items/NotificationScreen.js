@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingTop: 40,
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'Poppins_600SemiBold' },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  emptyText: { fontSize: 16, color: '#666', marginTop: 15, fontFamily: 'RaleighStdDemi' },
+  emptyText: { fontSize: 16, color: '#666', marginTop: 15, fontFamily: 'Poppins_600SemiBold' },
 });

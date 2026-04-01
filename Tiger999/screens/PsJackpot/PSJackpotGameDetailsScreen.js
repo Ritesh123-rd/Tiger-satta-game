@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000',
         textTransform: 'uppercase',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
         flex: 1,
         textAlign: 'center',
         marginHorizontal: 10,
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#000',
         textAlign: 'center',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     iconInner: {
         justifyContent: 'center',

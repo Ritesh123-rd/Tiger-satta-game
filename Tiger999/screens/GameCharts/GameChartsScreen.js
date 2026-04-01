@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#000',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     content: {
         flex: 1,
@@ -131,13 +131,13 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#000',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     cardSubtitle: {
         fontSize: 14,
         color: '#444',
         marginTop: 4,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     chevronCircle: {
         width: 34,

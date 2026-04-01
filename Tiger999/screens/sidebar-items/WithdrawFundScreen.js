@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi'
+    fontFamily: 'Poppins_600SemiBold'
   },
   historyBtn: {
     padding: 5,
@@ -521,14 +521,14 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#fff',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     marginBottom: 5,
   },
   userPhone: {
     fontSize: 26,
     fontWeight: 'bold',
     color: '#fff',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     letterSpacing: 1,
   },
   balanceSection: {
@@ -541,14 +541,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     marginBottom: 5,
   },
   balanceAmount: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginTop: 20,
     marginBottom: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   methodSelector: {
     flexDirection: 'row',
@@ -588,7 +588,7 @@ const styles = StyleSheet.create({
   methodText: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
   },
   inputIconContainer: {
@@ -605,7 +605,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#000',
     paddingHorizontal: 15,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   buttonContainer: {
     paddingHorizontal: 20,
@@ -621,7 +621,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   scrollContent: {
     flex: 1,
@@ -642,7 +642,7 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: 18,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   historyCard: {
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   selectedOptionText: {
     color: '#C27183',
@@ -749,7 +749,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalContent: {
     padding: 20,
@@ -759,7 +759,7 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 20,
     lineHeight: 22,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   acceptButton: {
     backgroundColor: '#C27183',
@@ -774,7 +774,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     letterSpacing: 1,
   },
   methodDetailsPreview: {
@@ -791,13 +791,13 @@ const styles = StyleSheet.create({
   methodDetailsTitle: {
     fontSize: 13,
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     marginLeft: 5,
   },
   methodDetailsValue: {
     fontSize: 13,
     color: '#333',
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

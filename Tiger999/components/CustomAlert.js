@@ -163,14 +163,14 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 10,
         textAlign: 'center',
-        fontFamily: 'RaleighStdDemi'
+        fontFamily: 'Poppins_600SemiBold'
     },
     message: {
         fontSize: 16,
         color: '#666',
         textAlign: 'center',
         lineHeight: 22,
-        fontFamily: 'RaleighStdDemi'
+        fontFamily: 'Poppins_600SemiBold'
     },
     button: {
         width: '80%',
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
-        fontFamily: 'RaleighStdDemi'
+        fontFamily: 'Poppins_600SemiBold'
     },
 });
 

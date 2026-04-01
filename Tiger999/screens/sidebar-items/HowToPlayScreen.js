@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     content: {
         flex: 1,
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 15,
         marginTop: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     stepCard: {
         flexDirection: 'row',
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     stepLine: {
         width: 2,
@@ -217,13 +217,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 5,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     stepDescription: {
         fontSize: 13,
         color: '#666',
         lineHeight: 18,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     gameTypeCard: {
         backgroundColor: '#fff',
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     rateChip: {
         backgroundColor: '#4CAF50',
@@ -258,12 +258,12 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     gameTypeDescription: {
         fontSize: 13,
         color: '#666',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     tipsCard: {
         backgroundColor: '#E8F5E9',
@@ -278,12 +278,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     tipText: {
         fontSize: 13,
         color: '#555',
         lineHeight: 22,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });

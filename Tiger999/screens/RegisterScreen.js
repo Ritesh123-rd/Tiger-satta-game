@@ -50,7 +50,7 @@ export default function RegisterScreen({ navigation }) {
     if (phone && username && password) {
       setIsLoading(true);
       try {
-        const response = await registerUser(username, password, phone);
+        const response = await registerUser(username, password, phone); // No token generation here per user request
         // console.log('Register response:', response);
 
         if (response && (response.status === 'true' || response.status === true)) {
@@ -166,7 +166,7 @@ export default function RegisterScreen({ navigation }) {
           </View>
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Mpin"
             placeholderTextColor="#999"
             secureTextEntry
             value={password}
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 25,
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingRight: 15,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   registerButton: {
     width: '90%',
@@ -311,12 +311,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   backText: {
     fontSize: 14,
     color: '#666',
     marginTop: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

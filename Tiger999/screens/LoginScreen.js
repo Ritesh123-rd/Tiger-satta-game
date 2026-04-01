@@ -15,7 +15,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../components/CustomAlert';
 
-
 import logo from '../assets/logo/logo.png';
 import { sendOtp, verifyOtp, LoginWithMPin } from '../api/auth';
 
@@ -84,11 +83,14 @@ export default function LoginScreen({ navigation }) {
   });
 
   const handleSendOtp = async () => {
-    if (phoneNumber.length === 10) {
+    const finalPhone = phoneNumber.trim().replace(/\D/g, ''); // Remove any non-digits
+    if (finalPhone.length === 10) {
       setIsLoading(true);
       try {
-        const response = await sendOtp(phoneNumber);
-        // console.log('Send OTP Response:', response);
+        console.log(`[AUTH] Requesting OTP for: ${finalPhone}`);
+        
+        const response = await sendOtp(finalPhone); // Token generation now handled inside sendOtp
+        console.log('[AUTH] Send OTP response:', response);
 
         if (response && response.status === true) {
           setAlertConfig({
@@ -107,7 +109,7 @@ export default function LoginScreen({ navigation }) {
           });
         }
       } catch (error) {
-        console.error('Send OTP Error:', error);
+        console.error('[AUTH] Send OTP error:', error);
         setAlertConfig({
           visible: true,
           title: 'Error',
@@ -127,12 +129,16 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
+
   const handleVerifyOtp = async () => {
     if (otp.length > 0) {
       setIsLoading(true);
       try {
+        console.log(`[AUTH] Verifying OTP for: ${phoneNumber}`);
+        
+        // Pass token to verifyOtp (Optional now as it should be on server from sendOtp)
         const response = await verifyOtp(phoneNumber, otp);
-        // console.log('Verify OTP Response:', response);
+        console.log('[AUTH] Verify OTP response:', response);
 
         if (response && response.status === true) {
           // Save user info from response
@@ -145,6 +151,9 @@ export default function LoginScreen({ navigation }) {
           }
 
           navigation.replace('Home');
+
+
+
         } else {
           setAlertConfig({
             visible: true,
@@ -190,8 +199,19 @@ export default function LoginScreen({ navigation }) {
             const date = new Date(response.created_at);
             await AsyncStorage.setItem('userDate', date.toLocaleDateString('en-GB'));
           }
-
+          // Note: Token generation removed from MPIN login as per user request
           navigation.replace('Home');
+        } else if (response && response.otp_required === true) {
+           // Handle the "First time login" case from PHP
+           setAlertConfig({
+             visible: true,
+             title: 'OTP Required',
+             message: response.message || 'First login detected. Please verify with OTP.',
+             type: 'success' // Using success as it's a expected step
+           });
+           handleSendOtp(); // Automatically trigger OTP for them
+           setLoginMode('otp');
+           setStep('otp');
         } else {
           setAlertConfig({
             visible: true,
@@ -255,7 +275,7 @@ export default function LoginScreen({ navigation }) {
           <>
             <Text style={styles.title}>LOGIN WITH MPIN</Text>
             
-            <Text style={{ fontFamily: 'RaleighStdDemi', fontSize: 16, marginBottom: 20, color: '#555' }}>
+            <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginBottom: 20, color: '#555' }}>
               Welcome back, +91 {phoneNumber.substring(0,2)}******{phoneNumber.substring(8)}
             </Text>
 
@@ -464,7 +484,7 @@ const styles = StyleSheet.create({
     color: '#000',
     marginBottom: 30,
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -493,7 +513,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 18,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   loginButton: {
     width: '80%',
@@ -512,7 +532,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   contactContainer: {
     flexDirection: 'row',
@@ -540,12 +560,12 @@ const styles = StyleSheet.create({
   signupText: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   signupLink: {
     fontSize: 16,
     color: '#4CAF50',
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

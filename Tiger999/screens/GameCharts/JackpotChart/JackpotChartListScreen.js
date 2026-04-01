@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000',
         marginLeft: 15,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     tableWrapper: {
         flex: 1,

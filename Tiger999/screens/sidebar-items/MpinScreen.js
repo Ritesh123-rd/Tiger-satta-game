@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
         fontSize: 20,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     content: {
         padding: 25,
@@ -222,20 +222,20 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 5,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     infoText: {
         fontSize: 14,
         color: '#666',
         lineHeight: 20,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     label: {
         fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
         marginLeft: 5,
     },
     inputContainer: {
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#000',
         letterSpacing: 2,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     submitButton: {
         backgroundColor: '#C36578',
@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     tipsContainer: {
         marginTop: 40,
@@ -296,13 +296,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#C36578',
         marginBottom: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     tipText: {
         fontSize: 13,
         color: '#666',
         marginBottom: 8,
         lineHeight: 18,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });

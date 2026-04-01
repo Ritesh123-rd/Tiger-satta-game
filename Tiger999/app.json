@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "R",
+    "name": "TIGER999",
     "icon": "./assets/logo/logo.png",
     "slug": "tiger999app",
     "version": "1.0.0",
@@ -9,7 +9,7 @@
     "splash": {
       "image": "./assets/logo/splash.png",
       "resizeMode": "contain",
-      "backgroundColor": "#FFFFFF"
+      "backgroundColor": "#F5C542"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -24,7 +24,7 @@
       "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/logo/logo.png",
-        "backgroundColor": "#FFFFFF"
+        "backgroundColor": "#F5C542"
       }
     },
     "plugins": [
@@ -34,11 +34,12 @@
           "image": "./assets/logo/splash.png",
           "imageWidth": 250,
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF"
+          "backgroundColor": "#F5C542"
         }
       ],
       "expo-font"
     ],
+
     "extra": {
       "eas": {
         "projectId": "3eaddc7c-cb53-43b4-bb12-15e212b7f53b"

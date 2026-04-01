@@ -31,8 +31,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingTop: 40,
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'RaleighStdDemi' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#000', fontFamily: 'Poppins_600SemiBold' },
   content: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  text: { fontSize: 18, color: '#000', fontWeight: 'bold', fontFamily: 'RaleighStdDemi' },
-  subText: { fontSize: 16, color: '#666', marginTop: 10, fontFamily: 'RaleighStdDemi' },
+  text: { fontSize: 18, color: '#000', fontWeight: 'bold', fontFamily: 'Poppins_600SemiBold' },
+  subText: { fontSize: 16, color: '#666', marginTop: 10, fontFamily: 'Poppins_600SemiBold' },
 });

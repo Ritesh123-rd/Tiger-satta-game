@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi'
+    fontFamily: 'Poppins_600SemiBold'
   },
   refreshButton: {
     padding: 5,
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     marginTop: 15,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
     letterSpacing: 1,
   },
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   requestId: {
     fontSize: 12,

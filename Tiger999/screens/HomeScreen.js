@@ -156,6 +156,8 @@ export default function HomeScreen({ navigation }) {
     fetchBalance();
   }, []);
 
+
+
   useFocusEffect(
     useCallback(() => {
       fetchBalance();

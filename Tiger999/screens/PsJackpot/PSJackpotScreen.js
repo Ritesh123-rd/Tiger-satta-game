@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 16,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#000',
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   balanceText: {
     color: '#fff',
     fontSize: 15,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   topRow: {
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#8D8D8D',
     marginRight: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   rateContainer: {
     paddingHorizontal: 15,
@@ -380,13 +380,13 @@ const styles = StyleSheet.create({
   jodiLabel: {
     fontSize: 17,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   jodiValue: {
     fontSize: 18,
     color: '#C85C73',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   scrollContent: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     fontSize: 16,
     color: '#999',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   gameCard: {
     flexDirection: 'row',
@@ -433,13 +433,13 @@ const styles = StyleSheet.create({
   gameTime: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   gameStatus: {
     fontSize: 12,
     marginTop: 3,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '500',
   },
   resultPill: {
@@ -454,7 +454,7 @@ const styles = StyleSheet.create({
   resultText: {
     color: '#fff',
     fontSize: 16,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   playButton: {
@@ -474,7 +474,7 @@ const styles = StyleSheet.create({
   playButtonText: {
     color: '#333',
     fontSize: 14,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
   },
 });

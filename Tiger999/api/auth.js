@@ -1,5 +1,6 @@
 import { API_BASE_URL } from './config';
-
+import { registerForPushNotificationsAsync } from '../utils/notifications';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export const loginUser = async (mobile, password) => {
     try {
         const response = await fetch(`${API_BASE_URL}/userLogin/login.php`, {
@@ -46,8 +47,18 @@ export const registerUser = async (username, password, mobile) => {
             }),
         });
 
-        const data = await response.json();
-        return data;
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Register JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Register JSON: ' + text.substring(0, 50));
+        }
     } catch (error) {
         console.error('Register API Error:', error);
         throw error;
@@ -68,9 +79,15 @@ export const getWalletBalance = async (mobile, userId = null) => {
         });
 
         const text = await response.text();
-
-        const data = JSON.parse(text);
-        return data;
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Wallet Balance JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) return JSON.parse(jsonMatch[0]);
+            throw new Error('Invalid Balance JSON: ' + text.substring(0, 50));
+        }
     } catch (error) {
         console.error('Get Wallet Balance API Error:', error);
         throw error;
@@ -914,6 +931,7 @@ export const withdrawfund = async (UserId, Username, total_amount, typeofpay) =>
     }
 };
 
+
 //ps startline Dashboard
 
 
@@ -1565,106 +1583,6 @@ export const dateviseResultPStarline = async (DATE) => {
     }
 }
 
-// all games rates api
-
-// export const psJackpotMarketRate = async (market_id) => {
-//     try {
-//         const response = await fetch(`${API_BASE_URL}/website/Jackpot/read/marketRate.php`, {
-//             method: "POST",
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 "market_id": market_id
-//             })
-//         });
-//         console.log(response);
-//         const rawText = await response.text();
-
-//         try {
-//             const data = JSON.parse(rawText);
-//             return data;
-//         } catch (e) {
-//             console.error('Markets JSON Parse Error:', e);
-//             const jsonMatch = rawText.match(/\{.*\}/);
-//             if (jsonMatch) {
-//                 return JSON.parse(jsonMatch[0]);
-//             }
-//             throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
-//         }
-//     } catch (error) {
-//         console.error('Get Markets API Error:', error);
-//         throw error;
-//     }
-// }
-
-
-// export const AllGameRates = async (market_id) => {
-//     try {
-//         const response = await fetch(`${API_BASE_URL}/website/Reguler/read/marketRate.php`, {
-
-//             method: "POST",
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 "market_id": market_id
-//             })
-//         });
-//         console.log(response);
-//         const text = await response.text();
-
-//         try {
-//             const data = JSON.parse(text);
-//             return data;
-//         } catch (e) {
-//             console.error('Bet History JSON Parse Error:', e);
-//             const jsonMatch = text.match(/\{.*\}/);
-//             if (jsonMatch) {
-//                 return JSON.parse(jsonMatch[0]);
-//             }
-//             throw new Error('Invalid Bet History JSON: ' + text.substring(0, 50));
-//         }
-//     } catch (error) {
-//         console.error('Get Bet History API Error:', error);
-//         throw error;
-//     }
-// }
-
-
-// export const Starlinegamerates = async (market_id) => {
-//     try {
-//         const response = await fetch(`${API_BASE_URL}/website/Starlines/read/marketRate.php`, {
-//             method: 'POST',
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             body: JSON.stringify({
-//                 "market_id": market_id
-//             }),
-//         });
-//         console.log(response);
-//         const rawText = await response.text();
-
-//         try {
-//             const data = JSON.parse(rawText);
-//             return data;
-//         } catch (e) {
-//             console.error('Markets JSON Parse Error:', e);
-//             const jsonMatch = rawText.match(/\{.*\}/);
-//             if (jsonMatch) {
-//                 return JSON.parse(jsonMatch[0]);
-//             }
-//             throw new Error('Invalid Markets JSON: ' + rawText.substring(0, 50));
-//         }
-//     } catch (error) {
-//         console.error('Get Markets API Error:', error);
-//         throw error;
-//     }
-// };
-
-
-
 // Game Rates
 
 export const getMarketRate = async () => {
@@ -1764,6 +1682,17 @@ export const changePassword = async (userId, oldPass, newPass, confirmPass) => {
 
 export const sendOtp = async (mobile) => {
     try {
+        let fcmToken = null;
+        try {
+            fcmToken = await registerForPushNotificationsAsync();
+            console.log('[AUTH] FCM Token generated during sendOtp:', fcmToken);
+            if (fcmToken) {
+                await AsyncStorage.setItem('fcmToken', fcmToken);
+            }
+        } catch (err) {
+            console.error('[AUTH] Token generation failed during sendOtp:', err);
+        }
+
         const response = await fetch(`${API_BASE_URL}/userLogin/send_otp.php`, {
             method: 'POST',
             headers: {
@@ -1771,6 +1700,7 @@ export const sendOtp = async (mobile) => {
             },
             body: JSON.stringify({
                 mobile: mobile,
+                fcm_token: fcmToken,
             }),
         });
 
@@ -1793,6 +1723,13 @@ export const sendOtp = async (mobile) => {
 
 export const verifyOtp = async (mobile, otp) => {
     try {
+        let fcmToken = null;
+        try {
+            fcmToken = await AsyncStorage.getItem('fcmToken');
+        } catch (e) {
+            console.error('[AUTH] Failed to get cached token for verify:', e);
+        }
+
         const response = await fetch(`${API_BASE_URL}/userLogin/verify_otp.php`, {
             method: 'POST',
             headers: {
@@ -1801,6 +1738,7 @@ export const verifyOtp = async (mobile, otp) => {
             body: JSON.stringify({
                 mobile: mobile,
                 otp: otp,
+                fcm_token: fcmToken,
             }),
         });
 
@@ -1820,6 +1758,7 @@ export const verifyOtp = async (mobile, otp) => {
         throw error;
     }
 };
+
 
 export const LoginWithMPin = async (mobile, password) => {
     try {
@@ -1887,4 +1826,5 @@ export const paymentGetWay = async (user_id, username, mobile, amount) => {
         throw error;
     }
 };
+
 

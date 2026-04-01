@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     color: '#000',
     flex: 1,
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   balanceChip: {
     flexDirection: 'row',
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: { flex: 1, padding: 15 },
   dateRow: {
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     gap: 10,
   },
-  dateText: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi' },
+  dateText: { fontSize: 14, color: '#000', fontFamily: 'Poppins_600SemiBold' },
   dropdown: {
     flex: 1,
     flexDirection: 'row',
@@ -633,7 +633,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
   },
-  dropdownText: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi' },
+  dropdownText: { fontSize: 14, color: '#000', fontFamily: 'Poppins_600SemiBold' },
   checkboxContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -661,7 +661,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   row: {
     flexDirection: 'row',
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     fontWeight: '500',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   inputContainer: {
     flex: 1,
@@ -690,7 +690,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   warningIconContainer: {
     position: 'absolute',
@@ -738,7 +738,7 @@ const styles = StyleSheet.create({
     color: '#333',
     fontSize: 12,
     fontWeight: '500',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   generateButton: {
     backgroundColor: '#C36578',
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#C36578',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bidRow: {
     flexDirection: 'row',
@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#000',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bidsScrollContainer: {
     flex: 1,
@@ -801,7 +801,7 @@ const styles = StyleSheet.create({
     color: '#C36578',
     marginTop: 10,
     marginBottom: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bottomBar: {
     flexDirection: 'row',
@@ -827,13 +827,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   submitButton: {
     backgroundColor: '#C36578',
@@ -845,7 +845,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalOverlay: {
     flex: 1,
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 15,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalTableHeader: {
     flexDirection: 'row',
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalBidsList: {
     maxHeight: 200,
@@ -898,7 +898,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalTotalContainer: {
     paddingVertical: 10,
@@ -911,7 +911,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginVertical: 3,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalButtonContainer: {
     flexDirection: 'row',
@@ -929,7 +929,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalConfirmButton: {
     flex: 1,
@@ -942,6 +942,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

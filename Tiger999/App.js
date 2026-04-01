@@ -108,13 +108,19 @@ SplashScreen.preventAutoHideAsync();
 
 // Loading Screen Component - Empty (logo is shown by native splash screen)
 const LoadingScreen = () => (
-  <View style={loadingStyles.container} />
+  <View style={loadingStyles.container}>
+    <Image 
+      source={require('./assets/logo/splash.png')} 
+      style={loadingStyles.logo}
+      resizeMode="contain"
+    />
+  </View>
 );
 
 const loadingStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F5C542',
     justifyContent: 'center',
     alignItems: 'center',
   },

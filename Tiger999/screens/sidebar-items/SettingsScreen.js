@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: {
     flex: 1,
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontStyle: 'italic',
   },
   settingsContainer: {
@@ -147,6 +147,6 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 16,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

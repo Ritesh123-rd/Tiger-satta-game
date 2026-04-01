@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     content: {
         flex: 1,
@@ -260,14 +260,14 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
         marginLeft: 12,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     label: {
         fontSize: 14,
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 8,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     inputContainer: {
         flexDirection: 'row',
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 15,
         color: '#333',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     submitButton: {
         backgroundColor: '#C36578',
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     requirementsCard: {
         backgroundColor: '#FFF8E7',
@@ -324,12 +324,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     requirementText: {
         fontSize: 13,
         color: '#666',
         lineHeight: 22,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });

@@ -212,7 +212,7 @@ export default function AddFundScreen({ navigation }) {
     setRefreshing(false);
   }, [fetchUserData]);
 
-  const quickAmounts = [100, 200, 5001000, 1500, 2000];
+  const quickAmounts = [100, 200, 500, 1000, 1500, 2000];
 
   const handleQuickAmount = (value) => {
     setAmount(value.toString());
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     color: '#000',
     fontWeight: 'bold',
   },
@@ -582,14 +582,14 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 22,
     color: '#fff',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
     marginBottom: 5,
   },
   usermobile: {
     fontSize: 26,
     color: '#fff',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
     letterSpacing: 1,
   },
@@ -602,14 +602,14 @@ const styles = StyleSheet.create({
   balanceLabel: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
     marginBottom: 5,
   },
   balanceAmount: {
     fontSize: 28,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   dividerContainer: {
@@ -622,7 +622,7 @@ const styles = StyleSheet.create({
   queryText: {
     fontSize: 15,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 15,
@@ -647,7 +647,7 @@ const styles = StyleSheet.create({
   contactButtonText: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '600',
   },
   inputContainer: {
@@ -673,7 +673,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     paddingHorizontal: 15,
   },
   quickAmountContainer: {
@@ -697,7 +697,7 @@ const styles = StyleSheet.create({
   quickAmountText: {
     fontSize: 16,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   buttonContainer: {
@@ -714,7 +714,7 @@ const styles = StyleSheet.create({
   payButtonText: {
     color: '#fff',
     fontSize: 18,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   historySection: {
@@ -733,7 +733,7 @@ const styles = StyleSheet.create({
   historyTitle: {
     fontSize: 18,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: 'bold',
   },
   historyCard: {

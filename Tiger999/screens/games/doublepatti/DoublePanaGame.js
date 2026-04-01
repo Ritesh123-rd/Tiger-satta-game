@@ -760,7 +760,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: {
     flex: 1,
@@ -806,7 +806,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: 'bold',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modeButtonTextActive: {
     color: '#fff',
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     flex: 1,
   },
   dropdown: {
@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   dropdownText: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     fontWeight: '500',
   },
   dropdownMenu: {
@@ -872,7 +872,7 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   textInput: {
     backgroundColor: '#fff',
@@ -881,7 +881,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     borderWidth: 1,
     borderColor: '#E8E8E8',
     textAlign: 'center',
@@ -903,7 +903,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     borderWidth: 1,
     borderColor: '#E8E8E8',
     textAlign: 'center',
@@ -937,7 +937,7 @@ const styles = StyleSheet.create({
   suggestionText: {
     fontSize: 18,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
   },
   addButton: {
@@ -951,7 +951,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -965,7 +965,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 13,
     fontWeight: '600',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bidsList: {
     flex: 1,
@@ -986,7 +986,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   deleteBtn: {
     flex: 1,
@@ -1010,7 +1010,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     color: '#999',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bottomBar: {
     flexDirection: 'row',
@@ -1036,13 +1036,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 13,
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   submitButton: {
     backgroundColor: '#C36578',
@@ -1054,7 +1054,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   fullSubmitButton: {
     backgroundColor: '#C36578',
@@ -1087,7 +1087,7 @@ const styles = StyleSheet.create({
   dateText: {
     fontSize: 13,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   specialModeScroll: {
     flex: 1,
@@ -1107,7 +1107,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   panaGrid: {
     flexDirection: 'row',
@@ -1132,7 +1132,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   panaInput: {
     flex: 1,
@@ -1143,7 +1143,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 8,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
   },
   // Modal Styles
@@ -1170,7 +1170,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -1194,7 +1194,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modalOptionTextSelected: {
     color: '#2E4A3E',
@@ -1211,7 +1211,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     fontSize: 14,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   confirmBidRow: {
     flexDirection: 'row',
@@ -1223,7 +1223,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   confirmTotalRow: {
     paddingVertical: 15,
@@ -1237,7 +1237,7 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'right',
     marginBottom: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   confirmButtonRow: {
     flexDirection: 'row',
@@ -1255,6 +1255,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
 });

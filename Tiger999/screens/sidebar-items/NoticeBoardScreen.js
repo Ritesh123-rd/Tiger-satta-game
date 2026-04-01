@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     content: {
         flex: 1,
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
         color: '#333',
         marginBottom: 15,
         marginTop: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     noticeCard: {
         backgroundColor: '#FFF8E7',
@@ -115,19 +115,19 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginLeft: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     noticeDate: {
         fontSize: 12,
         color: '#888',
         marginBottom: 8,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     noticeDescription: {
         fontSize: 14,
         color: '#555',
         lineHeight: 20,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     ruleCard: {
         flexDirection: 'row',
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
         color: '#fff',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     ruleContent: {
         flex: 1,
@@ -164,12 +164,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 5,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     ruleDescription: {
         fontSize: 13,
         color: '#666',
         lineHeight: 18,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });

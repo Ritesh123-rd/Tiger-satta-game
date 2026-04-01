@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 10,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   balanceChip: {
     flexDirection: 'row',
@@ -718,7 +718,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: 'bold',
     marginLeft: 5,
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: { flex: 1, padding: 15 },
   modeContainer: {
@@ -743,7 +743,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   modeTextActive: { color: '#fff' },
   row: {
@@ -756,7 +756,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     fontWeight: '500',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   dropdown: {
     flex: 1,
@@ -768,7 +768,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 10,
   },
-  dropdownText: { fontSize: 14, color: '#000', fontFamily: 'RaleighStdDemi' },
+  dropdownText: { fontSize: 14, color: '#000', fontFamily: 'Poppins_600SemiBold' },
   inputField: {
     flex: 1,
     backgroundColor: '#fff',
@@ -777,7 +777,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   addButton: {
     backgroundColor: '#C36578',
@@ -790,7 +790,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   tableHeader: {
     flexDirection: 'row',
@@ -807,7 +807,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#C36578',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bidRow: {
     flexDirection: 'row',
@@ -821,7 +821,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#000',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   bottomBar: {
     flexDirection: 'row',
@@ -847,13 +847,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   statValue: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   submitButton: {
     backgroundColor: '#C36578',
@@ -865,7 +865,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   // Modal Styles
   modalOverlay: {
@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
     marginBottom: 20,
   },
@@ -938,7 +938,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   digitGroup: {
     marginBottom: 20,
@@ -956,7 +956,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     overflow: 'hidden',
   },
   panaGrid: {
@@ -983,7 +983,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
   },
   panaInput: {
     flex: 1,
@@ -991,7 +991,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     fontSize: 14,
     color: '#000',
-    fontFamily: 'RaleighStdDemi',
+    fontFamily: 'Poppins_600SemiBold',
     textAlign: 'center',
   },
   // Confirmation Modal Styles

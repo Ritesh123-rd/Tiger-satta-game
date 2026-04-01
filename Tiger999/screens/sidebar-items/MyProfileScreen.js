@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
         fontSize: 22,
         fontWeight: 'bold',
         color: '#000',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     loaderContainer: {
         flex: 1,
@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontSize: 16,
         color: '#C36578',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     scrollContent: {
         padding: 20,
@@ -204,13 +204,13 @@ const styles = StyleSheet.create({
         fontSize: 24,
         fontWeight: 'bold',
         color: '#333',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     userPhone: {
         fontSize: 16,
         color: '#666',
         marginTop: 5,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     detailsContainer: {
         width: '100%',
@@ -235,13 +235,13 @@ const styles = StyleSheet.create({
     itemLabel: {
         fontSize: 14,
         color: '#999',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     itemValue: {
         fontSize: 16,
         color: '#333',
         fontWeight: '600',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
         marginTop: 2,
     },
     editButton: {
@@ -260,6 +260,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#C36578',
         fontWeight: 'bold',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });

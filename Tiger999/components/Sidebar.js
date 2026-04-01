@@ -521,7 +521,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#333',
         marginBottom: 10,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     logoutMessage: {
         fontSize: 16,
@@ -529,7 +529,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         paddingHorizontal: 30,
         marginBottom: 25,
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     logoutButtons: {
         flexDirection: 'row',
@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
         color: '#333',
         fontSize: 16,
         fontWeight: 'bold',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
     logoutButton: {
         flex: 1,
@@ -570,6 +570,6 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
-        fontFamily: 'RaleighStdDemi',
+        fontFamily: 'Poppins_600SemiBold',
     },
 });
