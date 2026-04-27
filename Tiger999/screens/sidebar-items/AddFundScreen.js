@@ -519,7 +519,7 @@ export default function AddFundScreen({ navigation }) {
 
             {history.filter(item => {
               if (historyTab === 'accepted') return item.status === 'success';
-              if (historyTab === 'approve') return item.status === 'pending';
+              if (historyTab === 'approve') return item.status === 'processing';
               return false;
             }).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
@@ -531,7 +531,7 @@ export default function AddFundScreen({ navigation }) {
               history
                 .filter(item => {
                   if (historyTab === 'accepted') return item.status === 'success';
-                  if (historyTab === 'approve') return item.status === 'pending';
+                  if (historyTab === 'approve') return item.status === 'processing';
                   return false;
                 })
                 .map((item) => (
@@ -548,7 +548,7 @@ export default function AddFundScreen({ navigation }) {
                         styles.statusText,
                         { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                       ]}>
-                        {item.status === 'success' ? 'Accepted' : 'Pending'}
+                        {item.status === 'success' ? 'Accepted' : 'Processing'}
                       </Text>
                     </View>
                   </View>

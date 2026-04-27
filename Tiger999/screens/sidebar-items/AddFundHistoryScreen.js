@@ -118,7 +118,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                             styles.statusText,
                             { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                         ]}>
-                            {item.status === 'success' ? 'Accepted' : 'Pending'}
+                            {item.status === 'success' ? 'Accepted' : 'Processing'}
                         </Text>
                     </View>
 
@@ -189,7 +189,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                     </View>
                 ) : history.filter(item => {
                     if (historyTab === 'accepted') return item.status === 'success';
-                    if (historyTab === 'approve') return item.status === 'pending';
+                    if (historyTab === 'approve') return item.status === 'processing';
                     return false;
                 }).length === 0 ? (
                     <View style={styles.centerMode}>
@@ -211,7 +211,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                         {history
                             .filter(item => {
                                 if (historyTab === 'accepted') return item.status === 'success';
-                                if (historyTab === 'approve') return item.status === 'pending';
+                                if (historyTab === 'approve') return item.status === 'processing';
                                 return false;
                             })
                             .map(renderHistoryItem)}
