@@ -50,11 +50,11 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (phone && username && password) {
-      if (username.length < 5) {
+      if (username.length <= 5) {
         setAlertConfig({
           visible: true,
           title: 'Validation Error',
-          message: 'Username must be at least 5 characters long',
+          message: 'Username must be more than 5 characters long',
           type: 'error'
         });
         return;
