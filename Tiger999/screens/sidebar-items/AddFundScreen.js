@@ -498,7 +498,7 @@ export default function AddFundScreen({ navigation }) {
             </View>
 
             {history.filter(item =>
-              historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+              historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success'
             ).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
                 <Text style={styles.emptyHistoryText}>
@@ -507,22 +507,22 @@ export default function AddFundScreen({ navigation }) {
               </View>
             ) : (
               history
-                .filter(item => historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT')
+                .filter(item => historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success')
                 .map((item) => (
                   <View key={item.id} style={styles.historyCard}>
                     <View style={styles.historyCardLeft}>
-                      <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
-                      <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
+                      <Text style={styles.historyAmount}>₹ {item.amount}</Text>
+                      <Text style={styles.historyDate}>{item.created_at}</Text>
                     </View>
                     <View style={[
                       styles.statusPill,
-                      { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
+                      { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
                     ]}>
                       <Text style={[
                         styles.statusText,
-                        { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                       ]}>
-                        {item.request_accecept === 'ACCECEPT' ? 'Accepted' : 'Pending'}
+                        {item.status === 'success' ? 'Accepted' : 'Pending'}
                       </Text>
                     </View>
                   </View>

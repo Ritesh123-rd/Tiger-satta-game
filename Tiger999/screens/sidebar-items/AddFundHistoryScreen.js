@@ -69,16 +69,16 @@ export default function AddFundHistoryScreen({ navigation }) {
     const renderHistoryItem = (item) => (
         <View key={item.id} style={styles.card}>
             <View style={styles.cardHeader}>
-                <Text style={styles.amount}>₹ {item.request_amount}</Text>
+                <Text style={styles.amount}>₹ {item.amount}</Text>
                 <View style={[
                     styles.statusPill,
-                    { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
+                    { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
                 ]}>
                     <Text style={[
                         styles.statusText,
-                        { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                     ]}>
-                        {item.request_accecept === 'ACCECEPT' ? 'Accepted' : 'Pending'}
+                        {item.status === 'success' ? 'Accepted' : 'Pending'}
                     </Text>
                 </View>
             </View>
@@ -86,17 +86,13 @@ export default function AddFundHistoryScreen({ navigation }) {
             <View style={styles.details}>
                 <View style={styles.detailRow}>
                     <Ionicons name="calendar-outline" size={14} color="#666" />
-                    <Text style={styles.detailText}>{item.datee}</Text>
-                </View>
-                <View style={styles.detailRow}>
-                    <Ionicons name="time-outline" size={14} color="#666" />
-                    <Text style={styles.detailText}>{item.timee}</Text>
+                    <Text style={styles.detailText}>{item.created_at}</Text>
                 </View>
             </View>
 
             <View style={styles.footer}>
                 <Text style={styles.requestId}>Request ID: #{item.id}</Text>
-                <Text style={styles.username}>User: {item.username}</Text>
+                <Text style={styles.username}>User: {item.mobile}</Text>
             </View>
         </View>
     );
@@ -141,7 +137,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                         <ActivityIndicator size="large" color="#6B3A3A" />
                     </View>
                 ) : history.filter(item => 
-                    historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+                    historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success'
                 ).length === 0 ? (
                     <View style={styles.centerMode}>
                         <MaterialCommunityIcons 
@@ -160,7 +156,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                         }
                     >
                         {history
-                            .filter(item => historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT')
+                            .filter(item => historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success')
                             .map(renderHistoryItem)}
                     </ScrollView>
                 )}
