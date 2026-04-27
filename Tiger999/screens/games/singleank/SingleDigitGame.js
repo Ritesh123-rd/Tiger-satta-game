@@ -15,7 +15,7 @@ import {
   Animated,
   Easing,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomAlert from '../../../components/CustomAlert';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -278,7 +278,7 @@ export default function SingleDigitGame({ navigation, route }) {
         </View>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={styles.staticContent}>
         {/* Mode Toggle */}
         <View style={styles.modeContainer}>
           <TouchableOpacity
@@ -299,45 +299,7 @@ export default function SingleDigitGame({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {mode === 'special' ? (
-          <View style={styles.specialContainer}>
-            {/* Pill Selectors */}
-            <View style={styles.pillRow}>
-              <View style={styles.pill}>
-                <Ionicons name="calendar-outline" size={20} color="#C36578" />
-                <Text style={styles.pillText}>{currentDate}</Text>
-              </View>
-              <TouchableOpacity style={styles.pill} onPress={() => setShowDropdown(true)}>
-                <Text style={styles.pillText}>{selectedGame}</Text>
-                <Ionicons name="chevron-down" size={20} color="#C36578" style={styles.pillChevron} />
-              </TouchableOpacity>
-            </View>
-
-            {/* Digit Grid */}
-            <View style={styles.grid}>
-              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
-                <View key={digit} style={styles.gridItem}>
-                  <View style={styles.digitLabel}>
-                    <Text style={styles.digitLabelText}>{digit}</Text>
-                  </View>
-                  <TextInput
-                    style={styles.gridInput}
-                    keyboardType="numeric"
-                    placeholder=""
-                    value={specialBids[digit]}
-                    onChangeText={(text) => {
-                      const newBids = [...specialBids];
-                      newBids[digit] = text;
-                      setSpecialBids(newBids);
-                    }}
-                  />
-                </View>
-              ))}
-            </View>
-
-
-          </View>
-        ) : (
+        {mode === 'easy' ? (
           <>
             {/* Game Type Selector */}
             <View style={styles.row}>
@@ -387,22 +349,63 @@ export default function SingleDigitGame({ navigation, route }) {
               <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
               <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
             </View>
-
-            {/* Bids List */}
-            {bids.map((bid) => (
-              <View key={bid.id} style={styles.bidRow}>
-                <Text style={[styles.bidText, { flex: 1 }]}>{bid.ank}</Text>
-                <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
-                <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
-                <TouchableOpacity
-                  style={{ flex: 1, alignItems: 'center' }}
-                  onPress={() => deleteBid(bid.id)}
-                >
-                  <Ionicons name="trash" size={20} color="#D32F2F" />
-                </TouchableOpacity>
-              </View>
-            ))}
           </>
+        ) : (
+          <View style={styles.specialPillsContainer}>
+            {/* Pill Selectors */}
+            <View style={styles.pillRow}>
+              <View style={styles.pill}>
+                <Ionicons name="calendar-outline" size={20} color="#C36578" />
+                <Text style={styles.pillText}>{currentDate}</Text>
+              </View>
+              <TouchableOpacity style={styles.pill} onPress={() => setShowDropdown(true)}>
+                <Text style={styles.pillText}>{selectedGame}</Text>
+                <Ionicons name="chevron-down" size={20} color="#C36578" style={styles.pillChevron} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      <ScrollView style={styles.scrollableContent} contentContainerStyle={styles.scrollContent}>
+        {mode === 'special' ? (
+          <View style={styles.specialContainer}>
+            {/* Digit Grid */}
+            <View style={styles.grid}>
+              {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map((digit) => (
+                <View key={digit} style={styles.gridItem}>
+                  <View style={styles.digitLabel}>
+                    <Text style={styles.digitLabelText}>{digit}</Text>
+                  </View>
+                  <TextInput
+                    style={styles.gridInput}
+                    keyboardType="numeric"
+                    placeholder=""
+                    value={specialBids[digit]}
+                    onChangeText={(text) => {
+                      const newBids = [...specialBids];
+                      newBids[digit] = text;
+                      setSpecialBids(newBids);
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : (
+          bids.map((bid) => (
+            <View key={bid.id} style={styles.bidRow}>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.ank}</Text>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
+              <TouchableOpacity
+                style={{ flex: 1, alignItems: 'center' }}
+                onPress={() => deleteBid(bid.id)}
+              >
+                <Ionicons name="trash" size={20} color="#D32F2F" />
+              </TouchableOpacity>
+            </View>
+          ))
         )}
       </ScrollView>
 
@@ -564,9 +567,41 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontFamily: 'Poppins_600SemiBold',
   },
-  content: {
-    flex: 1,
+  staticContent: {
     padding: 15,
+    paddingBottom: 0,
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 150, // Extra gap at the bottom
+  },
+  bidsTable: {
+    backgroundColor: '#fff',
+    borderBottomLeftRadius: 10,
+    borderBottomRightRadius: 10,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+  },
+  emptyTableContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    backgroundColor: '#fff',
+  },
+  emptyTableText: {
+    marginTop: 10,
+    fontSize: 14,
+    color: '#D4C5A9',
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  specialPillsContainer: {
+    marginBottom: 0,
   },
   modeContainer: {
     flexDirection: 'row',

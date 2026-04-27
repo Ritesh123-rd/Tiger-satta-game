@@ -18,6 +18,7 @@ export default function WithdrawFundScreen({ navigation }) {
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('phone_pay'); // Default method
+  const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted' or 'pending'
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [bankDetails, setBankDetails] = useState(null);
 
@@ -285,30 +286,52 @@ export default function WithdrawFundScreen({ navigation }) {
               {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
             </View>
 
-            {history.length === 0 && !loadingHistory ? (
+            {/* History Tabs */}
+            <View style={styles.historyTabs}>
+              <TouchableOpacity 
+                style={[styles.historyTab, historyTab === 'accepted' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('accepted')}
+              >
+                <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.historyTab, historyTab === 'pending' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('pending')}
+              >
+                <Text style={[styles.historyTabText, historyTab === 'pending' && styles.historyTabTextActive]}>Pending</Text>
+              </TouchableOpacity>
+            </View>
+
+            {history.filter(item => 
+              historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+            ).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
-                <Text style={styles.emptyHistoryText}>No recent withdrawal requests found.</Text>
+                <Text style={styles.emptyHistoryText}>
+                  No {historyTab} withdrawals found.
+                </Text>
               </View>
             ) : (
-              history.map((item) => (
-                <View key={item.id} style={styles.historyCard}>
-                  <View style={styles.historyCardLeft}>
-                    <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
-                    <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
-                  </View>
-                  <View style={[
-                    styles.statusPill,
-                    { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
-                  ]}>
-                    <Text style={[
-                      styles.statusText,
-                      { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+              history
+                .filter(item => historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT')
+                .map((item) => (
+                  <View key={item.id} style={styles.historyCard}>
+                    <View style={styles.historyCardLeft}>
+                      <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
+                      <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
+                    </View>
+                    <View style={[
+                      styles.statusPill,
+                      { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
                     ]}>
-                      {item.request_accecept}
-                    </Text>
+                      <Text style={[
+                        styles.statusText,
+                        { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                      ]}>
+                        {item.request_accecept}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))
+                ))
             )}
           </View>
         </View>
@@ -688,6 +711,33 @@ const styles = StyleSheet.create({
   emptyHistoryText: {
     fontSize: 14,
     color: '#999',
+  },
+  historyTabs: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#D0C4B0',
+  },
+  historyTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  historyTabActive: {
+    backgroundColor: '#C27183',
+    elevation: 2,
+  },
+  historyTabText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  historyTabTextActive: {
+    color: '#fff',
   },
   // Modal Styles
   modalOverlay: {

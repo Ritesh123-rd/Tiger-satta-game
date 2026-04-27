@@ -19,6 +19,7 @@ export default function PassbookScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [activeTab, setActiveTab] = useState('accepted'); // 'accepted' or 'pending'
 
   useFocusEffect(
     React.useCallback(() => {
@@ -172,20 +173,46 @@ export default function PassbookScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      {/* Tabs */}
+      <View style={styles.tabBarContainer}>
+        <View style={styles.tabBar}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'accepted' && styles.activeTab]}
+            onPress={() => setActiveTab('accepted')}
+          >
+            <Text style={[styles.tabText, activeTab === 'accepted' && styles.activeTabText]}>Accepted</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'pending' && styles.activeTab]}
+            onPress={() => setActiveTab('pending')}
+          >
+            <Text style={[styles.tabText, activeTab === 'pending' && styles.activeTabText]}>Pending</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* Content */}
       <View style={styles.content}>
         {loading ? (
           <View style={styles.centerMode}>
             <ActivityIndicator size="large" color="#6B3A3A" />
           </View>
-        ) : transactions.length === 0 ? (
+        ) : transactions.filter(item => 
+          activeTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+        ).length === 0 ? (
           <View style={styles.centerMode}>
-            <MaterialCommunityIcons name="folder-alert-outline" size={80} color="#D4C5A9" />
-            <Text style={styles.emptyText}>NO TRANSACTIONS FOUND</Text>
+            <MaterialCommunityIcons 
+              name={activeTab === 'accepted' ? "file-check-outline" : "file-clock-outline"} 
+              size={80} 
+              color="#D4C5A9" 
+            />
+            <Text style={styles.emptyText}>NO {activeTab.toUpperCase()} TRANSACTIONS</Text>
           </View>
         ) : (
           <FlatList
-            data={transactions}
+            data={transactions.filter(item => 
+              activeTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+            )}
             renderItem={renderTransactionItem}
             keyExtractor={(item, index) => item.id ? item.id.toString() + item.type : index.toString()}
             showsVerticalScrollIndicator={false}
@@ -312,5 +339,35 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  tabBarContainer: {
+    paddingHorizontal: 15,
+    marginBottom: 5,
+  },
+  tabBar: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: '#D4C5A9',
+    elevation: 2,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  activeTab: {
+    backgroundColor: '#6B3A3A',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  activeTabText: {
+    color: '#fff',
   },
 });

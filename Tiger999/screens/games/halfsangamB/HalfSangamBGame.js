@@ -282,18 +282,18 @@ export default function HalfSangamBGame({ navigation, route }) {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <MarqueeText text={`${gameName} - HALF SANGAM (B)`} style={styles.headerTitle} />
                 <View style={styles.balanceChip}>
-                    <Ionicons name="wallet-outline" size={16} color="#fff" />
+                    <Ionicons name="wallet" size={16} color="#fff" />
                     <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
-            <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+            <View style={styles.staticContent}>
                 <View style={styles.topRow}>
                     <View style={styles.datePickerBtn}>
                         <Ionicons name="calendar-outline" size={18} color="#C36578" />
@@ -306,7 +306,7 @@ export default function HalfSangamBGame({ navigation, route }) {
                 </View>
 
                 {/* Input Fields */}
-                <View style={styles.inputCard}>
+                <View style={[styles.inputCard, { elevation: 0, shadowOpacity: 0, marginBottom: 10 }]}>
                     <View style={styles.inputRow}>
                         <Text style={styles.inputLabel}>Enter Open Ank:</Text>
                         <TextInput
@@ -350,23 +350,35 @@ export default function HalfSangamBGame({ navigation, route }) {
                     </TouchableOpacity>
                 </View>
 
-                {/* Bids List */}
+                {/* Table Header ONLY if bids exist */}
                 {bids.length > 0 && (
-                    <View style={styles.tableContainer}>
-                        <View style={styles.tableHeader}>
-                            <Text style={[styles.headerText, { flex: 2 }]}>Sangam</Text>
-                            <Text style={[styles.headerText, { flex: 1 }]}>Points</Text>
-                            <Text style={[styles.headerText, { flex: 0.5 }]}></Text>
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.headerText, { flex: 2 }]}>Sangam</Text>
+                        <Text style={[styles.headerText, { flex: 1 }]}>Points</Text>
+                        <View style={{ flex: 0.5 }} />
+                    </View>
+                )}
+            </View>
+
+            <ScrollView 
+                style={styles.scrollableContent} 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {/* Bids List */}
+                {bids.length > 0 ? (
+                    bids.map((item) => (
+                        <View key={item.id} style={styles.bidRow}>
+                            <Text style={[styles.bidCell, { flex: 2 }]}>{item.display}</Text>
+                            <Text style={[styles.bidCell, { flex: 1 }]}>{item.points}</Text>
+                            <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
+                                <Ionicons name="trash-outline" size={20} color="#C36578" />
+                            </TouchableOpacity>
                         </View>
-                        {bids.map((item) => (
-                            <View key={item.id} style={styles.bidRow}>
-                                <Text style={[styles.bidCell, { flex: 2 }]}>{item.display}</Text>
-                                <Text style={[styles.bidCell, { flex: 1 }]}>{item.points}</Text>
-                                <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
-                                    <Ionicons name="trash-outline" size={20} color="#C36578" />
-                                </TouchableOpacity>
-                            </View>
-                        ))}
+                    ))
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No bids added yet</Text>
                     </View>
                 )}
             </ScrollView>
@@ -459,12 +471,62 @@ export default function HalfSangamBGame({ navigation, route }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5EDE0' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F5EDE0' },
-    backButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
-    headerTitle: { fontSize: 16, fontWeight: '700', color: '#000', textTransform: 'uppercase' },
-    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6 },
-    balanceText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-    content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        paddingTop: 40,
+        backgroundColor: '#F5EDE0'
+    },
+    backButton: {
+        padding: 5,
+    },
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#000',
+        flex: 1,
+        textAlign: 'center',
+        marginHorizontal: 10,
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    balanceChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#C36578',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 15,
+    },
+    balanceText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    staticContent: {
+        paddingHorizontal: 16,
+        paddingTop: 10,
+    },
+    scrollableContent: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 150,
+    },
+    emptyContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#999',
+        fontFamily: 'Poppins_400Regular',
+    },
     topRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
     datePickerBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, gap: 8 },
     dateText: { fontSize: 14, color: '#000', fontWeight: '500' },
@@ -477,11 +539,42 @@ const styles = StyleSheet.create({
     addButton: { backgroundColor: '#C36578', paddingVertical: 12, borderRadius: 12, alignItems: 'center', marginTop: 10 },
     addButtonText: { color: '#fff', fontSize: 14, fontWeight: '700', letterSpacing: 1 },
     tableContainer: { backgroundColor: '#fff', borderRadius: 20, padding: 10, marginBottom: 20 },
-    tableHeader: { flexDirection: 'row', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#EEE', marginBottom: 5 },
-    headerText: { fontSize: 14, fontWeight: '700', color: '#666', textAlign: 'center' },
-    bidRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
-    bidCell: { fontSize: 14, color: '#333', fontWeight: '600', textAlign: 'center' },
-    deleteBtn: { flex: 0.5, alignItems: 'center' },
+    tableHeader: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderTopLeftRadius: 15,
+        borderTopRightRadius: 15,
+        borderBottomWidth: 2,
+        borderBottomColor: '#C36578',
+    },
+    headerText: {
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#C36578',
+        textAlign: 'center',
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    bidRow: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        paddingVertical: 12,
+        paddingHorizontal: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: '#E0E0E0',
+        alignItems: 'center',
+    },
+    bidCell: {
+        fontSize: 14,
+        color: '#000',
+        textAlign: 'center',
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    deleteBtn: {
+        flex: 0.5,
+        alignItems: 'center',
+    },
     bottomBar: { flexDirection: 'row', backgroundColor: '#F5EDE0', paddingHorizontal: 16, paddingVertical: 15, borderTopWidth: 2, borderTopColor: '#C36578', alignItems: 'center', gap: 12, position: 'absolute', bottom: 0, left: 0, right: 0 },
     totalSection: { flexDirection: 'row', flex: 1, gap: 20 },
     totalItem: { alignItems: 'center', flex: 1 },

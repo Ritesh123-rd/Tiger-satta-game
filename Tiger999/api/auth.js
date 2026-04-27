@@ -277,7 +277,7 @@ export const updateBankDetails = async (details) => {
         });
 
 
-        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/update_bank_details.php`, {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/paymentDetailesUpdate.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -290,12 +290,30 @@ export const updateBankDetails = async (details) => {
 
         try {
             const data = JSON.parse(text);
+            if (data && (data.status === true || data.status === 'true' || data.status === 'success')) {
+                // Return latest bank details on success
+                const latestData = await getBankDetails(details.user_id, details.username);
+                return {
+                    status: true,
+                    message: data.message || 'Updated successfully',
+                    ...(latestData.data || latestData)
+                };
+            }
             return data;
         } catch (e) {
             console.error('Update Bank Details JSON Parse Error:', e);
             const jsonMatch = text.match(/\{.*\}/);
             if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
+                const data = JSON.parse(jsonMatch[0]);
+                if (data && (data.status === true || data.status === 'true' || data.status === 'success')) {
+                    const latestData = await getBankDetails(details.user_id, details.username);
+                    return {
+                        status: true,
+                        message: data.message || 'Updated successfully',
+                        ...(latestData.data || latestData)
+                    };
+                }
+                return data;
             }
             throw new Error('Invalid Update Bank Details JSON: ' + text.substring(0, 50));
         }
@@ -1388,7 +1406,6 @@ export const JackpotJodiGame = async (userId, username, number, amounts, market_
 //ps starline history 
 
 
-
 export const getStarlineResults = async (market_id, date = null) => {
     try {
         const body = { "market_id": market_id };
@@ -1828,3 +1845,68 @@ export const paymentGetWay = async (user_id, username, mobile, amount) => {
 };
 
 
+//notifications Api
+
+export const notifications = async (user_id, firstdate, lastdate) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/Notifications.php`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                user_id: user_id,
+                firstdate: firstdate,
+                lastdate: lastdate,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Notifications JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Notifications JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error("Notifications API Error:", error);
+        throw error;
+    }
+}
+
+// payment status
+
+export const paymentStatus = async (order_id) => {
+    try {
+        const response = await fetch(`${API_BASE_URL}/paymentGetWay/PayinStatusCheck.php?order_id=${order_id}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "order_id": order_id,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('Payment Status JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid Payment Status JSON: ' + text.substring(0, 50));
+        }
+    } catch (error) {
+        console.error("Payment Status API Error:", error);
+        throw error;
+    }
+}

@@ -194,7 +194,7 @@ export default function UpdateBankDetailsScreen({ navigation }) {
             const details = {
                 user_id: userId,
                 username: username,
-                action: 'insert', // Changed to insert as per new API spec
+                action: 'update', // Corrected action from image
                 bank_name: bankName,
                 ac_holder_name: holderName,
                 ac_number: accountNumber,

@@ -19,6 +19,7 @@ export default function AddFundHistoryScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [history, setHistory] = useState([]);
+    const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted' or 'pending'
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -115,16 +116,40 @@ export default function AddFundHistoryScreen({ navigation }) {
                 </TouchableOpacity>
             </View>
 
+            {/* History Tabs */}
+            <View style={styles.historyTabsContainer}>
+                <View style={styles.historyTabs}>
+                    <TouchableOpacity 
+                        style={[styles.historyTab, historyTab === 'accepted' && styles.historyTabActive]}
+                        onPress={() => setHistoryTab('accepted')}
+                    >
+                        <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.historyTab, historyTab === 'pending' && styles.historyTabActive]}
+                        onPress={() => setHistoryTab('pending')}
+                    >
+                        <Text style={[styles.historyTabText, historyTab === 'pending' && styles.historyTabTextActive]}>Pending</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+
             {/* Content */}
             <View style={styles.content}>
                 {loading ? (
                     <View style={styles.centerMode}>
                         <ActivityIndicator size="large" color="#6B3A3A" />
                     </View>
-                ) : history.length === 0 ? (
+                ) : history.filter(item => 
+                    historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+                ).length === 0 ? (
                     <View style={styles.centerMode}>
-                        <MaterialCommunityIcons name="folder-outline" size={100} color="#6B3A3A" />
-                        <Text style={styles.emptyText}>NO DATA FOUND</Text>
+                        <MaterialCommunityIcons 
+                            name={historyTab === 'accepted' ? "check-circle-outline" : "clock-outline"} 
+                            size={100} 
+                            color="#6B3A3A" 
+                        />
+                        <Text style={styles.emptyText}>NO {historyTab.toUpperCase()} DATA FOUND</Text>
                     </View>
                 ) : (
                     <ScrollView 
@@ -134,7 +159,9 @@ export default function AddFundHistoryScreen({ navigation }) {
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6B3A3A']} />
                         }
                     >
-                        {history.map(renderHistoryItem)}
+                        {history
+                            .filter(item => historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT')
+                            .map(renderHistoryItem)}
                     </ScrollView>
                 )}
             </View>
@@ -268,5 +295,35 @@ const styles = StyleSheet.create({
         fontSize: 11,
         color: '#999',
         fontFamily: 'Poppins_400Regular',
+    },
+    historyTabsContainer: {
+        paddingHorizontal: 15,
+        marginBottom: 10,
+    },
+    historyTabs: {
+        flexDirection: 'row',
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        padding: 4,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        elevation: 2,
+    },
+    historyTab: {
+        flex: 1,
+        paddingVertical: 10,
+        alignItems: 'center',
+        borderRadius: 10,
+    },
+    historyTabActive: {
+        backgroundColor: '#6B3A3A',
+    },
+    historyTabText: {
+        fontSize: 14,
+        color: '#666',
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    historyTabTextActive: {
+        color: '#fff',
     },
 });

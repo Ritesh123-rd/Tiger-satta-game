@@ -444,21 +444,16 @@ export default function DoublePanaGame({ navigation, route }) {
       {/* Header with Marquee */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#000" />
+          <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-
-        <MarqueeText
-          text={`${gameName} - DOUBLE PANA`}
-          style={styles.headerTitle}
-        />
-
+        <MarqueeText text={`${gameName} - DOUBLE PANA`} style={styles.headerTitle} />
         <View style={styles.balanceChip}>
-          <Ionicons name="wallet-outline" size={14} color="#fff" />
+          <Ionicons name="wallet" size={16} color="#fff" />
           <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 
-      <View style={styles.content}>
+      <View style={styles.staticContent}>
         {/* Mode Toggle */}
         <View style={styles.modeToggle}>
           <TouchableOpacity
@@ -495,8 +490,6 @@ export default function DoublePanaGame({ navigation, route }) {
                 </TouchableOpacity>
               </View>
             </View>
-
-
 
             {/* Pana Input */}
             <View style={styles.inputRow}>
@@ -560,24 +553,9 @@ export default function DoublePanaGame({ navigation, route }) {
               <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Type</Text>
               <Text style={[styles.tableHeaderText, { color: '#C36578' }]}>Delete</Text>
             </View>
-
-            {/* Bids List */}
-            <FlatList
-              data={bids}
-              renderItem={renderBidItem}
-              keyExtractor={item => item.id}
-              style={styles.bidsList}
-              showsVerticalScrollIndicator={false}
-              ListEmptyComponent={
-                <View style={styles.emptyList}>
-                  <Text style={styles.emptyText}>No bids added yet</Text>
-                </View>
-              }
-            />
           </>
         ) : (
-          <>
-            {/* Special Mode Content */}
+          <View style={styles.specialModeHeaderFixed}>
             <View style={styles.specialModeHeader}>
               <View style={styles.datePickerBtn}>
                 <Ionicons name="calendar-outline" size={16} color="#C36578" />
@@ -591,13 +569,44 @@ export default function DoublePanaGame({ navigation, route }) {
                 <Ionicons name="chevron-down" size={18} color="#B8860B" />
               </TouchableOpacity>
             </View>
+          </View>
+        )}
+      </View>
 
-
-
+      <ScrollView 
+        style={styles.scrollableContent} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {mode === 'easy' ? (
+          <>
+            {/* Bids List */}
+            {bids.length === 0 ? (
+                <View style={styles.emptyList}>
+                  <Text style={styles.emptyText}>No bids added yet</Text>
+                </View>
+            ) : (
+                bids.map((item) => (
+                  <View key={item.id} style={styles.bidRow}>
+                    <Text style={styles.bidCell}>{item.pana}</Text>
+                    <Text style={styles.bidCell}>{item.points}</Text>
+                    <Text style={styles.bidCell}>{item.type}</Text>
+                    <TouchableOpacity onPress={() => handleDeleteBid(item.id)} style={styles.deleteBtn}>
+                      <View style={styles.deleteIconContainer}>
+                        <Ionicons name="trash-outline" size={12} color="#C36578" />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                ))
+            )}
+          </>
+        ) : (
+          <>
+            {/* Special Mode Content */}
             {renderSpecialModeGrid()}
           </>
         )}
-      </View>
+      </ScrollView>
 
       {/* Bottom Bar */}
       {mode === 'easy' ? (
@@ -741,48 +750,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 15,
     paddingVertical: 12,
-    paddingTop: 45,
+    paddingTop: 40,
     backgroundColor: '#F5EDE0',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#D0D0D0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0E8Da',
+    padding: 5,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 10,
     fontFamily: 'Poppins_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#C36578',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 18,
-    gap: 4,
+    paddingVertical: 5,
+    borderRadius: 15,
   },
   balanceText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+    marginLeft: 5,
     fontFamily: 'Poppins_600SemiBold',
   },
-  content: {
-    flex: 1,
+  staticContent: {
     paddingHorizontal: 15,
     paddingTop: 10,
+    backgroundColor: '#F5EDE0',
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 150,
+  },
+  specialModeHeaderFixed: {
+    marginBottom: 0,
   },
   modeToggle: {
     flexDirection: 'row',

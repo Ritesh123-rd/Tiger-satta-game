@@ -349,7 +349,7 @@ export default function SPDPTPGame({ navigation, route }) {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <MarqueeText text={`${gameName} - SP DP TP`} style={styles.headerTitle} />
@@ -359,7 +359,7 @@ export default function SPDPTPGame({ navigation, route }) {
         </View>
       </View>
 
-      <View style={styles.content}>
+      <View style={styles.staticContent}>
         <View style={styles.dateRow}>
           <View style={styles.dateBox}>
             <Ionicons name="calendar" size={20} color="#C36578" />
@@ -465,19 +465,23 @@ export default function SPDPTPGame({ navigation, route }) {
           <Text style={styles.generateButtonText}>Genrate</Text>
         </TouchableOpacity>
 
-        <View style={styles.tableHeader}>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Pana</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
-          <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
-        </View>
+        {bids.length > 0 && (
+          <View style={styles.tableHeader}>
+            <Text style={[styles.tableHeaderText, { flex: 1 }]}>Pana</Text>
+            <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
+            <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
+            <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
+          </View>
+        )}
+      </View>
 
-        <ScrollView
-          style={styles.bidsScrollContainer}
-          showsVerticalScrollIndicator={true}
-          contentContainerStyle={{ paddingBottom: 100 }}
-        >
-          {bids.map((bid) => (
+      <ScrollView
+        style={styles.scrollableContent} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+      >
+        {bids.length > 0 ? (
+          bids.map((bid) => (
             <View key={bid.id} style={styles.bidRow}>
               <Text style={[styles.bidText, { flex: 1 }]}>{bid.pana}</Text>
               <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
@@ -489,9 +493,13 @@ export default function SPDPTPGame({ navigation, route }) {
                 <Ionicons name="trash" size={20} color="#C36578" />
               </TouchableOpacity>
             </View>
-          ))}
-        </ScrollView>
-      </View>
+          ))
+        ) : (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No bids generated yet</Text>
+          </View>
+        )}
+      </ScrollView>
 
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
         <View style={styles.statsContainer}>
@@ -589,7 +597,11 @@ const styles = StyleSheet.create({
     color: '#000',
     flex: 1,
     textAlign: 'center',
+    marginHorizontal: 10,
     fontFamily: 'Poppins_600SemiBold',
+  },
+  backButton: {
+    padding: 5,
   },
   balanceChip: {
     flexDirection: 'row',
@@ -606,7 +618,26 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontFamily: 'Poppins_600SemiBold',
   },
-  content: { flex: 1, padding: 15 },
+  staticContent: {
+    paddingHorizontal: 15,
+    paddingTop: 10,
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 150,
+  },
+  emptyContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999',
+    fontFamily: 'Poppins_400Regular',
+  },
   dateRow: {
     flexDirection: 'row',
     marginBottom: 20,
@@ -789,10 +820,6 @@ const styles = StyleSheet.create({
     color: '#000',
     textAlign: 'center',
     fontFamily: 'Poppins_600SemiBold',
-  },
-  bidsScrollContainer: {
-    flex: 1,
-    marginBottom: 10,
   },
   totalBidsText: {
     textAlign: 'center',

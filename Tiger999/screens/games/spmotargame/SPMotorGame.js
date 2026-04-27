@@ -349,19 +349,19 @@ export default function SPMotorGame({ navigation, route }) {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <MarqueeText text={`${gameName} - SP MOTOR`} style={styles.headerTitle} />
                 <View style={styles.balanceChip}>
-                    <Ionicons name="wallet-outline" size={16} color="#fff" />
+                    <Ionicons name="wallet" size={16} color="#fff" />
                     <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
             {/* Static Content Container */}
-            <View style={styles.content}>
+            <View style={styles.staticContent}>
                 <View style={styles.topRow}>
                     <View style={styles.datePickerBtn}>
                         <Ionicons name="calendar-outline" size={18} color="#C36578" />
@@ -431,21 +431,31 @@ export default function SPMotorGame({ navigation, route }) {
                 </TouchableOpacity>
 
                 {/* Table Header - Static */}
-                <View style={styles.tableHeader}>
-                    <Text style={[styles.headerCell, { flex: 1.2 }]}>Pana</Text>
-                    <Text style={[styles.headerCell, { flex: 1 }]}>Point</Text>
-                    <Text style={[styles.headerCell, { flex: 1 }]}>Type</Text>
-                    <Text style={[styles.headerCell, { flex: 0.8 }]}>Delete</Text>
-                </View>
+                {bids.length > 0 && (
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.headerCell, { flex: 1.2 }]}>Pana</Text>
+                        <Text style={[styles.headerCell, { flex: 1 }]}>Point</Text>
+                        <Text style={[styles.headerCell, { flex: 1 }]}>Type</Text>
+                        <Text style={[styles.headerCell, { flex: 0.8 }]}>Delete</Text>
+                    </View>
+                )}
+            </View>
 
-                {/* Bids List - Scrollable */}
-                <FlatList
-                    data={bids}
-                    renderItem={renderBidItem}
-                    keyExtractor={item => item.id}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
-                />
+            {/* Bids List - Scrollable */}
+            <View style={styles.scrollableContent}>
+                {bids.length > 0 ? (
+                    <FlatList
+                        data={bids}
+                        renderItem={renderBidItem}
+                        keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.scrollContent}
+                    />
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No bids added yet</Text>
+                    </View>
+                )}
             </View>
 
             {/* Bottom Fixed Bar */}
@@ -554,45 +564,57 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingHorizontal: 16,
+        paddingHorizontal: 15,
         paddingVertical: 12,
+        paddingTop: 40,
         backgroundColor: '#F5EDE0'
     },
     backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        borderWidth: 1,
-        borderColor: '#D0D0D0',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#FFF'
+        padding: 5,
     },
     headerTitle: {
         fontSize: 16,
-        fontWeight: '700',
+        fontWeight: 'bold',
         color: '#000',
-        textTransform: 'uppercase'
+        flex: 1,
+        textAlign: 'center',
+        marginHorizontal: 10,
+        fontFamily: 'Poppins_600SemiBold',
     },
     balanceChip: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#C36578',
-        paddingHorizontal: 12,
-        paddingVertical: 8,
-        borderRadius: 20,
-        gap: 6,
-        flexShrink: 0
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 15,
     },
     balanceText: {
         color: '#fff',
-        fontSize: 14,
-        fontWeight: '700'
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
+        fontFamily: 'Poppins_600SemiBold',
     },
-    content: {
-        flex: 1,
+    staticContent: {
         paddingHorizontal: 16,
-        paddingTop: 16
+        paddingTop: 10,
+    },
+    scrollableContent: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 150,
+    },
+    emptyContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#999',
+        fontFamily: 'Poppins_400Regular',
     },
     topRow: {
         flexDirection: 'row',

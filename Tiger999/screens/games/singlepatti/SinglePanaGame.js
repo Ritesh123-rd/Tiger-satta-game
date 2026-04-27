@@ -430,7 +430,7 @@ export default function SinglePanaGame({ navigation, route }) {
       <StatusBar barStyle="dark-content" />
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <MarqueeText text={`${gameName} - SINGLE PANA`} style={styles.headerTitle} />
@@ -440,7 +440,7 @@ export default function SinglePanaGame({ navigation, route }) {
         </View>
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={styles.staticContent}>
         <View style={styles.modeContainer}>
           <TouchableOpacity
             style={[styles.modeButton, mode === 'easy' && styles.modeButtonActive]}
@@ -460,111 +460,116 @@ export default function SinglePanaGame({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-
-
-        {
-          mode === 'easy' ? (
-            <>
-              <View style={styles.row}>
-                <Text style={styles.label}>Select Game Type:</Text>
-                <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
-                  <Text style={styles.dropdownText}>{selectedGame}</Text>
-                  <Ionicons name="chevron-down" size={20} color="#F5C542" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.row}>
-                <Text style={styles.label}>Enter Single Pana:</Text>
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Pana"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  maxLength={3}
-                  value={pana}
-                  onChangeText={setPana}
-                />
-              </View>
-
-              <View style={styles.row}>
-                <Text style={styles.label}>Enter Points:</Text>
-                <TextInput
-                  style={styles.inputField}
-                  placeholder="Point"
-                  placeholderTextColor="#999"
-                  keyboardType="numeric"
-                  value={points}
-                  onChangeText={setPoints}
-                />
-              </View>
-
-              <TouchableOpacity style={styles.addButton} onPress={addBid}>
-                <Text style={styles.addButtonText}>Add</Text>
+        {mode === 'easy' ? (
+          <>
+            <View style={styles.row}>
+              <Text style={styles.label}>Select Game Type:</Text>
+              <TouchableOpacity style={styles.dropdown} onPress={() => setShowDropdown(true)}>
+                <Text style={styles.dropdownText}>{selectedGame}</Text>
+                <Ionicons name="chevron-down" size={20} color="#F5C542" />
               </TouchableOpacity>
-
-              <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Pana</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
-                <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
-              </View>
-
-              {bids.map((bid) => (
-                <View key={bid.id} style={styles.bidRow}>
-                  <Text style={[styles.bidText, { flex: 1 }]}>{bid.pana}</Text>
-                  <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
-                  <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
-                  <TouchableOpacity
-                    style={{ flex: 1, alignItems: 'center' }}
-                    onPress={() => deleteBid(bid.id)}
-                  >
-                    <Ionicons name="trash" size={20} color="#D32F2F" />
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </>
-          ) : (
-            <View style={styles.specialModeContainer}>
-              {/* Date & Type Row */}
-              <View style={styles.specialTopRow}>
-                <View style={[styles.dateBox, { flex: 1, marginRight: 10 }]}>
-                  <Ionicons name="calendar" size={20} color="#C36578" style={{ marginRight: 8 }} />
-                  <Text style={styles.dateText}>
-                    {currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
-                  </Text>
-                </View>
-                <TouchableOpacity style={[styles.dropdown, { flex: 1 }]} onPress={() => setShowDropdown(true)}>
-                  <Text style={styles.dropdownText}>{selectedGame}</Text>
-                  <Ionicons name="chevron-down" size={20} color="#F5C542" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Digit Groups */}
-              {Object.keys(singlePanas).map((digit) => (
-                <View key={digit} style={styles.digitGroup}>
-                  <View style={styles.digitHeaderContainer}>
-                    <Text style={styles.digitHeader}>{digit}</Text>
-                  </View>
-                  <View style={styles.panaGrid}>
-                    {singlePanas[digit].map((pVal) => (
-                      <View key={pVal} style={styles.panaBox}>
-                        <View style={styles.panaTitleBox}>
-                          <Text style={styles.panaTitle}>{pVal}</Text>
-                        </View>
-                        <TextInput
-                          style={styles.panaInput}
-                          keyboardType="numeric"
-                          value={specialModePoints[pVal] || ''}
-                          onChangeText={(val) => handleSpecialPointChange(pVal, val)}
-                        />
-                      </View>
-                    ))}
-                  </View>
-                </View>
-              ))}
             </View>
-          )
-        }
+
+            <View style={styles.row}>
+              <Text style={styles.label}>Enter Single Pana:</Text>
+              <TextInput
+                style={styles.inputField}
+                placeholder="Pana"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                maxLength={3}
+                value={pana}
+                onChangeText={setPana}
+              />
+            </View>
+
+            <View style={styles.row}>
+              <Text style={styles.label}>Enter Points:</Text>
+              <TextInput
+                style={styles.inputField}
+                placeholder="Point"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                value={points}
+                onChangeText={setPoints}
+              />
+            </View>
+
+            <TouchableOpacity style={styles.addButton} onPress={addBid}>
+              <Text style={styles.addButtonText}>Add</Text>
+            </TouchableOpacity>
+
+            <View style={styles.tableHeader}>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Pana</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Point</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Type</Text>
+              <Text style={[styles.tableHeaderText, { flex: 1 }]}>Delete</Text>
+            </View>
+          </>
+        ) : (
+          <View style={styles.specialTopRowFixed}>
+            <View style={styles.specialTopRow}>
+              <View style={[styles.dateBox, { flex: 1, marginRight: 10 }]}>
+                <Ionicons name="calendar" size={20} color="#C36578" style={{ marginRight: 8 }} />
+                <Text style={styles.dateText}>
+                  {currentDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')}
+                </Text>
+              </View>
+              <TouchableOpacity style={[styles.dropdown, { flex: 1 }]} onPress={() => setShowDropdown(true)}>
+                <Text style={styles.dropdownText}>{selectedGame}</Text>
+                <Ionicons name="chevron-down" size={20} color="#F5C542" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+      </View>
+
+      <ScrollView 
+        style={styles.scrollableContent} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {mode === 'easy' ? (
+          bids.map((bid) => (
+            <View key={bid.id} style={styles.bidRow}>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.pana}</Text>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.point}</Text>
+              <Text style={[styles.bidText, { flex: 1 }]}>{bid.type}</Text>
+              <TouchableOpacity
+                style={{ flex: 1, alignItems: 'center' }}
+                onPress={() => deleteBid(bid.id)}
+              >
+                <Ionicons name="trash" size={20} color="#D32F2F" />
+              </TouchableOpacity>
+            </View>
+          ))
+        ) : (
+          <View style={styles.specialModeContainer}>
+            {/* Digit Groups */}
+            {Object.keys(singlePanas).map((digit) => (
+              <View key={digit} style={styles.digitGroup}>
+                <View style={styles.digitHeaderContainer}>
+                  <Text style={styles.digitHeader}>{digit}</Text>
+                </View>
+                <View style={styles.panaGrid}>
+                  {singlePanas[digit].map((pVal) => (
+                    <View key={pVal} style={styles.panaBox}>
+                      <View style={styles.panaTitleBox}>
+                        <Text style={styles.panaTitle}>{pVal}</Text>
+                      </View>
+                      <TextInput
+                        style={styles.panaInput}
+                        keyboardType="numeric"
+                        value={specialModePoints[pVal] || ''}
+                        onChangeText={(val) => handleSpecialPointChange(pVal, val)}
+                      />
+                    </View>
+                  ))}
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       {/* Game Type Selection Modal */}
@@ -720,7 +725,20 @@ const styles = StyleSheet.create({
     marginLeft: 5,
     fontFamily: 'Poppins_600SemiBold',
   },
-  content: { flex: 1, padding: 15 },
+  staticContent: {
+    padding: 15,
+    paddingBottom: 0,
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 150,
+  },
+  specialTopRowFixed: {
+    marginBottom: 0,
+  },
   modeContainer: {
     flexDirection: 'row',
     marginBottom: 20,

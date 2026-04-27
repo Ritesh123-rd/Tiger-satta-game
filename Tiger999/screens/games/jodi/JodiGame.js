@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-    View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal, FlatList
+    View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert, ActivityIndicator, StatusBar, Dimensions, Modal, FlatList, Animated, Easing
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../../../components/CustomAlert';
@@ -12,6 +12,41 @@ import { getWalletBalance, getMarkets, JodiGame as PlaceJodiBet } from '../../..
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
+
+const MarqueeText = ({ text, style }) => {
+    const animatedValue = useRef(new Animated.Value(0)).current;
+    const [textWidth, setTextWidth] = useState(0);
+    const [containerWidth, setContainerWidth] = useState(0);
+
+    useEffect(() => {
+        if (textWidth > 0 && containerWidth > 0) {
+            animatedValue.setValue(containerWidth);
+            Animated.loop(
+                Animated.timing(animatedValue, {
+                    toValue: -textWidth,
+                    duration: 8000,
+                    easing: Easing.linear,
+                    useNativeDriver: true
+                })
+            ).start();
+        }
+    }, [textWidth, containerWidth]);
+
+    return (
+        <View
+            style={{ flex: 1, overflow: 'hidden', alignItems: 'center', marginHorizontal: 10 }}
+            onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}
+        >
+            <Animated.Text
+                onLayout={(e) => setTextWidth(e.nativeEvent.layout.width)}
+                style={[style, { transform: [{ translateX: animatedValue }] }]}
+                numberOfLines={1}
+            >
+                {text}   {text}   {text}
+            </Animated.Text>
+        </View>
+    );
+};
 
 const JodiGame = ({ navigation, route }) => {
     const insets = useSafeAreaInsets();
@@ -317,46 +352,30 @@ const JodiGame = ({ navigation, route }) => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
-                <View style={styles.headerTitleContainer}>
-                    <Text style={styles.headerTitle}>{gameName || 'SRIDEVI NIGHT'} - JODI</Text>
-                </View>
-                <View style={styles.walletContainer}>
-                    <Ionicons name="wallet-outline" size={20} color="#fff" />
-                    <Text style={styles.walletText}>{balance.toFixed(1)}</Text>
+                <MarqueeText text={`${gameName || 'SRIDEVI NIGHT'} - JODI`} style={styles.headerTitle} />
+                <View style={styles.balanceChip}>
+                    <Ionicons name="wallet" size={16} color="#fff" />
+                    <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
             {/* Mode Selector */}
-            <View style={styles.modeContainer}>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'EASY' && styles.modeButtonSelected]}
-                    onPress={() => setMode('EASY')}
-                >
-                    <Text style={[styles.modeButtonText, mode === 'EASY' && styles.modeButtonTextSelected]}>EASY MODE</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                    style={[styles.modeButton, mode === 'SPECIAL' && styles.modeButtonSelected]}
-                    onPress={() => setMode('SPECIAL')}
-                >
-                    <Text style={[styles.modeButtonText, mode === 'SPECIAL' && styles.modeButtonTextSelected]}>SPECIAL MODE</Text>
-                </TouchableOpacity>
-            </View>
+            <View style={styles.staticContent}>
+                <View style={styles.modeContainer}>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'EASY' && styles.modeButtonSelected]}
+                        onPress={() => setMode('EASY')}
+                    >
+                        <Text style={[styles.modeButtonText, mode === 'EASY' && styles.modeButtonTextSelected]}>EASY MODE</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.modeButton, mode === 'SPECIAL' && styles.modeButtonSelected]}
+                        onPress={() => setMode('SPECIAL')}
+                    >
+                        <Text style={[styles.modeButtonText, mode === 'SPECIAL' && styles.modeButtonTextSelected]}>SPECIAL MODE</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <ScrollView contentContainerStyle={styles.scrollContent}>
-
-                {/* Common Top Inputs */}
-                {mode === 'SPECIAL' && (
-                    <View style={styles.inputGroup}>
-                        <View style={styles.dateBadge}>
-                            <Ionicons name="calendar-outline" size={18} color="#C36578" />
-                            <Text style={styles.dateText}>{currentDate}</Text>
-                        </View>
-                    </View>
-                )}
-
-
-
-                {/* Content Body Based on Mode */}
                 {mode === 'EASY' ? (
                     <>
                         <View style={styles.inputGroup}>
@@ -392,7 +411,24 @@ const JodiGame = ({ navigation, route }) => {
                             <Text style={styles.tableHeaderText}>Point</Text>
                             <Text style={styles.tableHeaderText}>Delete</Text>
                         </View>
+                    </>
+                ) : (
+                    <View style={styles.inputGroup}>
+                        <View style={styles.dateBadge}>
+                            <Ionicons name="calendar-outline" size={18} color="#C36578" />
+                            <Text style={styles.dateText}>{currentDate}</Text>
+                        </View>
+                    </View>
+                )}
+            </View>
 
+            <ScrollView 
+                style={styles.scrollableContent} 
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {mode === 'EASY' ? (
+                    <>
                         {/* List */}
                         {easyBids.map((bid) => (
                             <View key={bid.id} style={styles.tableRow}>
@@ -403,9 +439,6 @@ const JodiGame = ({ navigation, route }) => {
                                 </TouchableOpacity>
                             </View>
                         ))}
-                        {easyBids.length === 0 && (
-                            <Text style={styles.emptyText}>No bids added</Text>
-                        )}
                     </>
                 ) : (
                     <>
@@ -508,41 +541,39 @@ const styles = StyleSheet.create({
     },
     header: {
         flexDirection: 'row',
-        alignItems: 'center',
         justifyContent: 'space-between',
+        alignItems: 'center',
         paddingHorizontal: 15,
+        paddingVertical: 12,
         paddingTop: 40,
-        paddingBottom: 15,
+        backgroundColor: '#F5EDE0'
     },
     backButton: {
         padding: 5,
-        backgroundColor: 'rgba(0,0,0,0.05)',
-        borderRadius: 20
-    },
-    headerTitleContainer: {
-        flex: 1,
-        alignItems: 'center',
     },
     headerTitle: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#000',
-        textTransform: 'uppercase',
+        flex: 1,
+        textAlign: 'center',
+        marginHorizontal: 10,
         fontFamily: 'Poppins_600SemiBold',
     },
-    walletContainer: {
+    balanceChip: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#C36578',
         paddingHorizontal: 10,
         paddingVertical: 5,
-        borderRadius: 20,
-        gap: 5
+        borderRadius: 15,
     },
-    walletText: {
+    balanceText: {
         color: '#fff',
+        fontSize: 12,
         fontWeight: 'bold',
-        fontSize: 14
+        marginLeft: 5,
+        fontFamily: 'Poppins_600SemiBold',
     },
     modeContainer: {
         flexDirection: 'row',
@@ -571,9 +602,16 @@ const styles = StyleSheet.create({
     modeButtonTextSelected: {
         color: '#fff'
     },
+    staticContent: {
+        paddingHorizontal: 20,
+        paddingTop: 10,
+    },
+    scrollableContent: {
+        flex: 1,
+    },
     scrollContent: {
-        padding: 20,
-        paddingBottom: 100
+        paddingHorizontal: 20,
+        paddingBottom: 150,
     },
     inputGroup: {
         flexDirection: 'row',

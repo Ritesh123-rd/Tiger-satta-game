@@ -30,9 +30,13 @@ export default function NoticeBoardScreen({ navigation }) {
                 <View style={{ width: 40 }} />
             </View>
 
-            <ScrollView style={styles.content}>
+            <ScrollView 
+                style={styles.content}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
                 {/* Notices Section */}
-                <Text style={styles.sectionTitle}>📢 Notices</Text>
+                <Text style={styles.sectionTitle}>📢 Latest Notices</Text>
                 {notices.map((notice) => (
                     <View key={notice.id} style={styles.noticeCard}>
                         <View style={styles.noticeHeader}>
@@ -45,7 +49,7 @@ export default function NoticeBoardScreen({ navigation }) {
                 ))}
 
                 {/* Rules Section */}
-                <Text style={styles.sectionTitle}>📋 Rules</Text>
+                <Text style={[styles.sectionTitle, { marginTop: 25 }]}>📋 Game Rules</Text>
                 {rules.map((rule) => (
                     <View key={rule.id} style={styles.ruleCard}>
                         <View style={styles.ruleNumber}>
@@ -87,7 +91,10 @@ const styles = StyleSheet.create({
     },
     content: {
         flex: 1,
+    },
+    scrollContent: {
         padding: 15,
+        paddingBottom: 60,
     },
     sectionTitle: {
         fontSize: 18,

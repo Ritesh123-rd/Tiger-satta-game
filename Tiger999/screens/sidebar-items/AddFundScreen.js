@@ -17,7 +17,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
-import { getWalletBalance, getFundRequestHistory, paymentGetWay } from '../../api/auth';
+import { getWalletBalance, getFundRequestHistory, paymentGetWay, paymentStatus } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
 
@@ -33,6 +33,7 @@ export default function AddFundScreen({ navigation }) {
   const [lastSentAmount, setLastSentAmount] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted' or 'pending'
   const appState = useRef(AppState.currentState);
 
   // Custom Alert State
@@ -112,47 +113,70 @@ export default function AddFundScreen({ navigation }) {
 
       const name = await AsyncStorage.getItem('userName') || userData.username || 'User';
       const mobile = await AsyncStorage.getItem('userMobile') || userData.mobile || '';
- 
+
       await handleVerifyAndRefresh(idToVerify, amtToVerify, name, mobile);
     } catch (error) {
       console.error('Error in checkVerification:', error);
     }
   };
 
-  const handleVerifyAndRefresh = async (user_id, amountToVerify, username, mobile) => {
+  const handleVerifyAndRefresh = async (orderId, amountToVerify, username, mobile) => {
     try {
       setLoadingHistory(true);
-      // Clear immediately to prevent re-triggering
+      
+      console.log('Verifying payment for order:', orderId);
+      const response = await paymentStatus(orderId);
+      console.log('Payment Status API Response:', response);
+
+      // Clear stored data after verification attempt
       await AsyncStorage.removeItem('lastOrderId');
       await AsyncStorage.removeItem('lastSentAmount');
       setLastOrderId(null);
       setLastSentAmount(null);
 
-      // Skip verification as the API is not required now
-      const response = { status: true, message: 'Your balance will update soon.' };
-      // const response = await verifyPayment(orderId, amountToVerify, 'success', name, mobile);
-      // console.log('Verification response in screen:', response);
+      // Check for success in the nested data object or root status
+      const isSuccess = response && (
+        (response.status === true && response.data?.status === 'success') || 
+        response.status === 'SUCCESS' || 
+        response.data?.status === 'COMPLETED'
+      );
 
-      if (response && (response.status === true || response.status === 'success' || response.status === 'SUCCESS')) {
-        const isAlreadyDone = response.message?.includes('already');
+      if (isSuccess) {
+        console.log('PAYMENT SUCCESS for TXN_ID:', orderId);
         setAlertConfig({
           visible: true,
-          title: isAlreadyDone ? 'Verified' : 'Payment Success',
-          message: response.message || response.msg || `Payment verified successfully for ₹${amountToVerify}`,
+          title: 'PAYMENT DONE',
+          message: response.data?.message || `Your payment of ₹${amountToVerify} has been successfully verified.`,
           type: 'success',
           onPress: () => fetchUserData()
         });
       } else {
+        console.log('-----------------------------------');
+        console.log('PAYMENT STATUS: NOT DONE / PENDING');
+        console.log('TXN_ID checked:', orderId);
+        console.log('API Response Status:', response.data?.status || 'N/A');
+        console.log('API Message:', response.data?.message || 'N/A');
+        console.log('-----------------------------------');
+        
+        const isError = response.data?.status === 'error' || response.data?.status === 'FAILED';
+        
         setAlertConfig({
           visible: true,
-          title: 'Verification Pending',
-          message: response?.message || response?.msg || 'Verification failed or is still processing.',
-          type: 'warning',
+          title: isError ? 'PAYMENT NOT DONE' : 'PAYMENT PENDING',
+          message: response.data?.message || 'Your payment status is currently pending or could not be verified. If amount was deducted, it will reflect within 24 hours.',
+          type: isError ? 'error' : 'warning',
           onPress: () => fetchUserData()
         });
       }
     } catch (err) {
       console.error('Verify error:', err);
+      setAlertConfig({
+        visible: true,
+        title: 'Error',
+        message: 'Something went wrong while verifying your payment. Please check your history in a few minutes.',
+        type: 'error',
+        onPress: () => fetchUserData()
+      });
     } finally {
       setLoadingHistory(false);
     }
@@ -354,7 +378,7 @@ export default function AddFundScreen({ navigation }) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <TouchableOpacity onPress={() => navigation.navigate('AddFundHistory')} style={styles.historyBtn}>
             <Ionicons name="time" size={24} color="#C27183" />
-          </TouchableOpacity> 
+          </TouchableOpacity>
           <View style={styles.coinsBadge}>
 
             <MaterialCommunityIcons name="cash-multiple" size={16} color="#fff" />
@@ -457,30 +481,52 @@ export default function AddFundScreen({ navigation }) {
               {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
             </View>
 
-            {history.length === 0 && !loadingHistory ? (
+            {/* History Tabs */}
+            <View style={styles.historyTabs}>
+              <TouchableOpacity
+                style={[styles.historyTab, historyTab === 'accepted' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('accepted')}
+              >
+                <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.historyTab, historyTab === 'pending' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('pending')}
+              >
+                <Text style={[styles.historyTabText, historyTab === 'pending' && styles.historyTabTextActive]}>Pending</Text>
+              </TouchableOpacity>
+            </View>
+
+            {history.filter(item =>
+              historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT'
+            ).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
-                <Text style={styles.emptyHistoryText}>No recent fund requests found.</Text>
+                <Text style={styles.emptyHistoryText}>
+                  No {historyTab} requests found.
+                </Text>
               </View>
             ) : (
-              history.map((item) => (
-                <View key={item.id} style={styles.historyCard}>
-                  <View style={styles.historyCardLeft}>
-                    <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
-                    <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
-                  </View>
-                  <View style={[
-                    styles.statusPill,
-                    { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
-                  ]}>
-                    <Text style={[
-                      styles.statusText,
-                      { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+              history
+                .filter(item => historyTab === 'accepted' ? item.request_accecept === 'ACCECEPT' : item.request_accecept !== 'ACCECEPT')
+                .map((item) => (
+                  <View key={item.id} style={styles.historyCard}>
+                    <View style={styles.historyCardLeft}>
+                      <Text style={styles.historyAmount}>₹ {item.request_amount}</Text>
+                      <Text style={styles.historyDate}>{item.datee} | {item.timee}</Text>
+                    </View>
+                    <View style={[
+                      styles.statusPill,
+                      { backgroundColor: item.request_accecept === 'ACCECEPT' ? '#E8F5E9' : '#FFF3E0' }
                     ]}>
-                      {item.request_accecept}
-                    </Text>
+                      <Text style={[
+                        styles.statusText,
+                        { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
+                      ]}>
+                        {item.request_accecept}
+                      </Text>
+                    </View>
                   </View>
-                </View>
-              ))
+                ))
             )}
           </View>
         </ScrollView>
@@ -782,5 +828,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     fontFamily: 'Poppins_400Regular',
+  },
+  historyTabs: {
+    flexDirection: 'row',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#D0C4B0',
+  },
+  historyTab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 10,
+  },
+  historyTabActive: {
+    backgroundColor: '#C27183',
+    elevation: 2,
+  },
+  historyTabText: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Poppins_600SemiBold',
+  },
+  historyTabTextActive: {
+    color: '#fff',
   },
 });

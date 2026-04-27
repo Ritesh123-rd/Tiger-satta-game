@@ -273,21 +273,16 @@ export default function TriplePanaGame({ navigation, route }) {
       {/* Header with Marquee */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={22} color="#000" />
+          <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-
-        <MarqueeText
-          text={`${gameName} - TRIPLE PANA`}
-          style={styles.headerTitle}
-        />
-
+        <MarqueeText text={`${gameName} - TRIPLE PANA`} style={styles.headerTitle} />
         <View style={styles.balanceChip}>
-          <Ionicons name="wallet-outline" size={14} color="#fff" />
+          <Ionicons name="wallet" size={16} color="#fff" />
           <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
         </View>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+      <View style={styles.staticContent}>
         {/* Date and Game Type Row */}
         <View style={styles.topRow}>
           <View style={styles.datePickerBtn}>
@@ -302,9 +297,15 @@ export default function TriplePanaGame({ navigation, route }) {
             <Ionicons name="chevron-down" size={18} color="#B8860B" />
           </TouchableOpacity>
         </View>
+      </View>
 
+      <ScrollView 
+        style={styles.scrollableContent} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Triple Pana Grid */}
-        <View style={[styles.panaGrid, { paddingBottom: 80 }]}>
+        <View style={styles.panaGrid}>
           {TRIPLE_PANA_NUMBERS.map((pana, index) => (
             <View key={pana} style={styles.panaItem}>
               <View style={styles.panaNumberBox}>
@@ -444,48 +445,48 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 15,
     paddingVertical: 12,
-    paddingTop: 45,
+    paddingTop: 40,
     backgroundColor: '#F5EDE0',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#D0D0D0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0E8Da',
+    padding: 5,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 10,
     fontFamily: 'Poppins_600SemiBold',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   balanceChip: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#C36578',
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 18,
-    gap: 4,
+    paddingVertical: 5,
+    borderRadius: 15,
   },
   balanceText: {
     color: '#fff',
     fontSize: 12,
     fontWeight: 'bold',
+    marginLeft: 5,
     fontFamily: 'Poppins_600SemiBold',
   },
-  content: {
-    flex: 1,
+  staticContent: {
     paddingHorizontal: 15,
     paddingTop: 10,
+  },
+  scrollableContent: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 15,
+    paddingBottom: 150,
   },
   topRow: {
     flexDirection: 'row',

@@ -303,18 +303,18 @@ export default function DPMotorGame({ navigation, route }) {
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
-            <View style={[styles.header, { paddingTop: Math.max(insets.top, 15) }]}>
+            <View style={styles.header}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <MarqueeText text={`${gameName} - DP MOTOR`} style={styles.headerTitle} />
                 <View style={styles.balanceChip}>
-                    <Ionicons name="wallet-outline" size={16} color="#fff" />
+                    <Ionicons name="wallet" size={16} color="#fff" />
                     <Text style={styles.balanceText}>{balance.toFixed(1)}</Text>
                 </View>
             </View>
 
-            <View style={styles.content}>
+            <View style={styles.staticContent}>
                 <View style={styles.topRow}>
                     <View style={styles.datePickerBtn}>
                         <Ionicons name="calendar-outline" size={18} color="#C36578" />
@@ -383,20 +383,30 @@ export default function DPMotorGame({ navigation, route }) {
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
 
-                <View style={styles.tableHeader}>
-                    <Text style={[styles.headerCell, { flex: 1.2 }]}>Pana</Text>
-                    <Text style={[styles.headerCell, { flex: 1 }]}>Point</Text>
-                    <Text style={[styles.headerCell, { flex: 1 }]}>Type</Text>
-                    <Text style={[styles.headerCell, { flex: 0.8 }]}>Delete</Text>
-                </View>
+                {bids.length > 0 && (
+                    <View style={styles.tableHeader}>
+                        <Text style={[styles.headerCell, { flex: 1.2 }]}>Pana</Text>
+                        <Text style={[styles.headerCell, { flex: 1 }]}>Point</Text>
+                        <Text style={[styles.headerCell, { flex: 1 }]}>Type</Text>
+                        <Text style={[styles.headerCell, { flex: 0.8 }]}>Delete</Text>
+                    </View>
+                )}
+            </View>
 
-                <FlatList
-                    data={bids}
-                    renderItem={renderBidItem}
-                    keyExtractor={item => item.id}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{ paddingBottom: 100 }}
-                />
+            <View style={styles.scrollableContent}>
+                {bids.length > 0 ? (
+                    <FlatList
+                        data={bids}
+                        renderItem={renderBidItem}
+                        keyExtractor={item => item.id}
+                        showsVerticalScrollIndicator={false}
+                        contentContainerStyle={styles.scrollContent}
+                    />
+                ) : (
+                    <View style={styles.emptyContainer}>
+                        <Text style={styles.emptyText}>No bids added yet</Text>
+                    </View>
+                )}
             </View>
 
             <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 15), height: 75 + insets.bottom }]}>
@@ -496,12 +506,62 @@ export default function DPMotorGame({ navigation, route }) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#F5EDE0' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#F5EDE0' },
-    backButton: { width: 44, height: 44, borderRadius: 22, borderWidth: 1, borderColor: '#D0D0D0', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFF' },
-    headerTitle: { fontSize: 16, fontWeight: '700', color: '#000', textTransform: 'uppercase' },
-    balanceChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#C36578', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 20, gap: 6, flexShrink: 0 },
-    balanceText: { color: '#fff', fontSize: 14, fontWeight: '700' },
-    content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 12,
+        paddingTop: 40,
+        backgroundColor: '#F5EDE0'
+    },
+    backButton: {
+        padding: 5,
+    },
+    headerTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#000',
+        flex: 1,
+        textAlign: 'center',
+        marginHorizontal: 10,
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    balanceChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#C36578',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 15,
+    },
+    balanceText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
+        marginLeft: 5,
+        fontFamily: 'Poppins_600SemiBold',
+    },
+    staticContent: {
+        paddingHorizontal: 16,
+        paddingTop: 10,
+    },
+    scrollableContent: {
+        flex: 1,
+    },
+    scrollContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 150,
+    },
+    emptyContainer: {
+        padding: 20,
+        alignItems: 'center',
+    },
+    emptyText: {
+        fontSize: 16,
+        color: '#999',
+        fontFamily: 'Poppins_400Regular',
+    },
     topRow: { flexDirection: 'row', gap: 12, marginBottom: 20 },
     datePickerBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 30, gap: 8 },
     dateText: { fontSize: 14, color: '#000', fontWeight: '500' },

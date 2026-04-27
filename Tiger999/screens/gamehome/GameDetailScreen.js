@@ -181,7 +181,11 @@ export default function GameDetailScreen({ navigation, route }) {
         <View style={{ width: 40 }} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.gridContainer}>
           {gameTypes.map((type) => (
             <TouchableOpacity
@@ -218,32 +222,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 15,
     paddingVertical: 12,
-    paddingTop: 45,
+    paddingTop: 40,
     backgroundColor: '#F5EDE0',
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#D0D0D0',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F0E8Da',
+    padding: 5,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#000',
-    textTransform: 'uppercase',
-    fontFamily: 'Poppins_600SemiBold',
     flex: 1,
     textAlign: 'center',
     marginHorizontal: 10,
+    fontFamily: 'Poppins_600SemiBold',
   },
   content: {
     flex: 1,
+  },
+  scrollContent: {
     padding: 12,
+    paddingBottom: 60,
   },
   gridContainer: {
     flexDirection: 'row',
