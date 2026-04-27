@@ -24,6 +24,8 @@ export default function RegisterScreen({ navigation }) {
 
   const [isLoading, setIsLoading] = useState(false);
 
+
+
   // Custom Alert State
   const [alertConfig, setAlertConfig] = useState({
     visible: false,
@@ -48,6 +50,15 @@ export default function RegisterScreen({ navigation }) {
 
   const handleRegister = async () => {
     if (phone && username && password) {
+      if (username.length < 5) {
+        setAlertConfig({
+          visible: true,
+          title: 'Validation Error',
+          message: 'Username must be at least 5 characters long',
+          type: 'error'
+        });
+        return;
+      }
       setIsLoading(true);
       try {
         const response = await registerUser(username, password, phone); // No token generation here per user request
