@@ -65,8 +65,8 @@ export default function AddFundHistoryScreen({ navigation }) {
         try {
             const response = await paymentStatus(orderId);
             const isSuccess = response && (
-                (response.status === true && response.data?.status === 'success') || 
-                response.status === 'SUCCESS' || 
+                (response.status === true && response.data?.status === 'success') ||
+                response.status === 'SUCCESS' ||
                 response.data?.status === 'COMPLETED'
             );
 
@@ -118,12 +118,12 @@ export default function AddFundHistoryScreen({ navigation }) {
                             styles.statusText,
                             { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                         ]}>
-                            {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
+                            {item.status === 'success' ? 'Accepted' : 'Pending'}
                         </Text>
                     </View>
-                    
-                    {(historyTab === 'approve' || historyTab === 'processing') && (
-                        <TouchableOpacity 
+
+                    {historyTab === 'approve' && (
+                        <TouchableOpacity
                             style={styles.inlineRefreshBtn}
                             onPress={() => handleVerify(item.order_id, item.amount)}
                         >
@@ -166,23 +166,17 @@ export default function AddFundHistoryScreen({ navigation }) {
             {/* History Tabs */}
             <View style={styles.historyTabsContainer}>
                 <View style={styles.historyTabs}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={[styles.historyTab, historyTab === 'accepted' && styles.historyTabActive]}
                         onPress={() => setHistoryTab('accepted')}
                     >
                         <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={[styles.historyTab, historyTab === 'approve' && styles.historyTabActive]}
                         onPress={() => setHistoryTab('approve')}
                     >
-                        <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Approve</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity 
-                        style={[styles.historyTab, historyTab === 'processing' && styles.historyTabActive]}
-                        onPress={() => setHistoryTab('processing')}
-                    >
-                        <Text style={[styles.historyTabText, historyTab === 'processing' && styles.historyTabTextActive]}>Processing</Text>
+                        <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Processing</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -194,21 +188,21 @@ export default function AddFundHistoryScreen({ navigation }) {
                         <ActivityIndicator size="large" color="#6B3A3A" />
                     </View>
                 ) : history.filter(item => {
-                    if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
-                    if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
-                    return item.status === 'processing';
+                    if (historyTab === 'accepted') return item.status === 'success';
+                    if (historyTab === 'approve') return item.status === 'pending';
+                    return false;
                 }).length === 0 ? (
                     <View style={styles.centerMode}>
-                        <MaterialCommunityIcons 
-                            name={historyTab === 'accepted' ? "check-circle-outline" : "clock-outline"} 
-                            size={100} 
-                            color="#6B3A3A" 
+                        <MaterialCommunityIcons
+                            name={historyTab === 'accepted' ? "check-circle-outline" : "clock-outline"}
+                            size={100}
+                            color="#6B3A3A"
                         />
                         <Text style={styles.emptyText}>NO {historyTab.toUpperCase()} DATA FOUND</Text>
                     </View>
                 ) : (
-                    <ScrollView 
-                        showsVerticalScrollIndicator={false} 
+                    <ScrollView
+                        showsVerticalScrollIndicator={false}
                         contentContainerStyle={{ paddingBottom: 30 }}
                         refreshControl={
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#6B3A3A']} />
@@ -216,9 +210,9 @@ export default function AddFundHistoryScreen({ navigation }) {
                     >
                         {history
                             .filter(item => {
-                                if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
-                                if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
-                                return item.status === 'processing';
+                                if (historyTab === 'accepted') return item.status === 'success';
+                                if (historyTab === 'approve') return item.status === 'pending';
+                                return false;
                             })
                             .map(renderHistoryItem)}
                     </ScrollView>

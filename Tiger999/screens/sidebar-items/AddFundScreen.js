@@ -120,7 +120,7 @@ export default function AddFundScreen({ navigation }) {
     }
   };
 
-  const handleVerifyAndRefresh = async (orderId, amountToVerify) => {
+  const handleVerifyAndRefresh = async (orderId, amountToVerify, username, mobile) => {
     try {
       setLoadingHistory(true);
       
@@ -492,7 +492,12 @@ export default function AddFundScreen({ navigation }) {
           <View style={styles.historySection}>
             <View style={styles.historyHeader}>
               <Text style={styles.historyTitle}>Recent Requests</Text>
-              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <TouchableOpacity onPress={() => fetchUserData()} disabled={loadingHistory}>
+                  <Ionicons name="refresh" size={20} color="#C27183" style={loadingHistory && { opacity: 0.5 }} />
+                </TouchableOpacity>
+                {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+              </View>
             </View>
 
             {/* History Tabs */}
@@ -507,32 +512,27 @@ export default function AddFundScreen({ navigation }) {
                 style={[styles.historyTab, historyTab === 'approve' && styles.historyTabActive]}
                 onPress={() => setHistoryTab('approve')}
               >
-                <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Approve</Text>
+                <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Processing</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.historyTab, historyTab === 'processing' && styles.historyTabActive]}
-                onPress={() => setHistoryTab('processing')}
-              >
-                <Text style={[styles.historyTabText, historyTab === 'processing' && styles.historyTabTextActive]}>Processing</Text>
-              </TouchableOpacity>
+
             </View>
 
             {history.filter(item => {
-              if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
-              if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
-              return item.status === 'processing';
+              if (historyTab === 'accepted') return item.status === 'success';
+              if (historyTab === 'approve') return item.status === 'pending';
+              return false;
             }).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
                 <Text style={styles.emptyHistoryText}>
-                  No {historyTab} requests found.
+                  No {historyTab === 'accepted' ? 'accepted' : 'processing'} requests found.
                 </Text>
               </View>
             ) : (
               history
                 .filter(item => {
-                  if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
-                  if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
-                  return item.status === 'processing';
+                  if (historyTab === 'accepted') return item.status === 'success';
+                  if (historyTab === 'approve') return item.status === 'pending';
+                  return false;
                 })
                 .map((item) => (
                   <View key={item.id} style={styles.historyCard}>
@@ -540,28 +540,16 @@ export default function AddFundScreen({ navigation }) {
                       <Text style={styles.historyAmount}>₹ {item.amount}</Text>
                       <Text style={styles.historyDate}>{item.created_at}</Text>
                     </View>
-                    <View style={{ alignItems: 'flex-end', gap: 5 }}>
-                      <View style={[
-                        styles.statusPill,
-                        { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
+                    <View style={[
+                      styles.statusPill,
+                      { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
+                    ]}>
+                      <Text style={[
+                        styles.statusText,
+                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                       ]}>
-                        <Text style={[
-                          styles.statusText,
-                          { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
-                        ]}>
-                          {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
-                        </Text>
-                      </View>
-                      
-                      {(historyTab === 'approve' || historyTab === 'processing') && (
-                        <TouchableOpacity 
-                          style={styles.inlineRefreshBtn}
-                          onPress={() => handleVerifyAndRefresh(item.order_id, item.amount)}
-                        >
-                          <Ionicons name="refresh-circle" size={24} color="#C27183" />
-                          <Text style={styles.inlineRefreshText}>Refresh</Text>
-                        </TouchableOpacity>
-                      )}
+                        {item.status === 'success' ? 'Accepted' : 'Pending'}
+                      </Text>
                     </View>
                   </View>
                 ))
@@ -894,21 +882,4 @@ const styles = StyleSheet.create({
   historyTabTextActive: {
     color: '#fff',
   },
-  inlineRefreshBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#C27183',
-    marginTop: 2,
-  },
-  inlineRefreshText: {
-    fontSize: 11,
-    color: '#C27183',
-    fontFamily: 'Poppins_600SemiBold',
-    marginLeft: 3,
-  }
 });
