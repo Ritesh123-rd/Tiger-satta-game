@@ -578,6 +578,7 @@ export default function AddFundScreen({ navigation }) {
                     <View style={styles.historyCardLeft}>
                       <Text style={styles.historyAmount}>₹ {item.amount}</Text>
                       <Text style={styles.historyDate}>{item.created_at}</Text>
+                      <Text style={styles.requestId}>Req ID: #{item.id}</Text>
                     </View>
                     <View style={[
                       styles.statusPill,
@@ -891,6 +892,12 @@ const styles = StyleSheet.create({
     color: '#C27183',
     fontFamily: 'Poppins_600SemiBold',
     marginLeft: 3,
+  },
+  requestId: {
+    fontSize: 11,
+    color: '#999',
+    fontFamily: 'Poppins_400Regular',
+    marginTop: 2,
   },
   historyAmount: {
     fontSize: 18,
