@@ -327,7 +327,7 @@ export default function WithdrawFundScreen({ navigation }) {
                         styles.statusText,
                         { color: item.request_accecept === 'ACCECEPT' ? '#2E7D32' : '#EF6C00' }
                       ]}>
-                        {item.request_accecept}
+                        {item.request_accecept === 'ACCECEPT' ? 'Accepted' : 'Pending'}
                       </Text>
                     </View>
                   </View>
