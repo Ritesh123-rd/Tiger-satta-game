@@ -376,6 +376,9 @@ export default function AddFundScreen({ navigation }) {
         <Text style={styles.headerTitle}>Add  Fund</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity onPress={fetchUserData} style={styles.historyBtn}>
+            <Ionicons name="refresh" size={24} color="#C27183" />
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate('AddFundHistory')} style={styles.historyBtn}>
             <Ionicons name="time" size={24} color="#C27183" />
           </TouchableOpacity>
