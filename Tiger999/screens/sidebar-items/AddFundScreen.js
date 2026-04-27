@@ -120,7 +120,7 @@ export default function AddFundScreen({ navigation }) {
     }
   };
 
-  const handleVerifyAndRefresh = async (orderId, amountToVerify, username, mobile) => {
+  const handleVerifyAndRefresh = async (orderId, amountToVerify) => {
     try {
       setLoadingHistory(true);
       
@@ -540,16 +540,28 @@ export default function AddFundScreen({ navigation }) {
                       <Text style={styles.historyAmount}>₹ {item.amount}</Text>
                       <Text style={styles.historyDate}>{item.created_at}</Text>
                     </View>
-                    <View style={[
-                      styles.statusPill,
-                      { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
-                    ]}>
-                      <Text style={[
-                        styles.statusText,
-                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
+                    <View style={{ alignItems: 'flex-end', gap: 5 }}>
+                      <View style={[
+                        styles.statusPill,
+                        { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
                       ]}>
-                        {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
-                      </Text>
+                        <Text style={[
+                          styles.statusText,
+                          { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
+                        ]}>
+                          {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
+                        </Text>
+                      </View>
+                      
+                      {(historyTab === 'approve' || historyTab === 'processing') && (
+                        <TouchableOpacity 
+                          style={styles.inlineRefreshBtn}
+                          onPress={() => handleVerifyAndRefresh(item.order_id, item.amount)}
+                        >
+                          <Ionicons name="refresh-circle" size={24} color="#C27183" />
+                          <Text style={styles.inlineRefreshText}>Refresh</Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
                 ))
@@ -882,4 +894,21 @@ const styles = StyleSheet.create({
   historyTabTextActive: {
     color: '#fff',
   },
+  inlineRefreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#C27183',
+    marginTop: 2,
+  },
+  inlineRefreshText: {
+    fontSize: 11,
+    color: '#C27183',
+    fontFamily: 'Poppins_600SemiBold',
+    marginLeft: 3,
+  }
 });

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFundRequestHistory } from '../../api/auth';
+import { getFundRequestHistory, paymentStatus } from '../../api/auth';
 import CustomAlert from '../../components/CustomAlert';
 
 
@@ -60,6 +60,45 @@ export default function AddFundHistoryScreen({ navigation }) {
         }
     };
 
+    const handleVerify = async (orderId, amount) => {
+        setLoading(true);
+        try {
+            const response = await paymentStatus(orderId);
+            const isSuccess = response && (
+                (response.status === true && response.data?.status === 'success') || 
+                response.status === 'SUCCESS' || 
+                response.data?.status === 'COMPLETED'
+            );
+
+            if (isSuccess) {
+                setAlertConfig({
+                    visible: true,
+                    title: 'Verification Done',
+                    message: response.data?.message || `Payment of ₹${amount} verified successfully.`,
+                    type: 'success',
+                });
+            } else {
+                setAlertConfig({
+                    visible: true,
+                    title: 'Not Verified',
+                    message: response.data?.message || 'Payment is still pending or not found.',
+                    type: 'warning',
+                });
+            }
+            await fetchHistory();
+        } catch (error) {
+            console.error('Manual Verify Error:', error);
+            setAlertConfig({
+                visible: true,
+                title: 'Error',
+                message: 'Failed to verify payment. Please try again later.',
+                type: 'error'
+            });
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const onRefresh = React.useCallback(async () => {
         setRefreshing(true);
         await fetchHistory();
@@ -70,16 +109,28 @@ export default function AddFundHistoryScreen({ navigation }) {
         <View key={item.id} style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.amount}>₹ {item.amount}</Text>
-                <View style={[
-                    styles.statusPill,
-                    { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
-                ]}>
-                    <Text style={[
-                        styles.statusText,
-                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
+                <View style={{ alignItems: 'flex-end', gap: 5 }}>
+                    <View style={[
+                        styles.statusPill,
+                        { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
                     ]}>
-                        {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
-                    </Text>
+                        <Text style={[
+                            styles.statusText,
+                            { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
+                        ]}>
+                            {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
+                        </Text>
+                    </View>
+                    
+                    {(historyTab === 'approve' || historyTab === 'processing') && (
+                        <TouchableOpacity 
+                            style={styles.inlineRefreshBtn}
+                            onPress={() => handleVerify(item.order_id, item.amount)}
+                        >
+                            <Ionicons name="refresh-circle" size={24} color="#6B3A3A" />
+                            <Text style={styles.inlineRefreshText}>Refresh</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </View>
 
@@ -334,4 +385,21 @@ const styles = StyleSheet.create({
     historyTabTextActive: {
         color: '#fff',
     },
+    inlineRefreshBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+        borderWidth: 1,
+        borderColor: '#6B3A3A',
+        marginTop: 2,
+    },
+    inlineRefreshText: {
+        fontSize: 11,
+        color: '#6B3A3A',
+        fontFamily: 'Poppins_600SemiBold',
+        marginLeft: 3,
+    }
 });
