@@ -33,7 +33,7 @@ export default function AddFundScreen({ navigation }) {
   const [lastSentAmount, setLastSentAmount] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted' or 'pending'
+  const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted', 'approve', or 'processing'
   const appState = useRef(AppState.currentState);
 
   // Custom Alert State
@@ -475,6 +475,17 @@ export default function AddFundScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </View>
+            <View style={styles.quickAmountRow}>
+              {quickAmounts.slice(4, 6).map((value) => (
+                <TouchableOpacity
+                  key={value}
+                  style={styles.quickAmountButton}
+                  onPress={() => handleQuickAmount(value)}
+                >
+                  <Text style={styles.quickAmountText}>{value}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </View>
 
           {/* History Section */}
@@ -493,16 +504,24 @@ export default function AddFundScreen({ navigation }) {
                 <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.historyTab, historyTab === 'pending' && styles.historyTabActive]}
-                onPress={() => setHistoryTab('pending')}
+                style={[styles.historyTab, historyTab === 'approve' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('approve')}
               >
-                <Text style={[styles.historyTabText, historyTab === 'pending' && styles.historyTabTextActive]}>Pending</Text>
+                <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Approve</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.historyTab, historyTab === 'processing' && styles.historyTabActive]}
+                onPress={() => setHistoryTab('processing')}
+              >
+                <Text style={[styles.historyTabText, historyTab === 'processing' && styles.historyTabTextActive]}>Processing</Text>
               </TouchableOpacity>
             </View>
 
-            {history.filter(item =>
-              historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success'
-            ).length === 0 && !loadingHistory ? (
+            {history.filter(item => {
+              if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
+              if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
+              return item.status === 'processing';
+            }).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
                 <Text style={styles.emptyHistoryText}>
                   No {historyTab} requests found.
@@ -510,7 +529,11 @@ export default function AddFundScreen({ navigation }) {
               </View>
             ) : (
               history
-                .filter(item => historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success')
+                .filter(item => {
+                  if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
+                  if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
+                  return item.status === 'processing';
+                })
                 .map((item) => (
                   <View key={item.id} style={styles.historyCard}>
                     <View style={styles.historyCardLeft}>
@@ -525,7 +548,7 @@ export default function AddFundScreen({ navigation }) {
                         styles.statusText,
                         { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                       ]}>
-                        {item.status === 'success' ? 'Accepted' : 'Pending'}
+                        {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
                       </Text>
                     </View>
                   </View>

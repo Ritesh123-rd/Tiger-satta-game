@@ -19,7 +19,7 @@ export default function AddFundHistoryScreen({ navigation }) {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [history, setHistory] = useState([]);
-    const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted' or 'pending'
+    const [historyTab, setHistoryTab] = useState('accepted'); // 'accepted', 'approve', or 'processing'
 
     // Custom Alert State
     const [alertConfig, setAlertConfig] = useState({
@@ -78,7 +78,7 @@ export default function AddFundHistoryScreen({ navigation }) {
                         styles.statusText,
                         { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
                     ]}>
-                        {item.status === 'success' ? 'Accepted' : 'Pending'}
+                        {item.status === 'success' ? (item.balance_add === '1' ? 'Accepted' : 'Approve') : 'Processing'}
                     </Text>
                 </View>
             </View>
@@ -122,10 +122,16 @@ export default function AddFundHistoryScreen({ navigation }) {
                         <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
-                        style={[styles.historyTab, historyTab === 'pending' && styles.historyTabActive]}
-                        onPress={() => setHistoryTab('pending')}
+                        style={[styles.historyTab, historyTab === 'approve' && styles.historyTabActive]}
+                        onPress={() => setHistoryTab('approve')}
                     >
-                        <Text style={[styles.historyTabText, historyTab === 'pending' && styles.historyTabTextActive]}>Pending</Text>
+                        <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Approve</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style={[styles.historyTab, historyTab === 'processing' && styles.historyTabActive]}
+                        onPress={() => setHistoryTab('processing')}
+                    >
+                        <Text style={[styles.historyTabText, historyTab === 'processing' && styles.historyTabTextActive]}>Processing</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -136,9 +142,11 @@ export default function AddFundHistoryScreen({ navigation }) {
                     <View style={styles.centerMode}>
                         <ActivityIndicator size="large" color="#6B3A3A" />
                     </View>
-                ) : history.filter(item => 
-                    historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success'
-                ).length === 0 ? (
+                ) : history.filter(item => {
+                    if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
+                    if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
+                    return item.status === 'processing';
+                }).length === 0 ? (
                     <View style={styles.centerMode}>
                         <MaterialCommunityIcons 
                             name={historyTab === 'accepted' ? "check-circle-outline" : "clock-outline"} 
@@ -156,7 +164,11 @@ export default function AddFundHistoryScreen({ navigation }) {
                         }
                     >
                         {history
-                            .filter(item => historyTab === 'accepted' ? item.status === 'success' : item.status !== 'success')
+                            .filter(item => {
+                                if (historyTab === 'accepted') return item.status === 'success' && item.balance_add === '1';
+                                if (historyTab === 'approve') return item.status === 'success' && item.balance_add === '0';
+                                return item.status === 'processing';
+                            })
                             .map(renderHistoryItem)}
                     </ScrollView>
                 )}
