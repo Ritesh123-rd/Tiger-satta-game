@@ -491,7 +491,7 @@ export default function AddFundScreen({ navigation }) {
               <View style={[styles.contactIconCircle, { backgroundColor: '#FCE4EC' }]}>
                 <MaterialCommunityIcons name="qrcode-scan" size={20} color="#C2185B" />
               </View>
-              <Text style={styles.contactButtonText}>Scan QR</Text>
+              <Text style={styles.contactButtonText}>Pay With QR</Text>
             </TouchableOpacity>
           </View>
 
