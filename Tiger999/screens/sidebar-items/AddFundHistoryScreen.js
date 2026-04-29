@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFundRequestHistory, paymentStatus } from '../../api/auth';
+import { UserQrAddPointsRequests, paymentStatus } from '../../api/auth';
 import CustomAlert from '../../components/CustomAlert';
 
 
@@ -49,9 +49,16 @@ export default function AddFundHistoryScreen({ navigation }) {
             }
 
 
-            const response = await getFundRequestHistory(userId);
+            const response = await UserQrAddPointsRequests(userId);
             if (response && (response.status === true || response.status === 'true')) {
-                setHistory(response.data || []);
+                const mappedHistory = (response.data || []).map(item => ({
+                    ...item,
+                    amount: item.request_amount,
+                    status: item.request_accecept_status === "1" ? "success" : "processing",
+                    created_at: `${item.request_date} ${item.request_time}`,
+                    mobile: item.username // Use username from new API
+                }));
+                setHistory(mappedHistory);
             }
         } catch (error) {
             console.error('Error fetching history:', error);

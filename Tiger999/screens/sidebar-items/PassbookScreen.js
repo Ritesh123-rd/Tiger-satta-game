@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getFundRequestHistory, getWithdrawRequestHistory } from '../../api/auth';
+import { UserQrAddPointsRequests, getWithdrawRequestHistory } from '../../api/auth';
 import { useFocusEffect } from '@react-navigation/native';
 
 export default function PassbookScreen({ navigation }) {
@@ -43,10 +43,17 @@ export default function PassbookScreen({ navigation }) {
 
       // Fetch Fund Requests
       try {
-        const fundResponse = await getFundRequestHistory(userId);
+        const fundResponse = await UserQrAddPointsRequests(userId);
         // console.log('Passbook: Fund Response:', JSON.stringify(fundResponse));
         if (fundResponse && (fundResponse.status === true || fundResponse.status === 'true')) {
-          const funds = (fundResponse.data || []).map(item => ({ ...item, type: 'Deposit' }));
+          const funds = (fundResponse.data || []).map(item => ({ 
+            ...item, 
+            type: 'Deposit',
+            datee: item.request_date,
+            timee: item.request_time,
+            request_amount: item.request_amount,
+            request_accecept: item.request_accecept_status === "1" ? "ACCECEPT" : (item.request_accecept === "No" ? "PENDING" : item.request_accecept)
+          }));
           combinedHistory = [...combinedHistory, ...funds];
         }
       } catch (err) {

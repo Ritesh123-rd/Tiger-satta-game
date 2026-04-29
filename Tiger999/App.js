@@ -67,6 +67,7 @@ import SettingsScreen from './screens/sidebar-items/SettingsScreen';
 import GameRateScreen from './screens/sidebar-items/GameRateScreen';
 import TimeTableScreen from './screens/sidebar-items/TimeTableScreen';
 import UpdatePasswordScreen from './screens/sidebar-items/UpdatePasswordScreen';
+import QRCodePaymentScreen from './screens/sidebar-items/QRCodePayment';
 
 import AddFundScreen from './screens/sidebar-items/AddFundScreen';
 import WithdrawFundScreen from './screens/sidebar-items/WithdrawFundScreen';
@@ -239,6 +240,7 @@ export default function App() {
           <Stack.Screen name="TimeTable" component={TimeTableScreen} />
           <Stack.Screen name="PSStarline" component={PSStarlineScreen} />
           <Stack.Screen name="StarlineGameDetail" component={StarlineGameDetailScreen} />
+          <Stack.Screen name="QRCodePaymentScreen" component={QRCodePaymentScreen} />
 
 
           {/* Starline Game Screens */}

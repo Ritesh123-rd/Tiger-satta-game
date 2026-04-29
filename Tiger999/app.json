@@ -11,6 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#F5C542"
     },
+    "updates": {
+      "enabled": false
+    },
     "assetBundlePatterns": [
       "**/*"
     ],

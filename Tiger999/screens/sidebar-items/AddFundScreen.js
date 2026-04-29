@@ -17,7 +17,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
-import { getWalletBalance, getFundRequestHistory, paymentGetWay, paymentStatus } from '../../api/auth';
+import { getWalletBalance, UserQrAddPointsRequests, paymentGetWay, paymentStatus } from '../../api/auth';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
 
@@ -123,7 +123,7 @@ export default function AddFundScreen({ navigation }) {
   const handleVerifyAndRefresh = async (orderId, amountToVerify, username, mobile) => {
     try {
       setLoadingHistory(true);
-      
+
       console.log('Verifying payment for order:', orderId);
       const response = await paymentStatus(orderId);
       console.log('Payment Status API Response:', response);
@@ -136,8 +136,8 @@ export default function AddFundScreen({ navigation }) {
 
       // Check for success in the nested data object or root status
       const isSuccess = response && (
-        (response.status === true && response.data?.status === 'success') || 
-        response.status === 'SUCCESS' || 
+        (response.status === true && response.data?.status === 'success') ||
+        response.status === 'SUCCESS' ||
         response.data?.status === 'COMPLETED'
       );
 
@@ -157,9 +157,9 @@ export default function AddFundScreen({ navigation }) {
         console.log('API Response Status:', response.data?.status || 'N/A');
         console.log('API Message:', response.data?.message || 'N/A');
         console.log('-----------------------------------');
-        
+
         const isError = response.data?.status === 'error' || response.data?.status === 'FAILED';
-        
+
         setAlertConfig({
           visible: true,
           title: isError ? 'PAYMENT NOT DONE' : 'PAYMENT PENDING',
@@ -251,9 +251,16 @@ export default function AddFundScreen({ navigation }) {
 
       if (userId) {
         setLoadingHistory(true);
-        const histResponse = await getFundRequestHistory(userId);
+        const histResponse = await UserQrAddPointsRequests(userId);
         if (histResponse && (histResponse.status === true || histResponse.status === 'true')) {
-          setHistory(histResponse.data || []);
+          const mappedHistory = (histResponse.data || []).map(item => ({
+            id: item.id,
+            amount: item.request_amount,
+            status: item.request_accecept_status === "1" ? "success" : "processing",
+            created_at: `${item.request_date} ${item.request_time}`,
+            order_id: item.utr_trs_id
+          }));
+          setHistory(mappedHistory);
         }
         setLoadingHistory(false);
       }
@@ -287,6 +294,10 @@ export default function AddFundScreen({ navigation }) {
 
   const handleWhatsApp = () => {
     Linking.openURL('https://wa.me/919999999999');
+  };
+
+  const handleQRScan = () => {
+    navigation.navigate('QRCodePaymentScreen');
   };
 
   const decodeBase64 = (str) => {
@@ -415,9 +426,7 @@ export default function AddFundScreen({ navigation }) {
         <Text style={styles.headerTitle}>Add  Fund</Text>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <TouchableOpacity onPress={fetchUserData} style={styles.historyBtn}>
-            <Ionicons name="refresh" size={24} color="#C27183" />
-          </TouchableOpacity>
+           
           <TouchableOpacity onPress={() => navigation.navigate('AddFundHistory')} style={styles.historyBtn}>
             <Ionicons name="time" size={24} color="#C27183" />
           </TouchableOpacity>
@@ -430,7 +439,7 @@ export default function AddFundScreen({ navigation }) {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
         style={styles.keyboardView}
       >
         <ScrollView
@@ -464,14 +473,25 @@ export default function AddFundScreen({ navigation }) {
 
           {/* Call & WhatsApp Buttons */}
           <View style={styles.contactButtonsRow}>
-            <TouchableOpacity style={styles.contactButton} onPress={handleCall}>
-              <Ionicons name="call" size={18} color="#000" />
+            <TouchableOpacity style={styles.modernContactBtn} onPress={handleCall}>
+              <View style={[styles.contactIconCircle, { backgroundColor: '#E3F2FD' }]}>
+                <Ionicons name="call" size={20} color="#1976D2" />
+              </View>
               <Text style={styles.contactButtonText}>Call</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.contactButton} onPress={handleWhatsApp}>
-              <Ionicons name="logo-whatsapp" size={18} color="#25D366" />
-              <Text style={styles.contactButtonText}>Whatsapp</Text>
+            <TouchableOpacity style={styles.modernContactBtn} onPress={handleWhatsApp}>
+              <View style={[styles.contactIconCircle, { backgroundColor: '#E8F5E9' }]}>
+                <Ionicons name="logo-whatsapp" size={20} color="#2E7D32" />
+              </View>
+              <Text style={styles.contactButtonText}>WhatsApp</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modernContactBtn} onPress={handleQRScan}>
+              <View style={[styles.contactIconCircle, { backgroundColor: '#FCE4EC' }]}>
+                <MaterialCommunityIcons name="qrcode-scan" size={20} color="#C2185B" />
+              </View>
+              <Text style={styles.contactButtonText}>Scan QR</Text>
             </TouchableOpacity>
           </View>
 
@@ -529,14 +549,13 @@ export default function AddFundScreen({ navigation }) {
 
           {/* History Section */}
           <View style={styles.historySection}>
+            {/* History Header */}
             <View style={styles.historyHeader}>
-              <Text style={styles.historyTitle}>Recent Requests</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <TouchableOpacity onPress={() => fetchUserData()} disabled={loadingHistory}>
-                  <Ionicons name="refresh" size={20} color="#C27183" style={loadingHistory && { opacity: 0.5 }} />
-                </TouchableOpacity>
-                {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+              <View style={styles.historyTitleRow}>
+                <MaterialCommunityIcons name="clock-time-four" size={20} color="#C27183" />
+                <Text style={styles.historyTitle}>Recent Requests</Text>
               </View>
+              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
             </View>
 
             {/* History Tabs */}
@@ -545,15 +564,24 @@ export default function AddFundScreen({ navigation }) {
                 style={[styles.historyTab, historyTab === 'accepted' && styles.historyTabActive]}
                 onPress={() => setHistoryTab('accepted')}
               >
+                <Ionicons
+                  name="checkmark-circle"
+                  size={15}
+                  color={historyTab === 'accepted' ? '#fff' : '#888'}
+                />
                 <Text style={[styles.historyTabText, historyTab === 'accepted' && styles.historyTabTextActive]}>Accepted</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.historyTab, historyTab === 'approve' && styles.historyTabActive]}
                 onPress={() => setHistoryTab('approve')}
               >
+                <Ionicons
+                  name="time"
+                  size={15}
+                  color={historyTab === 'approve' ? '#fff' : '#888'}
+                />
                 <Text style={[styles.historyTabText, historyTab === 'approve' && styles.historyTabTextActive]}>Processing</Text>
               </TouchableOpacity>
-
             </View>
 
             {history.filter(item => {
@@ -562,8 +590,9 @@ export default function AddFundScreen({ navigation }) {
               return false;
             }).length === 0 && !loadingHistory ? (
               <View style={styles.emptyHistory}>
+                <MaterialCommunityIcons name="inbox-outline" size={48} color="#D0C4B0" />
                 <Text style={styles.emptyHistoryText}>
-                  No {historyTab === 'accepted' ? 'accepted' : 'processing'} requests found.
+                  No {historyTab === 'accepted' ? 'accepted' : 'processing'} requests found
                 </Text>
               </View>
             ) : (
@@ -573,36 +602,46 @@ export default function AddFundScreen({ navigation }) {
                   if (historyTab === 'approve') return item.status === 'processing';
                   return false;
                 })
-                .map((item) => (
-                  <View key={item.id} style={styles.historyCard}>
-                    <View style={styles.historyCardLeft}>
-                      <Text style={styles.historyAmount}>₹ {item.amount}</Text>
-                      <Text style={styles.historyDate}>{item.created_at}</Text>
-                      <Text style={styles.requestId}>Req ID: #{item.id}</Text>
-                    </View>
-                    <View style={[
-                      styles.statusPill,
-                      { backgroundColor: item.status === 'success' ? '#E8F5E9' : '#FFF3E0' }
-                    ]}>
-                      <Text style={[
-                        styles.statusText,
-                        { color: item.status === 'success' ? '#2E7D32' : '#EF6C00' }
-                      ]}>
-                        {item.status === 'success' ? 'Accepted' : 'Processing'}
-                      </Text>
-                    </View>
+                .map((item) => {
+                  const isSuccess = item.status === 'success';
+                  return (
+                    <View key={item.id} style={[styles.historyCard, { borderLeftColor: isSuccess ? '#2E7D32' : '#EF6C00' }]}>
+                      {/* Left icon */}
+                      <View style={[styles.historyIcon, { backgroundColor: isSuccess ? '#E8F5E9' : '#FFF3E0' }]}>
+                        <MaterialCommunityIcons
+                          name={isSuccess ? 'check-circle' : 'clock-outline'}
+                          size={24}
+                          color={isSuccess ? '#2E7D32' : '#EF6C00'}
+                        />
+                      </View>
 
-                    {historyTab === 'approve' && (
-                      <TouchableOpacity
-                        style={styles.inlineRefreshBtn}
-                        onPress={() => handleManualVerify(item.order_id, item.amount)}
-                      >
-                        <Ionicons name="refresh-circle" size={18} color="#C27183" />
-                        <Text style={styles.inlineRefreshText}>Refresh</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                ))
+                      {/* Center info */}
+                      <View style={styles.historyCardCenter}>
+                        <Text style={styles.historyAmount}>₹ {item.amount}</Text>
+                        <Text style={styles.requestId}>ID: #{item.id}</Text>
+                        <Text style={styles.historyDate}>{item.created_at}</Text>
+                      </View>
+
+                      {/* Right: status + refresh */}
+                      <View style={styles.historyCardRight}>
+                        <View style={[styles.statusPill, { backgroundColor: isSuccess ? '#E8F5E9' : '#FFF3E0' }]}>
+                          <Text style={[styles.statusText, { color: isSuccess ? '#2E7D32' : '#EF6C00' }]}>
+                            {isSuccess ? 'Accepted' : 'Processing'}
+                          </Text>
+                        </View>
+                        {historyTab === 'approve' && (
+                          <TouchableOpacity
+                            style={styles.inlineRefreshBtn}
+                            onPress={() => handleManualVerify(item.order_id, item.amount)}
+                          >
+                            <Ionicons name="refresh" size={13} color="#C27183" />
+                            <Text style={styles.inlineRefreshText}>Refresh</Text>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })
             )}
           </View>
         </ScrollView>
@@ -751,26 +790,39 @@ const styles = StyleSheet.create({
   },
   contactButtonsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 15,
-    marginBottom: 25,
+    justifyContent: 'space-between',
+    paddingHorizontal: 5,
+    marginBottom: 30,
   },
-  contactButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  modernContactBtn: {
+    flex: 1,
     backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
+    marginHorizontal: 5,
+    paddingVertical: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
     borderWidth: 1,
-    borderColor: '#E0D5C5',
-    gap: 8,
+    borderColor: 'rgba(0,0,0,0.03)',
+  },
+  contactIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
   },
   contactButtonText: {
-    fontSize: 14,
-    color: '#000',
+    fontSize: 13,
+    color: '#333',
     fontFamily: 'Poppins_600SemiBold',
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   inputContainer: {
     flexDirection: 'row',
@@ -852,6 +904,11 @@ const styles = StyleSheet.create({
     borderBottomColor: '#D0C4B0',
     paddingBottom: 5,
   },
+  historyTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
   historyTitle: {
     fontSize: 18,
     color: '#000',
@@ -860,20 +917,36 @@ const styles = StyleSheet.create({
   },
   historyCard: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 15,
-    padding: 15,
+    padding: 14,
     marginBottom: 10,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2E7D32',
+    gap: 12,
+  },
+  historyIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   historyCardLeft: {
     flex: 1,
+  },
+  historyCardCenter: {
+    flex: 1,
+  },
+  historyCardRight: {
+    alignItems: 'flex-end',
+    gap: 6,
   },
   inlineRefreshBtn: {
     flexDirection: 'row',
@@ -941,8 +1014,11 @@ const styles = StyleSheet.create({
   historyTab: {
     flex: 1,
     paddingVertical: 10,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
+    gap: 5,
   },
   historyTabActive: {
     backgroundColor: '#C27183',

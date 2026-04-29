@@ -196,36 +196,36 @@ export const bidhistory = async (user_id, firstdate, lastdate) => {
 };
 
 
-export const getFundRequestHistory = async (userId) => {
-    try {
-        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/UserAddPointsRequests.php`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                user_id: userId,
-            }),
-        });
+// export const getFundRequestHistory = async (userId) => {
+//     try {
+//         const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/UserAddPointsRequests.php`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 user_id: userId,
+//             }),
+//         });
 
-        const text = await response.text();
+//         const text = await response.text();
 
-        try {
-            const data = JSON.parse(text);
-            return data;
-        } catch (e) {
-            console.error('Fund Request JSON Parse Error:', e);
-            const jsonMatch = text.match(/\{.*\}/);
-            if (jsonMatch) {
-                return JSON.parse(jsonMatch[0]);
-            }
-            throw new Error('Invalid Fund Request JSON: ' + text.substring(0, 50));
-        }
-    } catch (error) {
-        console.error('Get Fund Request History API Error:', error);
-        throw error;
-    }
-};
+//         try {
+//             const data = JSON.parse(text);
+//             return data;
+//         } catch (e) {
+//             console.error('Fund Request JSON Parse Error:', e);
+//             const jsonMatch = text.match(/\{.*\}/);
+//             if (jsonMatch) {
+//                 return JSON.parse(jsonMatch[0]);
+//             }
+//             throw new Error('Invalid Fund Request JSON: ' + text.substring(0, 50));
+//         }
+//     } catch (error) {
+//         console.error('Get Fund Request History API Error:', error);
+//         throw error;
+//     }
+// };
 
 
 export const getWithdrawRequestHistory = async (userId) => {
@@ -1907,6 +1907,73 @@ export const paymentStatus = async (order_id) => {
         }
     } catch (error) {
         console.error("Payment Status API Error:", error);
+        throw error;
+    }
+}
+
+// QrcodePayment 
+
+export const QrcodePayment = async (user_id,username,amount,utr_trs_id) => {
+    try{
+        const response = await fetch(`${API_BASE_URL}/QrPaymentGetWay/QrPaymentAdd.php`,{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "user_id": user_id,
+                "username": username,
+                "amount": amount,
+                "utr_trs_id": utr_trs_id,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('QrcodePayment JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid QrcodePayment JSON: ' + text.substring(0, 50));
+        }
+    }catch(error){
+        console.error("QrcodePayment API Error:", error);
+        throw error;
+    }
+}
+
+// UserQrAddPointsRequests HISTORY 
+
+export const UserQrAddPointsRequests = async (user_id) => {
+    try{
+        const response = await fetch(`${API_BASE_URL}/website/OtherDetailes/UserQrAddPointsRequests.php`,{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                "user_id": user_id,
+            }),
+        });
+
+        const text = await response.text();
+        try {
+            const data = JSON.parse(text);
+            return data;
+        } catch (e) {
+            console.error('UserQrAddPointsRequests JSON Parse Error:', e);
+            const jsonMatch = text.match(/\{.*\}/);
+            if (jsonMatch) {
+                return JSON.parse(jsonMatch[0]);
+            }
+            throw new Error('Invalid UserQrAddPointsRequests JSON: ' + text.substring(0, 50));
+        }
+    }catch(error){
+        console.error("UserQrAddPointsRequests API Error:", error);
         throw error;
     }
 }
