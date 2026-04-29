@@ -424,7 +424,7 @@ export default function StarlineDoublePanaGame({ navigation, route }) {
                                         placeholderTextColor="#999"
                                         keyboardType="numeric"
                                         value={specialModeInputs[pana] || ''}
-                                        onChangeText={(value) => handleSpecialModeInput(pana, value)}
+                                        onChangeText={(value) => handleSpecialModeInput(pana, value.replace(/[^0-9]/g, ''))}
                                     />
                                 </View>
                             ))}
@@ -507,7 +507,7 @@ export default function StarlineDoublePanaGame({ navigation, route }) {
                                     keyboardType="numeric"
                                     maxLength={3}
                                     value={panaInput}
-                                    onChangeText={handlePanaInputChange}
+                                    onChangeText={(text) => handlePanaInputChange(text.replace(/[^0-9]/g, ''))}
                                 />
                                 {panaSuggestions.length > 0 && (
                                     <View style={styles.suggestionsDropdown}>
@@ -541,7 +541,7 @@ export default function StarlineDoublePanaGame({ navigation, route }) {
                                     placeholderTextColor="#999"
                                     keyboardType="numeric"
                                     value={points}
-                                    onChangeText={setPoints}
+                                    onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
                                 />
                             </View>
                         </View>

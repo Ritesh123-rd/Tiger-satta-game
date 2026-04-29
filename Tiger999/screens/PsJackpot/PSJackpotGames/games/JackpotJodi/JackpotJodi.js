@@ -152,7 +152,7 @@ const JackpotJodiGame = ({ navigation, route }) => {
             if (!value) {
                 delete newBids[jodi];
             } else {
-                newBids[jodi] = value;
+                newBids[jodi] = value.replace(/[^0-9]/g, '');
             }
             return newBids;
         });
@@ -305,7 +305,7 @@ const JackpotJodiGame = ({ navigation, route }) => {
                             keyboardType="number-pad"
                             placeholder=""
                             value={specialBids[jodi] || ''}
-                            onChangeText={(val) => handleSpecialPointChange(jodi, val)}
+                            onChangeText={(val) => handleSpecialPointChange(jodi, val.replace(/[^0-9]/g, ''))}
                         />
                     </View>
                 ))}
@@ -372,7 +372,7 @@ const JackpotJodiGame = ({ navigation, route }) => {
                                 keyboardType="number-pad"
                                 maxLength={2}
                                 value={easyJodi}
-                                onChangeText={setEasyJodi}
+                                onChangeText={(text) => setEasyJodi(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
                         <View style={styles.inputGroup}>
@@ -383,7 +383,7 @@ const JackpotJodiGame = ({ navigation, route }) => {
                                 placeholderTextColor="#aaa"
                                 keyboardType="number-pad"
                                 value={easyPoints}
-                                onChangeText={setEasyPoints}
+                                onChangeText={(text) => setEasyPoints(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
 

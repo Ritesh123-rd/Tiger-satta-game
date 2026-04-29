@@ -426,7 +426,7 @@ export default function SPDPTPGame({ navigation, route }) {
               keyboardType="numeric"
               maxLength={1}
               value={digit}
-              onChangeText={setDigit}
+              onChangeText={(text) => setDigit(text.replace(/[^0-9]/g, ''))}
             />
           </View>
         </View>
@@ -441,7 +441,7 @@ export default function SPDPTPGame({ navigation, route }) {
               keyboardType="numeric"
               value={points}
               onChangeText={(text) => {
-                setPoints(text);
+                setPoints(text.replace(/[^0-9]/g, ''));
                 if (showPointsError) setShowPointsError(false);
               }}
             />

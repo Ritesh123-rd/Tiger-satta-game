@@ -322,7 +322,7 @@ export default function StarlineTriplePanaGame({ navigation, route }) {
                                 placeholderTextColor="#999"
                                 keyboardType="numeric"
                                 value={panaInputs[pana] || ''}
-                                onChangeText={(value) => handleInputChange(pana, value)}
+                                onChangeText={(value) => handleInputChange(pana, value.replace(/[^0-9]/g, ''))}
                             />
                         </View>
                     ))}

@@ -479,7 +479,7 @@ export default function SinglePanaGame({ navigation, route }) {
                 keyboardType="numeric"
                 maxLength={3}
                 value={pana}
-                onChangeText={setPana}
+                onChangeText={(text) => setPana(text.replace(/[^0-9]/g, ''))}
               />
             </View>
 
@@ -491,7 +491,7 @@ export default function SinglePanaGame({ navigation, route }) {
                 placeholderTextColor="#999"
                 keyboardType="numeric"
                 value={points}
-                onChangeText={setPoints}
+                onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
               />
             </View>
 
@@ -561,7 +561,7 @@ export default function SinglePanaGame({ navigation, route }) {
                         style={styles.panaInput}
                         keyboardType="numeric"
                         value={specialModePoints[pVal] || ''}
-                        onChangeText={(val) => handleSpecialPointChange(pVal, val)}
+                        onChangeText={(val) => handleSpecialPointChange(pVal, val.replace(/[^0-9]/g, ''))}
                       />
                     </View>
                   ))}

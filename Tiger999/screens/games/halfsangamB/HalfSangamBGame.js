@@ -316,7 +316,7 @@ export default function HalfSangamBGame({ navigation, route }) {
                             keyboardType="number-pad"
                             maxLength={1}
                             value={openAnk}
-                            onChangeText={setOpenAnk}
+                            onChangeText={(text) => setOpenAnk(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 
@@ -329,7 +329,7 @@ export default function HalfSangamBGame({ navigation, route }) {
                             keyboardType="number-pad"
                             maxLength={3}
                             value={closePana}
-                            onChangeText={setClosePana}
+                            onChangeText={(text) => setClosePana(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 
@@ -341,7 +341,7 @@ export default function HalfSangamBGame({ navigation, route }) {
                             placeholderTextColor="#999"
                             keyboardType="number-pad"
                             value={points}
-                            onChangeText={setPoints}
+                            onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 

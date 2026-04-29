@@ -424,7 +424,7 @@ export default function StarlineSPMotorGame({ navigation, route }) {
                             placeholderTextColor="#999"
                             keyboardType="number-pad"
                             value={points}
-                            onChangeText={setPoints}
+                            onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
                         />
                         {showTooltip && tooltipTarget === 'points' && (
                             <View style={styles.tooltip}>

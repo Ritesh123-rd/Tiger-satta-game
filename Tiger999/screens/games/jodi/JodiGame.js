@@ -335,7 +335,7 @@ const JodiGame = ({ navigation, route }) => {
                             keyboardType="number-pad"
                             placeholder=""
                             value={specialBids[jodi] || ''}
-                            onChangeText={(val) => handleSpecialPointChange(jodi, val)}
+                            onChangeText={(val) => handleSpecialPointChange(jodi, val.replace(/[^0-9]/g, ''))}
                         />
                     </View>
                 ))}
@@ -386,7 +386,7 @@ const JodiGame = ({ navigation, route }) => {
                                 keyboardType="number-pad"
                                 maxLength={2}
                                 value={easyJodi}
-                                onChangeText={setEasyJodi}
+                                onChangeText={(text) => setEasyJodi(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
                         <View style={styles.inputGroup}>
@@ -397,7 +397,7 @@ const JodiGame = ({ navigation, route }) => {
                                 placeholderTextColor="#aaa"
                                 keyboardType="number-pad"
                                 value={easyPoints}
-                                onChangeText={setEasyPoints}
+                                onChangeText={(text) => setEasyPoints(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
 

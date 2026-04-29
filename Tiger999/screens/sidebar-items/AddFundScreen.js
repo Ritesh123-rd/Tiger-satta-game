@@ -13,6 +13,7 @@ import {
   ActivityIndicator,
   AppState,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
@@ -29,6 +30,10 @@ export default function AddFundScreen({ navigation }) {
   const [userData, setUserData] = useState({ username: 'User', mobile: '', user_id: '' });
   const [history, setHistory] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+
+  // Animation for QR Button Blink
+  const blinkAnim = useRef(new Animated.Value(1)).current;
+  const scaleAnim = useRef(new Animated.Value(1)).current;
   const [lastOrderId, setLastOrderId] = useState(null);
   const [lastSentAmount, setLastSentAmount] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -44,6 +49,40 @@ export default function AddFundScreen({ navigation }) {
     type: 'success',
     onPress: null,
   });
+
+  useEffect(() => {
+    const startBlink = () => {
+      Animated.loop(
+        Animated.parallel([
+          Animated.sequence([
+            Animated.timing(blinkAnim, {
+              toValue: 0.4,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+            Animated.timing(blinkAnim, {
+              toValue: 1,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.sequence([
+            Animated.timing(scaleAnim, {
+              toValue: 0.9,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+            Animated.timing(scaleAnim, {
+              toValue: 1.1,
+              duration: 600,
+              useNativeDriver: true,
+            }),
+          ])
+        ])
+      ).start();
+    };
+    startBlink();
+  }, []);
 
   // Check status on app resume and load stored order data
   useEffect(() => {
@@ -473,7 +512,7 @@ export default function AddFundScreen({ navigation }) {
 
           {/* Call & WhatsApp Buttons */}
           <View style={styles.contactButtonsRow}>
-            <TouchableOpacity style={styles.modernContactBtn} onPress={handleCall}>
+            {/* <TouchableOpacity style={styles.modernContactBtn} onPress={handleCall}>
               <View style={[styles.contactIconCircle, { backgroundColor: '#E3F2FD' }]}>
                 <Ionicons name="call" size={20} color="#1976D2" />
               </View>
@@ -484,19 +523,22 @@ export default function AddFundScreen({ navigation }) {
               <View style={[styles.contactIconCircle, { backgroundColor: '#E8F5E9' }]}>
                 <Ionicons name="logo-whatsapp" size={20} color="#2E7D32" />
               </View>
+              
               <Text style={styles.contactButtonText}>WhatsApp</Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity style={styles.modernContactBtn} onPress={handleQRScan}>
-              <View style={[styles.contactIconCircle, { backgroundColor: '#FCE4EC' }]}>
-                <MaterialCommunityIcons name="qrcode-scan" size={20} color="#C2185B" />
-              </View>
-              <Text style={styles.contactButtonText}>Pay With QR</Text>
+            <TouchableOpacity style={[styles.modernContactBtn, { backgroundColor: '#FFFDE7' }]} onPress={handleQRScan}>
+              <Animated.View style={{ opacity: blinkAnim, transform: [{ scale: scaleAnim }], alignItems: 'center' }}>
+                <View style={[styles.contactIconCircle, { backgroundColor: '#FFEB3B' }]}>
+                  <MaterialCommunityIcons name="qrcode-scan" size={24} color="#000" />
+                </View>
+                <Text style={[styles.contactButtonText, { color: '#6B3A3A' }]}>Pay With QR</Text>
+              </Animated.View>
             </TouchableOpacity>
           </View>
 
           {/* Amount Input Field */}
-          <View style={styles.inputContainer}>
+          {/* <View style={styles.inputContainer}>
             <View style={styles.inputIconCircle}>
               <MaterialCommunityIcons name="bank" size={22} color="#fff" />
             </View>
@@ -508,10 +550,10 @@ export default function AddFundScreen({ navigation }) {
               value={amount}
               onChangeText={setAmount}
             />
-          </View>
+          </View> */}
 
           {/* Quick Amount Buttons */}
-          <View style={styles.quickAmountContainer}>
+          {/* <View style={styles.quickAmountContainer}>
             <View style={styles.quickAmountRow}>
               {quickAmounts.slice(0, 2).map((value) => (
                 <TouchableOpacity
@@ -545,7 +587,7 @@ export default function AddFundScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </View>
-          </View>
+          </View> */}
 
           {/* History Section */}
           <View style={styles.historySection}>

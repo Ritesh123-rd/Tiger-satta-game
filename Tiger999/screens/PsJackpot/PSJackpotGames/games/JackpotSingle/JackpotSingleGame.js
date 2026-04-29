@@ -396,7 +396,7 @@ export default function JackpotSingleGame({ navigation, route }) {
                                         value={specialBids[digit]}
                                         onChangeText={(text) => {
                                             const newBids = [...specialBids];
-                                            newBids[digit] = text;
+                                            newBids[digit] = text.replace(/[^0-9]/g, '');
                                             setSpecialBids(newBids);
                                         }}
                                     />
@@ -427,7 +427,7 @@ export default function JackpotSingleGame({ navigation, route }) {
                                 keyboardType="numeric"
                                 maxLength={1}
                                 value={ank}
-                                onChangeText={setAnk}
+                                onChangeText={(text) => setAnk(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
 
@@ -440,7 +440,7 @@ export default function JackpotSingleGame({ navigation, route }) {
                                 placeholderTextColor="#999"
                                 keyboardType="numeric"
                                 value={points}
-                                onChangeText={setPoints}
+                                onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
                             />
                         </View>
 

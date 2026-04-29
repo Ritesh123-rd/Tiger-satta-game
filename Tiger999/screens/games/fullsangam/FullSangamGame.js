@@ -315,7 +315,7 @@ export default function FullSangamGame({ navigation, route }) {
                             keyboardType="number-pad"
                             maxLength={3}
                             value={openPana}
-                            onChangeText={setOpenPana}
+                            onChangeText={(text) => setOpenPana(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 
@@ -328,7 +328,7 @@ export default function FullSangamGame({ navigation, route }) {
                             keyboardType="number-pad"
                             maxLength={3}
                             value={closePana}
-                            onChangeText={setClosePana}
+                            onChangeText={(text) => setClosePana(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 
@@ -340,7 +340,7 @@ export default function FullSangamGame({ navigation, route }) {
                             placeholderTextColor="#999"
                             keyboardType="number-pad"
                             value={points}
-                            onChangeText={setPoints}
+                            onChangeText={(text) => setPoints(text.replace(/[^0-9]/g, ''))}
                         />
                     </View>
 
