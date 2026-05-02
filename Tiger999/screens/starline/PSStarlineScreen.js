@@ -7,11 +7,11 @@ import {
   ScrollView,
   StatusBar,
   Switch,
-  ActivityIndicator,
   Image,
   SafeAreaView,
   RefreshControl
 } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -184,9 +184,9 @@ const PSStarlineScreen = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#D32F2F"]}
-            progressBackgroundColor="#ffffff"
-            tintColor="#D32F2F"
+            tintColor="transparent"
+            colors={['transparent']}
+            progressBackgroundColor="transparent"
           />
         }
       >
@@ -217,10 +217,11 @@ const PSStarlineScreen = ({ navigation }) => {
         </View>
 
         {loading ? (
-          <ActivityIndicator size="large" color="#C36578" style={{ marginTop: 50 }} />
+          <View style={{ height: 100 }} />
         ) : (
           markets.map(renderMarketCard)
         )}
+        <CustomLoader visible={loading} />
       </ScrollView>
     </SafeAreaView>
   );

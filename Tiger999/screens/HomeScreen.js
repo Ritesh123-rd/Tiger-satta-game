@@ -17,7 +17,9 @@ import {
   Easing,
   Share,
   Image,
-  RefreshControl
+  RefreshControl,
+  Alert,
+  BackHandler
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons, FontAwesome5, MaterialIcons } from '@expo/vector-icons';
 
@@ -25,6 +27,8 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const DRAWER_WIDTH = SCREEN_WIDTH * 0.8; // 80% screen width
 
 import Sidebar from '../components/Sidebar';
+import CustomLoader from '../components/CustomLoader';
+import ExitModal from '../components/ExitModal';
 
 //home
 export default function HomeScreen({ navigation }) {
@@ -46,6 +50,7 @@ export default function HomeScreen({ navigation }) {
 
   const [gamesList, setGamesList] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const fetchBalance = async () => {
     // console.log('HomeScreen: fetchBalance started');
@@ -161,6 +166,18 @@ export default function HomeScreen({ navigation }) {
   useFocusEffect(
     useCallback(() => {
       fetchBalance();
+
+      const backAction = () => {
+        setShowExitModal(true);
+        return true;
+      };
+
+      const backHandler = BackHandler.addEventListener(
+        "hardwareBackPress",
+        backAction
+      );
+
+      return () => backHandler.remove();
     }, [])
   );
 
@@ -194,6 +211,7 @@ export default function HomeScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5EDE0" />
+      <CustomLoader visible={refreshing} />
 
       {/* Header */}
       <View style={[styles.header, { paddingTop: Math.max(insets.top + 10, 45) }]}>
@@ -280,12 +298,13 @@ export default function HomeScreen({ navigation }) {
         style={styles.gamesList}
         overScrollMode="never"
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={["#D32F2F"]} // Red color as requested
-            progressBackgroundColor="#ffffff"
-            tintColor="#D32F2F"
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh} 
+            tintColor="transparent"
+            colors={['transparent']}
+            progressBackgroundColor="transparent"
+            style={{ backgroundColor: 'transparent' }}
           />
         }
       >
@@ -448,6 +467,21 @@ export default function HomeScreen({ navigation }) {
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
+      <ExitModal 
+        visible={showExitModal} 
+        onClose={() => setShowExitModal(false)} 
+        onConfirm={async () => {
+          setShowExitModal(false);
+          await AsyncStorage.multiRemove(['userName', 'userId', 'userDate']);
+          BackHandler.exitApp();
+          setTimeout(() => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            });
+          }, 100);
+        }}
+      />
     </View>
   );
 }

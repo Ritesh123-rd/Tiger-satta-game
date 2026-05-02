@@ -95,7 +95,6 @@ export default function WithdrawFundHistoryScreen({ navigation }) {
             </View>
 
             <View style={styles.footer}>
-                <Text style={styles.requestId}>Request ID: #{item.id}</Text>
                 <Text style={styles.username}>User: {item.username}</Text>
             </View>
         </View>

@@ -13,9 +13,9 @@ import {
   Animated,
   Easing,
   Dimensions,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 import { Ionicons } from '@expo/vector-icons';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -252,16 +252,15 @@ export default function PSJackpotScreen({ navigation }) {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#D32F2F"]}
-            progressBackgroundColor="#ffffff"
-            tintColor="#D32F2F"
+            tintColor="transparent"
+            colors={['transparent']}
+            progressBackgroundColor="transparent"
           />
         }
       >
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#C85C73" />
-            <Text style={styles.loadingText}>Loading markets...</Text>
+            <View style={{ height: 100 }} />
           </View>
         ) : markets.length === 0 ? (
           <View style={styles.loadingContainer}>
@@ -277,6 +276,7 @@ export default function PSJackpotScreen({ navigation }) {
         {/* Bottom padding for scroll */}
         <View style={{ height: 20 }} />
       </ScrollView>
+      <CustomLoader visible={loading} />
     </View>
   );
 }

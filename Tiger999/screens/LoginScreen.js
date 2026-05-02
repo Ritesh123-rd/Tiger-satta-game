@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View,
@@ -10,10 +10,13 @@ import {
   Image,
   Linking,
   BackHandler,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../components/CustomAlert';
+import CustomLoader from '../components/CustomLoader';
+import ExitModal from '../components/ExitModal';
 
 import logo from '../assets/logo/logo.png';
 import { sendOtp, verifyOtp, LoginWithMPin } from '../api/auth';
@@ -22,12 +25,13 @@ export default function LoginScreen({ navigation }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState('mobile'); // 'mobile' or 'otp'
-  const [loginMode, setLoginMode] = useState('otp'); // 'otp' or 'mpin'
+  const [loginMode, setLoginMode] = useState('mpin'); // 'otp' or 'mpin' default to mpin as requested
   const [mpin, setMpin] = useState('');
   const [hasSavedMobile, setHasSavedMobile] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialChecking, setIsInitialChecking] = useState(true);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   useEffect(() => {
     const checkSavedNumber = async () => {
@@ -54,16 +58,23 @@ export default function LoginScreen({ navigation }) {
 
   useEffect(() => {
     const handleBackPress = () => {
-      if (loginMode === 'mpin') {
-        setLoginMode('otp');
-        return true;
-      }
-      if (step === 'otp') {
+      // 1. If we are in the OTP verification step, go back to mobile number entry
+      if (loginMode === 'otp' && step === 'otp') {
         setStep('mobile');
         setOtp('');
         return true;
       }
-      return false; // exit app or go to previous screen
+      
+      // 2. If we are in the OTP mode (entering number), go back to MPIN mode
+      if (loginMode === 'otp') {
+        setLoginMode('mpin');
+        setStep('mobile');
+        return true;
+      }
+
+      // 3. If we are in the primary MPIN mode, show the quit popup
+      setShowExitModal(true);
+      return true;
     };
 
     const backHandler = BackHandler.addEventListener(
@@ -101,10 +112,17 @@ export default function LoginScreen({ navigation }) {
           });
           setStep('otp');
         } else {
+          // Check if user is not registered
+          const isNotRegistered = response.message && (
+            response.message.toLowerCase().includes('not register') || 
+            response.message.toLowerCase().includes('not found') ||
+            response.message.toLowerCase().includes('exist')
+          );
+
           setAlertConfig({
             visible: true,
-            title: 'Error',
-            message: response.message || 'Failed to send OTP. Please try again.',
+            title: isNotRegistered ? 'Not Registered' : 'Error',
+            message: isNotRegistered ? 'User not registered. Please register first.' : (response.message || 'Failed to send OTP.'),
             type: 'error'
           });
         }
@@ -183,11 +201,12 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  const handleLoginWithMPin = async () => {
-    if (phoneNumber.length === 10 && mpin.length >= 4) {
+  const handleLoginWithMPin = async (manualMpin) => {
+    const mpinToUse = manualMpin || mpin;
+    if (phoneNumber.length === 10 && mpinToUse.length >= 4) {
       setIsLoading(true);
       try {
-        const response = await LoginWithMPin(phoneNumber, mpin);
+        const response = await LoginWithMPin(phoneNumber, mpinToUse);
         // console.log('MPIN Login Response:', response);
 
         if (response && response.status === true) {
@@ -213,10 +232,21 @@ export default function LoginScreen({ navigation }) {
            setLoginMode('otp');
            setStep('otp');
         } else {
+          // Check if user is not registered
+          const isNotRegistered = response.message && (
+            response.message.toLowerCase().includes('not register') || 
+            response.message.toLowerCase().includes('not found') ||
+            response.message.toLowerCase().includes('exist')
+          );
+
           setAlertConfig({
             visible: true,
-            title: 'Login Failed',
-            message: response.message || 'Invalid MPIN or Number.',
+            title: isNotRegistered ? 'Not Registered' : 'Login Failed',
+            message: isNotRegistered 
+              ? 'User not registered. Please register first.' 
+              : (loginMode === 'mpin' 
+                  ? (response.message || 'Invalid MPIN. Try OTP.') 
+                  : (response.message || 'Invalid OTP or Number.')),
             type: 'error'
           });
         }
@@ -250,16 +280,13 @@ export default function LoginScreen({ navigation }) {
   };
 
   if (isInitialChecking) {
-    return (
-      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5EDE0' }]}>
-        <ActivityIndicator size="large" color="#C36578" />
-      </View>
-    );
+    return <CustomLoader visible={true} />;
   }
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5C542" />
+      <CustomLoader visible={isLoading} />
 
       <View style={styles.content}>
         {/* Icon/Logo Area */}
@@ -275,9 +302,33 @@ export default function LoginScreen({ navigation }) {
           <>
             <Text style={styles.title}>LOGIN WITH MPIN</Text>
             
-            <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 16, marginBottom: 20, color: '#555' }}>
-              Welcome back, +91 {phoneNumber.substring(0,2)}******{phoneNumber.substring(8)}
-            </Text>
+            {hasSavedMobile ? (
+              <View style={{ alignItems: 'center', marginBottom: 20 }}>
+                <Text style={{ fontFamily: 'Poppins_600SemiBold', fontSize: 16, color: '#555' }}>
+                  Welcome back, +91 {phoneNumber.substring(0, 2)}******{phoneNumber.substring(8)}
+                </Text>
+                <TouchableOpacity onPress={() => { setHasSavedMobile(false); setPhoneNumber(''); }}>
+                  <Text style={{ color: '#C36578', fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginTop: 5 }}>
+                    Not you? Change Number
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.inputContainer}>
+                <View style={styles.phoneIcon}>
+                  <Ionicons name="phone-portrait" size={28} color="#fff" />
+                </View>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Phone Number"
+                  placeholderTextColor="#999"
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  value={phoneNumber}
+                  onChangeText={setPhoneNumber}
+                />
+              </View>
+            )}
 
             <View style={styles.inputContainer}>
               <View style={styles.phoneIcon}>
@@ -291,7 +342,13 @@ export default function LoginScreen({ navigation }) {
                 secureTextEntry
                 maxLength={6}
                 value={mpin}
-                onChangeText={setMpin}
+                onChangeText={(text) => {
+                  const cleaned = text.replace(/[^0-9]/g, '');
+                  setMpin(cleaned);
+                  if (cleaned.length === 4 && phoneNumber.length === 10 && !isLoading) {
+                    handleLoginWithMPin(cleaned);
+                  }
+                }}
               />
             </View>
 
@@ -420,6 +477,10 @@ export default function LoginScreen({ navigation }) {
         onClose={() => {
           setAlertConfig({ ...alertConfig, visible: false });
         }}
+      />
+      <ExitModal 
+        visible={showExitModal} 
+        onClose={() => setShowExitModal(false)} 
       />
     </View>
   );

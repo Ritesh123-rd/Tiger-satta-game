@@ -6,10 +6,10 @@ import {
     TouchableOpacity,
     ScrollView,
     StatusBar,
-    ActivityIndicator,
     Image,
     Dimensions
 } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserProfile } from '../../api/auth';
@@ -78,13 +78,10 @@ export default function MyProfileScreen({ navigation }) {
             </View>
 
             {loading ? (
-                <View style={styles.loaderContainer}>
-                    <ActivityIndicator size="large" color="#C36578" />
-                    <Text style={styles.loaderText}>Loading Profile...</Text>
-                </View>
+                <View style={{ height: 200 }} />
             ) : (
                 <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                    {/* Profile Card */}
+                    {/* ... profile card content ... */}
                     <View style={styles.profileCard}>
                         <View style={styles.avatarContainer}>
                             <View style={styles.avatar}>
@@ -123,6 +120,7 @@ export default function MyProfileScreen({ navigation }) {
                     </TouchableOpacity>
                 </ScrollView>
             )}
+            <CustomLoader visible={loading} />
         </View>
     );
 }

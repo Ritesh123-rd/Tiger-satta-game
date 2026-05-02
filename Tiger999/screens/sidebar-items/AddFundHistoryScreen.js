@@ -149,7 +149,6 @@ export default function AddFundHistoryScreen({ navigation }) {
             </View>
 
             <View style={styles.footer}>
-                <Text style={styles.requestId}>Request ID: #{item.id}</Text>
                 <Text style={styles.username}>User: {item.mobile}</Text>
             </View>
         </View>

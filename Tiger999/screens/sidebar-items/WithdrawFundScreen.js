@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, StatusBar, TextInput, Modal, ScrollView, RefreshControl } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { getWalletBalance, getWithdrawRequestHistory, withdrawfund, getBankDetails } from '../../api/auth';
@@ -210,7 +211,13 @@ export default function WithdrawFundScreen({ navigation }) {
         style={styles.scrollContent} 
         showsVerticalScrollIndicator={false}
         refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#C27183']} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor="transparent"
+              colors={['transparent']}
+              progressBackgroundColor="transparent"
+            />
         }
       >
         <View style={styles.content}>
@@ -283,7 +290,7 @@ export default function WithdrawFundScreen({ navigation }) {
           <View style={styles.historySection}>
             <View style={styles.historyHeader}>
               <Text style={styles.historyTitle}>Recent Withdrawals</Text>
-              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+              {loadingHistory && <View style={{ width: 20 }} />}
             </View>
 
             {/* History Tabs */}
@@ -344,13 +351,11 @@ export default function WithdrawFundScreen({ navigation }) {
           onPress={handleWithdrawRequest}
           disabled={submitting}
         >
-          {submitting ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.sendButtonText}>Send Request</Text>
-          )}
+          <Text style={styles.sendButtonText}>Send Request</Text>
         </TouchableOpacity>
       </View>
+
+      <CustomLoader visible={submitting || loadingHistory} />
 
 
       {/* Terms & Conditions Modal */}

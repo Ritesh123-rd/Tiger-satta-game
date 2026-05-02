@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../components/CustomAlert';
+import CustomLoader from '../components/CustomLoader';
 
 
 import logo from '../assets/logo/logo.png';
@@ -48,13 +49,22 @@ export default function RegisterScreen({ navigation }) {
     return () => backHandler.remove();
   }, [navigation]);
 
-  const handleRegister = async () => {
+  const handleRegister = async () => { 
     if (phone && username && password) {
-      if (username.length <= 5) {
+      if (username.length <= 4) {
         setAlertConfig({
           visible: true,
           title: 'Validation Error',
           message: 'Username must be more than 5 characters long',
+          type: 'error'
+        });
+        return;
+      }
+      if (password.length !== 4) {
+        setAlertConfig({
+          visible: true,
+          title: 'Validation Error',
+          message: 'M-PIN must be exactly 4 digits long',
           type: 'error'
         });
         return;
@@ -126,6 +136,7 @@ export default function RegisterScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#F5C542" />
+      <CustomLoader visible={isLoading} />
 
       <View style={styles.content}>
         {/* Icon/Logo Area */}
@@ -166,7 +177,7 @@ export default function RegisterScreen({ navigation }) {
             placeholder="Username"
             placeholderTextColor="#999"
             value={username}
-            onChangeText={setUsername}
+            onChangeText={(text) => setUsername(text.replace(/\s/g, ''))}
           />
         </View>
 
@@ -177,11 +188,12 @@ export default function RegisterScreen({ navigation }) {
           </View>
           <TextInput
             style={styles.input}
-            placeholder="Mpin"
+            placeholder="Mpin (4 digits)"
             placeholderTextColor="#999"
-            secureTextEntry
+            keyboardType="number-pad"
+            maxLength={4}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => setPassword(text.replace(/[^0-9]/g, ''))}
           />
         </View>
 

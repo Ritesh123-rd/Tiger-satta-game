@@ -137,7 +137,6 @@ export default function PassbookScreen({ navigation }) {
             </View>
             <View>
               <Text style={styles.typeText}>{isDeposit ? 'Add Fund' : 'Withdrawal'}</Text>
-              <Text style={styles.requestId}>ID: #{item.id}</Text>
             </View>
           </View>
           <Text style={[styles.amount, { color: isDeposit ? '#2E7D32' : '#C62828' }]}>

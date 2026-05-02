@@ -10,11 +10,11 @@ import {
   Platform,
   ScrollView,
   Linking,
-  ActivityIndicator,
+  Animated,
   AppState,
   RefreshControl,
-  Animated,
 } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef } from 'react';
@@ -486,7 +486,13 @@ export default function AddFundScreen({ navigation }) {
           contentContainerStyle={styles.scrollContentContainer}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#C27183']} />
+            <RefreshControl 
+              refreshing={refreshing} 
+              onRefresh={onRefresh} 
+              tintColor="transparent"
+              colors={['transparent']}
+              progressBackgroundColor="transparent"
+            />
           }
         >
           {/* User Info Card */}
@@ -597,7 +603,7 @@ export default function AddFundScreen({ navigation }) {
                 <MaterialCommunityIcons name="clock-time-four" size={20} color="#C27183" />
                 <Text style={styles.historyTitle}>Recent Requests</Text>
               </View>
-              {loadingHistory && <ActivityIndicator size="small" color="#C27183" />}
+              {loadingHistory && <View style={{ width: 20 }} />}
             </View>
 
             {/* History Tabs */}
@@ -660,7 +666,6 @@ export default function AddFundScreen({ navigation }) {
                       {/* Center info */}
                       <View style={styles.historyCardCenter}>
                         <Text style={styles.historyAmount}>₹ {item.amount}</Text>
-                        <Text style={styles.requestId}>ID: #{item.id}</Text>
                         <Text style={styles.historyDate}>{item.created_at}</Text>
                       </View>
 
@@ -688,20 +693,16 @@ export default function AddFundScreen({ navigation }) {
           </View>
         </ScrollView>
 
-        {/* Pay Now Button */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.payButton, submitting && { opacity: 0.7 }]}
             onPress={handleAddFund}
             disabled={submitting}
           >
-            {submitting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.payButtonText}>Pay Now</Text>
-            )}
+            <Text style={styles.payButtonText}>Pay Now</Text>
           </TouchableOpacity>
         </View>
+        <CustomLoader visible={submitting || loadingHistory} />
 
       </KeyboardAvoidingView>
 

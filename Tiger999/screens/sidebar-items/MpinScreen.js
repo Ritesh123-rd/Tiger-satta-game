@@ -6,9 +6,9 @@ import {
     TouchableOpacity,
     StatusBar,
     TextInput,
-    ActivityIndicator,
     ScrollView
 } from 'react-native';
+import CustomLoader from '../../components/CustomLoader';
 import { Ionicons } from '@expo/vector-icons';
 import CustomAlert from '../../components/CustomAlert';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -117,7 +117,7 @@ export default function MpinScreen({ navigation }) {
                         secureTextEntry
                         maxLength={6}
                         value={mpin}
-                        onChangeText={setMpin}
+                        onChangeText={(text) => setMpin(text.replace(/[^0-9]/g, ''))}
                     />
                 </View>
 
@@ -133,7 +133,7 @@ export default function MpinScreen({ navigation }) {
                         secureTextEntry
                         maxLength={6}
                         value={confirmMpin}
-                        onChangeText={setConfirmMpin}
+                        onChangeText={(text) => setConfirmMpin(text.replace(/[^0-9]/g, ''))}
                     />
                 </View>
 
@@ -143,12 +143,10 @@ export default function MpinScreen({ navigation }) {
                     onPress={handleGenerateMpin}
                     disabled={loading}
                 >
-                    {loading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={styles.submitButtonText}>Generate MPIN Now</Text>
-                    )}
+                    <Text style={styles.submitButtonText}>Generate MPIN Now</Text>
                 </TouchableOpacity>
+
+                <CustomLoader visible={loading} />
 
                 {/* Security Tips */}
                 <View style={styles.tipsContainer}>
